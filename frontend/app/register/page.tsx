@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSignMessage, useChainId } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { parseEther, parseEventLogs } from "viem";
 import { REGISTRY_ABI } from "@/lib/registry-abi";
 import { apiFetch, CATEGORY_LABELS } from "@/lib/utils";
-import { authFetch } from "@/lib/auth";
+import { authFetch, getNonce, buildSiweMessage, verifySignature } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import { SignInButton } from "@/components/SignInButton";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -32,7 +31,9 @@ const STAKE = parseEther("0.01");
 
 export default function RegisterPage() {
   const { address, isConnected } = useAccount();
-  const { isSignedIn } = useAuth();
+  const chainId = useChainId();
+  const { isSignedIn, setSignedIn } = useAuth();
+  const { signMessageAsync } = useSignMessage();
   const [step, setStep] = useState<Step>(1);
   const [form, setForm] = useState({
     name: "",
@@ -73,10 +74,21 @@ export default function RegisterPage() {
     }
   }
 
+  // Sign in silently if not already — called before any auth-gated action
+  async function ensureSignedIn() {
+    if (isSignedIn) return;
+    const nonce = await getNonce();
+    const message = buildSiweMessage(address!, chainId, nonce);
+    const signature = await signMessageAsync({ message });
+    const { address: verified, token } = await verifySignature(message, signature);
+    setSignedIn(verified, token);
+  }
+
   // Step 4: submit to backend, get hash, then trigger wallet tx
   async function handleRegister() {
     setError("");
     try {
+      await ensureSignedIn();
       const data = await apiFetch<{ metadataHash: `0x${string}`; profileId: string }>(
         "/api/agents/register",
         {
@@ -369,19 +381,12 @@ export default function RegisterPage() {
             <p className="text-muted text-sm">
               Your agent NFT will be minted to this address. Make sure it&apos;s the wallet you want to use as the builder identity.
             </p>
-            {!isSignedIn ? (
-              <div className="p-5 bg-white/5 border border-white/10 rounded-card text-center space-y-3">
-                <p className="text-muted text-sm">Sign in to verify wallet ownership before continuing.</p>
-                <SignInButton />
-              </div>
-            ) : (
-              <button
-                onClick={() => setStep(2)}
-                className="w-full bg-accent hover:bg-accent-hover text-white rounded-btn py-3 text-sm font-semibold transition-colors"
-              >
-                Continue →
-              </button>
-            )}
+            <button
+              onClick={() => setStep(2)}
+              className="w-full bg-accent hover:bg-accent-hover text-white rounded-btn py-3 text-sm font-semibold transition-colors"
+            >
+              Continue →
+            </button>
           </div>
         )}
 

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { useAccount, useDisconnect } from "wagmi";
-import { clearToken, getToken } from "@/lib/auth";
+import { clearToken, getToken, setToken } from "@/lib/auth";
 
 interface AuthState {
   address: string | null;
@@ -25,7 +25,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { disconnect } = useDisconnect();
   const { address: walletAddress } = useAccount();
 
-  // Sign out if wallet disconnects
   useEffect(() => {
     if (!walletAddress && address) signOut();
   }, [walletAddress]);
@@ -47,8 +46,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     </AuthContext.Provider>
   );
 }
-
-// Re-export setToken so it can be used from the module
-import { setToken } from "@/lib/auth";
 
 export const useAuth = () => useContext(AuthContext);
