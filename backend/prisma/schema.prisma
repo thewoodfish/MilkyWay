@@ -1,0 +1,87 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Agent {
+  id           String       @id @default(cuid())
+  agentId      Int          @unique
+  name         String
+  description  String
+  category     Category
+  subcategory  String?
+  version      String       @default("1.0.0")
+  endpoint     String
+  pricingModel PricingModel
+  priceEth     String
+  permissions  String[]
+  logoUrl      String?
+  metadataHash String
+  ownerAddress String
+  badgeTier    BadgeTier    @default(NONE)
+  active       Boolean      @default(true)
+  verifiedAt   DateTime?
+  failedChecks Int          @default(0)
+  registeredAt DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  txHash       String?
+
+  builder Builder @relation(fields: [ownerAddress], references: [address])
+
+  @@index([category])
+  @@index([ownerAddress])
+  @@index([active])
+  @@index([badgeTier])
+}
+
+model Builder {
+  address       String   @id
+  agentsCount   Int      @default(0)
+  totalEarnings String   @default("0")
+  joinedAt      DateTime @default(now())
+  agents        Agent[]
+}
+
+model VerificationLog {
+  id            String   @id @default(cuid())
+  agentId       Int
+  endpoint      String
+  success       Boolean
+  statusCode    Int?
+  responseTimeMs Int?
+  checkedAt     DateTime @default(now())
+
+  @@index([agentId])
+  @@index([checkedAt])
+}
+
+enum Category {
+  DEFI
+  TRADING
+  DATA
+  PRODUCTIVITY
+  UTILITY
+  SECURITY
+  GAMING
+  SOCIAL
+}
+
+enum PricingModel {
+  PER_CALL
+  PER_DAY
+  PER_MONTH
+  FREE
+}
+
+enum BadgeTier {
+  NONE
+  BRONZE
+  SILVER
+  GOLD
+}

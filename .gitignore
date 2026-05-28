@@ -141,3 +141,12 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Env files (never commit any .env variant)
+.env.example
+*.env.example
+
+# Foundry artifacts
+contracts/out/
+contracts/cache/
+contracts/broadcast/
