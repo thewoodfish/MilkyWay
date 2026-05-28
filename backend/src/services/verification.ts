@@ -1,4 +1,5 @@
 import { prisma } from "../lib/db";
+import { fetchAbout } from "./about";
 
 export interface PingResult {
   success: boolean;
@@ -64,12 +65,18 @@ export async function runVerificationCycle() {
     });
 
     if (result.success) {
+      const aboutResult = await fetchAbout(agent.endpoint);
       await prisma.agent.update({
         where: { id: agent.id },
         data: {
           failedChecks: 0,
           verifiedAt: new Date(),
           badgeTier: "BRONZE",
+          ...(aboutResult.success && {
+            aboutSchema: aboutResult.schema as object,
+            phase2Ready: true,
+            aboutCachedAt: new Date(),
+          }),
         },
       });
     } else {

@@ -24,6 +24,9 @@ export function Navbar() {
           <Link href="/register" className="text-muted hover:text-white transition-colors text-sm font-medium">
             Register Agent
           </Link>
+          <Link href="/builder" className="text-muted hover:text-white transition-colors text-sm font-medium">
+            Builder
+          </Link>
           <Link href="/dashboard" className="text-muted hover:text-white transition-colors text-sm font-medium">
             Dashboard
           </Link>

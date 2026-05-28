@@ -30,6 +30,11 @@ export function AgentCard({ agent }: AgentCardProps) {
             {badgeEmoji(agent.badgeTier) && (
               <span title={agent.badgeTier}>{badgeEmoji(agent.badgeTier)}</span>
             )}
+            {agent.phase2Ready && (
+              <span title="Phase 2 Ready — implements /about and /execute" className="text-xs bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded-full px-2 py-0.5">
+                P2
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-xs text-accent font-medium">

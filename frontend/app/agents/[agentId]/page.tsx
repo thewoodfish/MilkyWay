@@ -87,6 +87,11 @@ export default async function AgentProfilePage({
                   {badgeEmoji(agent.badgeTier)}
                 </span>
               )}
+              {agent.phase2Ready && (
+                <span title="Phase 2 Ready — implements /about and /execute" className="text-xs bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded-full px-3 py-1">
+                  ⚡ Phase 2 Ready
+                </span>
+              )}
             </div>
             <div className="flex flex-wrap gap-2 mb-3">
               <span className="bg-accent/10 border border-accent/20 text-accent rounded-full px-3 py-1 text-xs font-medium">

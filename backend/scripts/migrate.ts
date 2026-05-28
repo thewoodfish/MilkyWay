@@ -73,6 +73,62 @@ const statements = [
   `CREATE INDEX IF NOT EXISTS "Agent_badgeTier_idx" ON "Agent"("badgeTier")`,
   `CREATE INDEX IF NOT EXISTS "VerificationLog_agentId_idx" ON "VerificationLog"("agentId")`,
   `CREATE INDEX IF NOT EXISTS "VerificationLog_checkedAt_idx" ON "VerificationLog"("checkedAt")`,
+
+  // Phase 2 additions
+  `ALTER TABLE "Agent" ADD COLUMN IF NOT EXISTS "aboutSchema" JSONB`,
+  `ALTER TABLE "Agent" ADD COLUMN IF NOT EXISTS "phase2Ready" BOOLEAN NOT NULL DEFAULT false`,
+  `ALTER TABLE "Agent" ADD COLUMN IF NOT EXISTS "aboutCachedAt" TIMESTAMP(3)`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "FlowStatus" AS ENUM ('LOCKED','RUNNING','COMPLETED','REFUNDED','FAILED');
+  EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "AgentJobStatus" AS ENUM ('PENDING','RUNNING','COMPLETED','FAILED');
+  EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
+
+  `DO $$ BEGIN
+    CREATE TYPE "TriggerType" AS ENUM ('IMMEDIATE','SCHEDULED','CONDITION');
+  EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
+
+  `CREATE TABLE IF NOT EXISTS "Flow" (
+    "id" TEXT NOT NULL,
+    "jobId" TEXT NOT NULL,
+    "callerAddress" TEXT NOT NULL,
+    "totalAmountEth" TEXT NOT NULL,
+    "deadline" TIMESTAMP(3) NOT NULL,
+    "trigger" "TriggerType" NOT NULL,
+    "triggerValue" TEXT,
+    "status" "FlowStatus" NOT NULL DEFAULT 'LOCKED',
+    "escrowTxHash" TEXT,
+    "completedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Flow_pkey" PRIMARY KEY ("id")
+  )`,
+
+  `CREATE UNIQUE INDEX IF NOT EXISTS "Flow_jobId_key" ON "Flow"("jobId")`,
+  `CREATE INDEX IF NOT EXISTS "Flow_callerAddress_idx" ON "Flow"("callerAddress")`,
+  `CREATE INDEX IF NOT EXISTS "Flow_status_idx" ON "Flow"("status")`,
+
+  `CREATE TABLE IF NOT EXISTS "FlowAgent" (
+    "id" TEXT NOT NULL,
+    "flowId" TEXT NOT NULL,
+    "agentId" INTEGER NOT NULL,
+    "agentAddress" TEXT NOT NULL,
+    "orderIndex" INTEGER NOT NULL,
+    "amountEth" TEXT NOT NULL,
+    "staticInputs" JSONB,
+    "inputMapping" JSONB,
+    "status" "AgentJobStatus" NOT NULL DEFAULT 'PENDING',
+    "output" JSONB,
+    "executedAt" TIMESTAMP(3),
+    CONSTRAINT "FlowAgent_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "FlowAgent_flowId_fkey" FOREIGN KEY ("flowId") REFERENCES "Flow"("id") ON DELETE RESTRICT ON UPDATE CASCADE
+  )`,
+
+  `CREATE INDEX IF NOT EXISTS "FlowAgent_flowId_idx" ON "FlowAgent"("flowId")`,
+  `CREATE INDEX IF NOT EXISTS "FlowAgent_orderIndex_idx" ON "FlowAgent"("orderIndex")`,
 ];
 
 async function migrate() {

@@ -31,6 +31,9 @@ model Agent {
   registeredAt DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   txHash       String?
+  aboutSchema  Json?
+  phase2Ready  Boolean      @default(false)
+  aboutCachedAt DateTime?
 
   builder Builder @relation(fields: [ownerAddress], references: [address])
 
@@ -38,6 +41,65 @@ model Agent {
   @@index([ownerAddress])
   @@index([active])
   @@index([badgeTier])
+}
+
+model Flow {
+  id             String      @id @default(cuid())
+  jobId          String      @unique
+  callerAddress  String
+  totalAmountEth String
+  deadline       DateTime
+  trigger        TriggerType
+  triggerValue   String?
+  status         FlowStatus  @default(LOCKED)
+  escrowTxHash   String?
+  completedAt    DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  agents         FlowAgent[]
+
+  @@index([callerAddress])
+  @@index([status])
+}
+
+model FlowAgent {
+  id           String         @id @default(cuid())
+  flowId       String
+  agentId      Int
+  agentAddress String
+  orderIndex   Int
+  amountEth    String
+  staticInputs Json?
+  inputMapping Json?
+  status       AgentJobStatus @default(PENDING)
+  output       Json?
+  executedAt   DateTime?
+
+  flow Flow @relation(fields: [flowId], references: [id])
+
+  @@index([flowId])
+  @@index([orderIndex])
+}
+
+enum FlowStatus {
+  LOCKED
+  RUNNING
+  COMPLETED
+  REFUNDED
+  FAILED
+}
+
+enum AgentJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum TriggerType {
+  IMMEDIATE
+  SCHEDULED
+  CONDITION
 }
 
 model Builder {

@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { ethers } from "ethers";
 import { prisma } from "../lib/db";
 import { verifyEndpoint } from "../services/verification";
+import { fetchAbout } from "../services/about";
 import { authenticateJWT, AuthRequest } from "../middleware/auth";
 
 const router = Router();
@@ -130,7 +131,20 @@ router.post("/register", async (req: Request, res: Response) => {
       },
     });
 
-    res.json({ metadataHash, profileId: agent.id, pingResult });
+    // Probe /about — non-blocking, marks phase2Ready if present
+    const aboutResult = await fetchAbout(endpoint);
+    if (aboutResult.success) {
+      await prisma.agent.update({
+        where: { id: agent.id },
+        data: {
+          aboutSchema: aboutResult.schema as object,
+          phase2Ready: true,
+          aboutCachedAt: new Date(),
+        },
+      });
+    }
+
+    res.json({ metadataHash, profileId: agent.id, pingResult, phase2Ready: aboutResult.success });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });

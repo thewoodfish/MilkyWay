@@ -28,6 +28,8 @@ export interface Agent {
   registeredAt: string;
   updatedAt: string;
   txHash?: string | null;
+  phase2Ready: boolean;
+  aboutSchema?: unknown;
   builder?: Builder;
 }
 
