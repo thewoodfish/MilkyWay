@@ -108,7 +108,7 @@ router.post("/register", async (req: Request, res: Response) => {
 
     const agent = await prisma.agent.create({
       data: {
-        agentId: -1,
+        agentId: null,
         metadataHash,
         active: false,
         name: profile.name,

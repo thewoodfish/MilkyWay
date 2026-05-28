@@ -11,7 +11,7 @@ datasource db {
 
 model Agent {
   id           String       @id @default(cuid())
-  agentId      Int          @unique
+  agentId      Int?         @unique
   name         String
   description  String
   category     Category
