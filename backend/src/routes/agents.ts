@@ -121,7 +121,6 @@ router.post("/register", async (req: Request, res: Response) => {
         priceEth: profile.priceEth,
         permissions: profile.permissions,
         logoUrl: profile.logoUrl ?? undefined,
-        ownerAddress: profile.ownerAddress,
         builder: {
           connectOrCreate: {
             where: { address: ownerAddress },
