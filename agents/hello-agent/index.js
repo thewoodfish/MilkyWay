@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 const NAME = "Hello Agent";
-const VERSION = "1.0.0";
+const VERSION = "2.0.0";
 
 // Track processed job IDs for idempotency
 const processedJobs = new Set();

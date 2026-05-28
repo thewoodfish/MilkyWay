@@ -1,7 +1,7 @@
 {
-  "name": "hello-agent",
-  "version": "2.0.0",
-  "description": "Minimal MilkyWay test agent",
+  "name": "analyze-agent",
+  "version": "1.0.0",
+  "description": "MilkyWay test agent — analyzes text content, extracts keywords and sentiment",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

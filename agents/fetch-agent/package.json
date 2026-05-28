@@ -1,7 +1,7 @@
 {
-  "name": "hello-agent",
-  "version": "2.0.0",
-  "description": "Minimal MilkyWay test agent",
+  "name": "fetch-agent",
+  "version": "1.0.0",
+  "description": "MilkyWay test agent — fetches simulated content for a topic",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
