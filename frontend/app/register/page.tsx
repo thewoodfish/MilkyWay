@@ -337,13 +337,6 @@ export default function RegisterPage() {
               <p className="text-muted text-xs">Your stake is returned in full when you deactivate your agent.</p>
             </div>
 
-            {!isSignedIn && (
-              <div className="p-5 bg-white/5 border border-white/10 rounded-card text-center">
-                <p className="text-muted text-sm mb-3">Sign in to verify ownership before registering.</p>
-                <SignInButton />
-              </div>
-            )}
-
             {error && (
               <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-btn text-red-400 text-sm">
                 {error}
@@ -356,7 +349,7 @@ export default function RegisterPage() {
               </button>
               <button
                 onClick={handleRegister}
-                disabled={isTxPending || isConfirming || !isSignedIn}
+                disabled={isTxPending || isConfirming}
                 className="flex-1 bg-accent hover:bg-accent-hover text-white rounded-btn py-3 text-sm font-semibold transition-colors disabled:opacity-60"
               >
                 {isTxPending ? "Check Wallet…" : isConfirming ? "Confirming…" : "Register Agent ✦"}
@@ -365,7 +358,7 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* Step 1 — Wallet connected, go to step 2 */}
+        {/* Step 1 — Wallet connected, sign in */}
         {step === 1 && (
           <div className="space-y-5">
             <h2 className="font-display font-bold text-2xl text-white">Wallet Connected</h2>
@@ -376,12 +369,19 @@ export default function RegisterPage() {
             <p className="text-muted text-sm">
               Your agent NFT will be minted to this address. Make sure it&apos;s the wallet you want to use as the builder identity.
             </p>
-            <button
-              onClick={() => setStep(2)}
-              className="w-full bg-accent hover:bg-accent-hover text-white rounded-btn py-3 text-sm font-semibold transition-colors"
-            >
-              Continue →
-            </button>
+            {!isSignedIn ? (
+              <div className="p-5 bg-white/5 border border-white/10 rounded-card text-center space-y-3">
+                <p className="text-muted text-sm">Sign in to verify wallet ownership before continuing.</p>
+                <SignInButton />
+              </div>
+            ) : (
+              <button
+                onClick={() => setStep(2)}
+                className="w-full bg-accent hover:bg-accent-hover text-white rounded-btn py-3 text-sm font-semibold transition-colors"
+              >
+                Continue →
+              </button>
+            )}
           </div>
         )}
 
