@@ -38,11 +38,30 @@ export async function verifySignature(
   return res.json();
 }
 
-// JWT stored in memory only — never localStorage (XSS risk)
-let _token: string | null = null;
-export const setToken = (t: string) => { _token = t; };
-export const getToken = () => _token;
-export const clearToken = () => { _token = null; };
+const TOKEN_KEY = "mw_jwt";
+const ADDR_KEY  = "mw_addr";
+
+export function setToken(t: string, addr: string) {
+  try {
+    localStorage.setItem(TOKEN_KEY, t);
+    localStorage.setItem(ADDR_KEY, addr);
+  } catch { /* private browsing */ }
+}
+
+export function getToken(): string | null {
+  try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
+}
+
+export function getSavedAddress(): string | null {
+  try { return localStorage.getItem(ADDR_KEY); } catch { return null; }
+}
+
+export function clearToken() {
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(ADDR_KEY);
+  } catch { /* ignore */ }
+}
 
 export async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const token = getToken();

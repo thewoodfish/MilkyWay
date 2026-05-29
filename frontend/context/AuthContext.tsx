@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { useAccount, useDisconnect } from "wagmi";
-import { clearToken, getToken, setToken } from "@/lib/auth";
+import { clearToken, getToken, getSavedAddress, setToken } from "@/lib/auth";
 
 interface AuthState {
   address: string | null;
@@ -25,12 +25,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { disconnect } = useDisconnect();
   const { address: walletAddress } = useAccount();
 
+  // Hydrate from localStorage on mount
+  useEffect(() => {
+    const saved = getSavedAddress();
+    const token = getToken();
+    if (saved && token) setAddress(saved);
+  }, []);
+
+  // Sign out if wallet disconnects
   useEffect(() => {
     if (!walletAddress && address) signOut();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletAddress]);
 
   function setSignedIn(addr: string, token: string) {
-    setToken(token);
+    setToken(token, addr);
     setAddress(addr);
   }
 

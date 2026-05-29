@@ -9,6 +9,7 @@ import { AuthGate } from "@/components/AuthGate";
 import { REGISTRY_ABI } from "@/lib/registry-abi";
 import { CATEGORY_LABELS, timeAgo } from "@/lib/utils";
 import { AgentAvatar } from "@/components/AgentAvatar";
+import { Portal } from "@/components/Portal";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from "recharts";
@@ -901,6 +902,7 @@ export default function DashboardPage() {
 
       {/* ── Agent Analytics Modal ── */}
       {(analyticsAgent || analyticsLoading) && (
+        <Portal>
         <div
           onClick={() => setAnalyticsAgent(null)}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "flex-end" }}
@@ -1040,6 +1042,7 @@ export default function DashboardPage() {
             ) : null}
           </div>
         </div>
+        </Portal>
       )}
     </AuthGate>
   );
@@ -1047,16 +1050,18 @@ export default function DashboardPage() {
 
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
-    <div
-      onClick={onClose}
-      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: "16px" }}
-    >
+    <Portal>
       <div
-        onClick={(e) => e.stopPropagation()}
-        style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "16px", padding: "28px", maxWidth: "440px", width: "100%", boxShadow: "0 20px 60px rgba(10,37,64,0.15)" }}
+        onClick={onClose}
+        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: "16px" }}
       >
-        {children}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "16px", padding: "28px", maxWidth: "440px", width: "100%", boxShadow: "0 20px 60px rgba(10,37,64,0.15)" }}
+        >
+          {children}
+        </div>
       </div>
-    </div>
+    </Portal>
   );
 }
