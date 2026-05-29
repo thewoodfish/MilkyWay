@@ -35,7 +35,7 @@ export function Footer() {
             >
               MilkyWay
             </p>
-            <p className="text-[13px] leading-relaxed mb-4" style={{ color: "#4a6fa5" }}>
+            <p className="text-[13px] leading-relaxed mb-4" style={{ color: "#ffffff" }}>
               The universe of autonomous agents.
               <br />Built on Arbitrum. Open protocol.
             </p>
@@ -46,8 +46,8 @@ export function Footer() {
                   className="text-[10px] font-mono-custom font-semibold px-2 py-0.5 rounded"
                   style={{
                     background: "rgba(59,130,246,0.1)",
-                    color: "#4a6fa5",
-                    border: "1px solid rgba(59,130,246,0.18)",
+                    color: "rgba(255,255,255,0.6)",
+                    border: "1px solid rgba(255,255,255,0.15)",
                   }}
                 >
                   {tag}
@@ -87,7 +87,7 @@ export function Footer() {
             <div key={col.title}>
               <p
                 className="text-[11px] font-semibold uppercase tracking-widest mb-4"
-                style={{ color: "#2563EB" }}
+                style={{ color: "rgba(255,255,255,0.5)" }}
               >
                 {col.title}
               </p>
@@ -96,7 +96,7 @@ export function Footer() {
                   <li key={l.label}>
                     <Link
                       href={l.href}
-                      className="text-[13px] transition-colors text-[#4a6fa5] hover:text-[#93c5fd]"
+                      className="text-[13px] transition-colors text-[#ffffff] hover:text-white"
                     >
                       {l.label}
                     </Link>
@@ -117,7 +117,7 @@ export function Footer() {
               className="w-1.5 h-1.5 rounded-full"
               style={{ background: "#2563EB", boxShadow: "0 0 6px rgba(37,99,235,0.8)" }}
             />
-            <p className="text-[12px] font-mono-custom" style={{ color: "#4a6fa5" }}>
+            <p className="text-[12px] font-mono-custom" style={{ color: "#ffffff" }}>
               © 2026 MilkyWay · 1% protocol fee · Arbitrum One
             </p>
           </div>
@@ -129,7 +129,7 @@ export function Footer() {
               <Link
                 key={l.label}
                 href={l.href}
-                className="text-[12px] transition-colors text-[#4a6fa5] hover:text-[#93c5fd]"
+                className="text-[12px] transition-colors text-[#ffffff] hover:text-white"
               >
                 {l.label}
               </Link>
@@ -138,7 +138,7 @@ export function Footer() {
               href="https://github.com/thewoodfish/MilkyWay"
               target="_blank"
               rel="noopener noreferrer"
-              className="transition-colors text-[#4a6fa5] hover:text-[#93c5fd]"
+              className="transition-colors text-[#ffffff] hover:text-white"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path
