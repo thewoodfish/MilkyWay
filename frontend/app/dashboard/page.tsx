@@ -237,7 +237,7 @@ function ReliabilityCalendar({ days }: { days: DashAgent["reliabilityDays"] }) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p style={{ fontSize: "11px", fontWeight: 700, color: "#2563EB", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0" }}>
+    <p style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0" }}>
       {children}
     </p>
   );
@@ -488,7 +488,7 @@ export default function DashboardPage() {
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                         {activeFlows.map((f) => (
-                          <div key={f.id} style={{ background: "#fff", border: "1px solid #DBEAFE", borderRadius: "12px", padding: "20px", borderLeft: "3px solid #2563EB" }}>
+                          <div key={f.id} style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", padding: "20px" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                                 <StatusChip status={f.status} />
@@ -500,7 +500,7 @@ export default function DashboardPage() {
                             </div>
                             <PipelineMini agents={f.agents} />
                             <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "12px" }}>
-                              Started {timeAgo(f.createdAt)} · <span style={{ color: "#2563EB", fontWeight: 600 }}>{f.agents.filter((a) => a.status === "COMPLETED").length} of {f.agents.length}</span> agents complete
+                              Started {timeAgo(f.createdAt)} · <span style={{ color: "#0A2540", fontWeight: 600 }}>{f.agents.filter((a) => a.status === "COMPLETED").length} of {f.agents.length}</span> agents complete
                             </p>
                           </div>
                         ))}
@@ -539,12 +539,12 @@ export default function DashboardPage() {
                         href="/builder"
                       />
                     ) : (
-                      <div style={{ background: "#fff", border: "1px solid #DBEAFE", borderRadius: "12px", overflow: "hidden", borderTop: "3px solid #2563EB" }}>
+                      <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                           <thead>
-                            <tr style={{ borderBottom: "1px solid #DBEAFE", background: "#EFF6FF" }}>
+                            <tr style={{ borderBottom: "1px solid #E3E8EF", background: "#F8FAFC" }}>
                               {["When", "Agents", "Cost", "Status"].map((h, i) => (
-                                <th key={h} style={{ padding: "12px 16px", textAlign: i >= 2 ? "right" : "left", fontSize: "11px", fontWeight: 700, color: "#2563EB", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                                <th key={h} style={{ padding: "12px 16px", textAlign: i >= 2 ? "right" : "left", fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                                   {h}
                                 </th>
                               ))}
@@ -554,9 +554,9 @@ export default function DashboardPage() {
                             {historyFlows.map((f) => (
                               <tr
                                 key={f.id}
-                                style={{ borderBottom: "1px solid #EEF2FF", cursor: "pointer" }}
+                                style={{ borderBottom: "1px solid #F1F5F9", cursor: "pointer" }}
                                 onClick={() => (window.location.href = `/flows/${f.jobId}`)}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F8FF")}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = "#F8FAFC")}
                                 onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                               >
                                 <td style={{ padding: "12px 16px", color: "#64748b", fontSize: "12px" }}>{timeAgo(f.createdAt)}</td>
@@ -591,11 +591,11 @@ export default function DashboardPage() {
                       href="/register"
                     />
                   ) : (
-                    <div style={{ background: "#fff", border: "1px solid #DBEAFE", borderRadius: "12px", overflow: "hidden", borderTop: "3px solid #2563EB" }}>
+                    <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
                       {/* Table header */}
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 60px 70px 90px 110px", padding: "10px 20px", background: "#EFF6FF", borderBottom: "1px solid #DBEAFE" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 60px 70px 90px 110px", padding: "10px 20px", background: "#F8FAFC", borderBottom: "1px solid #E3E8EF" }}>
                         {["Agent", "Status", "Badge", "Jobs", "Earned", "Actions"].map((h, i) => (
-                          <span key={h} style={{ fontSize: "11px", fontWeight: 700, color: "#2563EB", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: i >= 3 ? "right" : "left" }}>
+                          <span key={h} style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: i >= 3 ? "right" : "left" }}>
                             {h}
                           </span>
                         ))}
@@ -606,17 +606,15 @@ export default function DashboardPage() {
                         const hs = HEALTH_STYLE[health];
 
                         return (
-                          <div key={agent.agentId} style={{ borderBottom: "1px solid #EEF2FF" }}>
+                          <div key={agent.agentId} style={{ borderBottom: "1px solid #F1F5F9" }}>
                             <div
                               onClick={() => openAnalytics(agent.agentId)}
                               style={{ display: "grid", gridTemplateColumns: "1fr 110px 60px 70px 90px 110px", padding: "14px 20px", cursor: "pointer", transition: "background 0.1s" }}
                               onMouseEnter={(e) => {
-                                (e.currentTarget as HTMLElement).style.background = "#F5F8FF";
-                                (e.currentTarget as HTMLElement).style.borderLeft = "3px solid #2563EB";
+                                (e.currentTarget as HTMLElement).style.background = "#F8FAFC";
                               }}
                               onMouseLeave={(e) => {
                                 (e.currentTarget as HTMLElement).style.background = "";
-                                (e.currentTarget as HTMLElement).style.borderLeft = "";
                               }}
                             >
                               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -630,9 +628,9 @@ export default function DashboardPage() {
                                 <div>
                                   <p style={{ fontSize: "14px", fontWeight: 600, color: "#0A2540" }}>{agent.name}</p>
                                   <p style={{ fontSize: "11px", color: "#94a3b8", fontFamily: "monospace" }}>
-                                    <span style={{ color: "#2563EB", fontWeight: 600 }}>#{agent.agentId}</span>
+                                    <span style={{ color: "#94a3b8", fontWeight: 600 }}>#{agent.agentId}</span>
                                     {" · "}
-                                    <span style={{ background: "#EFF6FF", color: "#2563EB", padding: "1px 5px", borderRadius: "4px", fontSize: "10px", fontWeight: 600 }}>
+                                    <span style={{ background: "#F1F5F9", color: "#64748b", padding: "1px 5px", borderRadius: "4px", fontSize: "10px", fontWeight: 600 }}>
                                       {CATEGORY_LABELS[agent.category] ?? agent.category}
                                     </span>
                                   </p>
@@ -647,7 +645,7 @@ export default function DashboardPage() {
                                   {agent.badgeTier === "BRONZE" ? "🥉" : agent.badgeTier === "SILVER" ? "🥈" : agent.badgeTier === "GOLD" ? "🥇" : "—"}
                                 </span>
                               </div>
-                              <p style={{ fontSize: "13px", fontWeight: 700, color: "#2563EB", textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+                              <p style={{ fontSize: "13px", fontWeight: 700, color: "#0A2540", textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
                                 {agent.totalJobs}
                               </p>
                               <p style={{ fontSize: "12px", color: "#0A2540", fontWeight: 600, textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end", fontFamily: "monospace" }}>
@@ -746,26 +744,26 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Per-agent */}
-                      <div style={{ background: "#fff", border: "1px solid #DBEAFE", borderRadius: "12px", overflow: "hidden", marginBottom: "20px", borderTop: "3px solid #2563EB" }}>
-                        <div style={{ padding: "14px 20px", borderBottom: "1px solid #DBEAFE", background: "#EFF6FF" }}>
+                      <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden", marginBottom: "20px" }}>
+                        <div style={{ padding: "14px 20px", borderBottom: "1px solid #E3E8EF", background: "#F8FAFC" }}>
                           <SectionLabel>By agent</SectionLabel>
                         </div>
                         {earnings.perAgent.map((a) => {
                           const total = parseFloat(earnings.totalEarnedEth);
                           const pct = total > 0 ? (parseFloat(a.totalEarnedEth) / total) * 100 : 0;
                           return (
-                            <div key={a.agentId} style={{ padding: "16px 20px", borderBottom: "1px solid #EEF2FF" }}>
+                            <div key={a.agentId} style={{ padding: "16px 20px", borderBottom: "1px solid #F1F5F9" }}>
                               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                                 <div>
                                   <p style={{ fontSize: "14px", fontWeight: 600, color: "#0A2540" }}>{a.name}</p>
                                   <p style={{ fontSize: "12px", color: "#64748b" }}>
-                                    <span style={{ color: "#2563EB", fontWeight: 700 }}>{a.executions}</span> job{a.executions !== 1 ? "s" : ""}
+                                    <span style={{ color: "#0A2540", fontWeight: 700 }}>{a.executions}</span> job{a.executions !== 1 ? "s" : ""}
                                     {a.lastRunAt && <> · last run {timeAgo(a.lastRunAt)}</>}
                                   </p>
                                 </div>
                                 <div style={{ textAlign: "right" }}>
                                   <p style={{ fontSize: "14px", fontWeight: 700, color: "#0A2540", fontFamily: "monospace", display: "flex", alignItems: "center", justifyContent: "flex-end" }}><EthAmount amount={fmt(a.totalEarnedEth)} size={13} /></p>
-                                  <p style={{ fontSize: "11px", color: "#2563EB", fontWeight: 600 }}>{pct.toFixed(0)}% of total</p>
+                                  <p style={{ fontSize: "11px", color: "#64748b", fontWeight: 600 }}>{pct.toFixed(0)}% of total</p>
                                 </div>
                               </div>
                               <div style={{ height: "5px", background: "#EEF2FF", borderRadius: "3px", overflow: "hidden" }}>
@@ -778,15 +776,15 @@ export default function DashboardPage() {
 
                       {/* Recent payments */}
                       {earnings.recentPayments.length > 0 && (
-                        <div style={{ background: "#fff", border: "1px solid #DBEAFE", borderRadius: "12px", overflow: "hidden", borderTop: "3px solid #2563EB" }}>
-                          <div style={{ padding: "14px 20px", borderBottom: "1px solid #DBEAFE", background: "#EFF6FF" }}>
+                        <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
+                          <div style={{ padding: "14px 20px", borderBottom: "1px solid #E3E8EF", background: "#F8FAFC" }}>
                             <SectionLabel>Recent payments</SectionLabel>
                           </div>
                           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                             <thead>
-                              <tr style={{ background: "#EFF6FF", borderBottom: "1px solid #DBEAFE" }}>
+                              <tr style={{ background: "#F8FAFC", borderBottom: "1px solid #E3E8EF" }}>
                                 {["Date", "Agent", "Flow", "Amount", "Tx"].map((h, i) => (
-                                  <th key={h} style={{ padding: "10px 16px", textAlign: i >= 3 ? "right" : "left", fontSize: "11px", fontWeight: 700, color: "#2563EB", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                                  <th key={h} style={{ padding: "10px 16px", textAlign: i >= 3 ? "right" : "left", fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                                     {h}
                                   </th>
                                 ))}
@@ -796,19 +794,19 @@ export default function DashboardPage() {
                               {earnings.recentPayments.map((p, i) => (
                                 <tr
                                   key={i}
-                                  style={{ borderBottom: "1px solid #EEF2FF" }}
-                                  onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F8FF")}
+                                  style={{ borderBottom: "1px solid #F1F5F9" }}
+                                  onMouseEnter={(e) => (e.currentTarget.style.background = "#F8FAFC")}
                                   onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                                 >
                                   <td style={{ padding: "12px 16px", color: "#64748b", fontSize: "12px" }}>{p.executedAt ? timeAgo(p.executedAt) : "—"}</td>
                                   <td style={{ padding: "12px 16px", color: "#0A2540", fontWeight: 600 }}>{p.agentName}</td>
                                   <td style={{ padding: "12px 16px", fontFamily: "monospace", fontSize: "11px" }}>
-                                    <span style={{ background: "#EFF6FF", color: "#2563EB", padding: "2px 7px", borderRadius: "5px", fontWeight: 600 }}>{p.flowJobId.slice(0, 14)}…</span>
+                                    <span style={{ background: "#F1F5F9", color: "#64748b", padding: "2px 7px", borderRadius: "5px", fontWeight: 600 }}>{p.flowJobId.slice(0, 14)}…</span>
                                   </td>
                                   <td style={{ padding: "12px 16px", textAlign: "right", color: "#10b981", fontWeight: 700, fontFamily: "monospace" }}><EthAmount amount={fmt(p.amountEth)} size={12} /></td>
                                   <td style={{ padding: "12px 16px", textAlign: "right" }}>
                                     {p.txHash
-                                      ? <a href={`${ARBISCAN}/tx/${p.txHash}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "#2563EB", textDecoration: "none", fontWeight: 600 }}>↗ Tx</a>
+                                      ? <a href={`${ARBISCAN}/tx/${p.txHash}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "#64748b", textDecoration: "none", fontWeight: 600 }}>↗ Tx</a>
                                       : <span style={{ color: "#94a3b8" }}>—</span>
                                     }
                                   </td>
