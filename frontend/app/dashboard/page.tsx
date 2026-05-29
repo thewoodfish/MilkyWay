@@ -95,6 +95,34 @@ interface Earnings {
   }[];
 }
 
+interface AgentAnalytics {
+  agentId: number;
+  name: string;
+  category: string;
+  badgeTier: string;
+  logoUrl?: string | null;
+  active: boolean;
+  phase2Ready: boolean;
+  verifiedAt: string | null;
+  registeredAt: string;
+  priceEth: string;
+  pricingModel: string;
+  totalJobs: number;
+  totalEarnedEth: string;
+  avgResponseTimeMs: number | null;
+  successRate: number | null;
+  uptime: number | null;
+  jobsPerDay: { date: string; count: number; earned: number }[];
+  reliabilityDays: { date: string; hasData: boolean; success: boolean | null }[];
+  recentJobs: {
+    flowJobId: string;
+    executedAt: string | null;
+    amountEth: string;
+    status: string;
+    escrowTxHash: string | null;
+  }[];
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 function fmt(eth: string): string {
@@ -245,7 +273,8 @@ export default function DashboardPage() {
   const [tab, setTab] = useState<Tab>("flows");
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>("ALL");
   const [earningsPeriod, setEarningsPeriod] = useState<EarningsPeriod>("30d");
-  const [expandedAgents, setExpandedAgents] = useState<Set<number>>(new Set());
+  const [analyticsAgent, setAnalyticsAgent] = useState<AgentAnalytics | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [confirmDeactivate, setConfirmDeactivate] = useState<DashAgent | null>(null);
   const [editAgent, setEditAgent] = useState<DashAgent | null>(null);
   const [editForm, setEditForm] = useState({ name: "", priceEth: "", pricingModel: "" });
@@ -351,12 +380,17 @@ export default function DashboardPage() {
     }
   }
 
-  function toggleExpand(agentId: number) {
-    setExpandedAgents((prev) => {
-      const next = new Set(prev);
-      next.has(agentId) ? next.delete(agentId) : next.add(agentId);
-      return next;
-    });
+  async function openAnalytics(agentId: number) {
+    setAnalyticsLoading(true);
+    setAnalyticsAgent(null);
+    try {
+      const data = await authFetch(`${API}/api/dashboard/agents/${agentId}/analytics`).then((r) => r.json());
+      setAnalyticsAgent(data);
+    } catch {
+      // silently ignore
+    } finally {
+      setAnalyticsLoading(false);
+    }
   }
 
   const activeFlows = flows.filter((f) => f.status === "LOCKED" || f.status === "RUNNING");
@@ -566,16 +600,11 @@ export default function DashboardPage() {
                       {agents.map((agent) => {
                         const health = agentHealth(agent);
                         const hs = HEALTH_STYLE[health];
-                        const isExpanded = expandedAgents.has(agent.agentId);
-                        const about = agent.aboutSchema as {
-                          input_schema?: Record<string, { type: string; required?: boolean }>;
-                          output_schema?: Record<string, { type: string }>;
-                        } | null;
 
                         return (
                           <div key={agent.agentId} style={{ borderBottom: "1px solid #F1F5F9" }}>
                             <div
-                              onClick={() => toggleExpand(agent.agentId)}
+                              onClick={() => openAnalytics(agent.agentId)}
                               style={{ display: "grid", gridTemplateColumns: "1fr 110px 60px 70px 90px 110px", padding: "14px 20px", cursor: "pointer" }}
                               onMouseEnter={(e) => (e.currentTarget.style.background = "#FAFBFC")}
                               onMouseLeave={(e) => (e.currentTarget.style.background = "")}
@@ -632,59 +661,6 @@ export default function DashboardPage() {
                               </div>
                             </div>
 
-                            {/* Expanded detail */}
-                            {isExpanded && (
-                              <div style={{ padding: "16px 20px 20px", background: "#FAFBFC", borderTop: "1px solid #F1F5F9", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "24px" }}>
-                                <div>
-                                  <SectionLabel>Reliability — last 7 days</SectionLabel>
-                                  <ReliabilityCalendar days={agent.reliabilityDays} />
-                                  {agent.verifiedAt && (
-                                    <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "8px" }}>
-                                      Last verified {timeAgo(agent.verifiedAt)}
-                                    </p>
-                                  )}
-                                </div>
-
-                                <div>
-                                  <SectionLabel>Recent jobs</SectionLabel>
-                                  {agent.recentJobs.length === 0 ? (
-                                    <p style={{ fontSize: "12px", color: "#94a3b8" }}>No jobs yet</p>
-                                  ) : (
-                                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                      {agent.recentJobs.map((j, i) => (
-                                        <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
-                                          <span style={{ color: "#64748b", fontFamily: "monospace" }}>{j.flowJobId.slice(0, 14)}…</span>
-                                          <span style={{ color: "#10b981", fontWeight: 600 }}>{fmt(j.amountEth)} ETH</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div>
-                                  {about?.input_schema && (
-                                    <>
-                                      <SectionLabel>Inputs</SectionLabel>
-                                      <div style={{ display: "flex", flexDirection: "column", gap: "3px", marginBottom: "12px" }}>
-                                        {Object.entries(about.input_schema).map(([k, v]) => (
-                                          <p key={k} style={{ fontSize: "11px", color: "#64748b" }}>
-                                            <span style={{ color: "#0A2540", fontWeight: 600 }}>{k}</span> ({v.type}{v.required ? ", required" : ""})
-                                          </p>
-                                        ))}
-                                      </div>
-                                    </>
-                                  )}
-                                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                                    <Link
-                                      href={`/agents/${agent.agentId}`}
-                                      style={{ fontSize: "11px", fontWeight: 600, color: "#2563EB", textDecoration: "none", padding: "5px 10px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "6px" }}
-                                    >
-                                      Public page →
-                                    </Link>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
                           </div>
                         );
                       })}
@@ -921,6 +897,149 @@ export default function DashboardPage() {
             </button>
           </div>
         </Modal>
+      )}
+
+      {/* ── Agent Analytics Modal ── */}
+      {(analyticsAgent || analyticsLoading) && (
+        <div
+          onClick={() => setAnalyticsAgent(null)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)", zIndex: 100, display: "flex", alignItems: "flex-start", justifyContent: "flex-end" }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "min(640px, 100vw)",
+              height: "100vh",
+              background: "#fff",
+              boxShadow: "-8px 0 40px rgba(0,0,0,0.15)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {analyticsLoading ? (
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <p style={{ color: "#94a3b8", fontSize: "14px" }}>Loading analytics…</p>
+              </div>
+            ) : analyticsAgent ? (
+              <>
+                {/* Header */}
+                <div style={{ padding: "20px 24px", borderBottom: "1px solid #E3E8EF", display: "flex", alignItems: "center", gap: "14px", flexShrink: 0 }}>
+                  <AgentAvatar
+                    agentId={analyticsAgent.agentId}
+                    logoUrl={analyticsAgent.logoUrl}
+                    badgeTier={(analyticsAgent.badgeTier ?? "NONE") as "NONE" | "BRONZE" | "SILVER" | "GOLD"}
+                    size={48}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: "16px", fontWeight: 700, color: "#0A2540", lineHeight: 1.2 }}>{analyticsAgent.name}</p>
+                    <p style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>
+                      #{analyticsAgent.agentId} · {CATEGORY_LABELS[analyticsAgent.category] ?? analyticsAgent.category}
+                      {analyticsAgent.verifiedAt && <> · verified {timeAgo(analyticsAgent.verifiedAt)}</>}
+                    </p>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0 }}>
+                    <Link
+                      href={`/agents/${analyticsAgent.agentId}`}
+                      target="_blank"
+                      style={{ fontSize: "12px", fontWeight: 600, color: "#2563EB", textDecoration: "none", padding: "6px 12px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "7px", whiteSpace: "nowrap" }}
+                    >
+                      View public page →
+                    </Link>
+                    <button
+                      onClick={() => setAnalyticsAgent(null)}
+                      style={{ width: "28px", height: "28px", borderRadius: "7px", border: "1px solid #E3E8EF", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b", fontSize: "16px", flexShrink: 0 }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                {/* Scrollable content */}
+                <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "24px" }}>
+
+                  {/* Stat cards */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    {[
+                      { label: "Total jobs", value: analyticsAgent.totalJobs.toString(), sub: "completed" },
+                      { label: "Total earned", value: `${fmt(analyticsAgent.totalEarnedEth)} ETH`, sub: "all time" },
+                      { label: "Avg response", value: analyticsAgent.avgResponseTimeMs != null ? `${analyticsAgent.avgResponseTimeMs}ms` : "—", sub: "last 30 days" },
+                      { label: "Uptime", value: analyticsAgent.uptime != null ? `${analyticsAgent.uptime}%` : "—", sub: "last 30 days" },
+                    ].map(({ label, value, sub }) => (
+                      <div key={label} style={{ background: "#F8FAFC", border: "1px solid #E3E8EF", borderRadius: "10px", padding: "14px 16px" }}>
+                        <p style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>{label}</p>
+                        <p style={{ fontSize: "22px", fontWeight: 700, color: "#0A2540", fontFamily: "monospace", lineHeight: 1 }}>{value}</p>
+                        <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "4px" }}>{sub}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Jobs per day chart */}
+                  <div>
+                    <SectionLabel>Jobs — last 30 days</SectionLabel>
+                    <div style={{ height: "140px" }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={analyticsAgent.jobsPerDay} margin={{ top: 0, right: 0, left: -28, bottom: 0 }}>
+                          <XAxis dataKey="date" tick={{ fontSize: 9, fill: "#94a3b8" }} tickFormatter={(v: string) => v.slice(5)} interval={6} />
+                          <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "#94a3b8" }} />
+                          <Tooltip
+                            contentStyle={{ border: "1px solid #E3E8EF", borderRadius: "8px", fontSize: "12px" }}
+                            cursor={{ fill: "#EFF6FF" }}
+                          />
+                          <Bar dataKey="count" fill="#2563EB" radius={[2, 2, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Reliability calendar */}
+                  <div>
+                    <SectionLabel>Reliability — last 7 days</SectionLabel>
+                    <ReliabilityCalendar days={analyticsAgent.reliabilityDays} />
+                  </div>
+
+                  {/* Recent jobs table */}
+                  <div>
+                    <SectionLabel>Recent jobs</SectionLabel>
+                    {analyticsAgent.recentJobs.length === 0 ? (
+                      <p style={{ fontSize: "13px", color: "#94a3b8" }}>No jobs run yet.</p>
+                    ) : (
+                      <div style={{ border: "1px solid #E3E8EF", borderRadius: "10px", overflow: "hidden" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 90px 90px 90px", padding: "8px 14px", background: "#F8FAFC", borderBottom: "1px solid #E3E8EF" }}>
+                          {["Job ID", "Status", "Earned", "Time"].map((h, i) => (
+                            <span key={h} style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: i > 0 ? "right" : "left" }}>{h}</span>
+                          ))}
+                        </div>
+                        {analyticsAgent.recentJobs.map((job, i) => {
+                          const sc = STATUS_COLOR[job.status] ?? STATUS_COLOR.FAILED;
+                          return (
+                            <div
+                              key={i}
+                              style={{ display: "grid", gridTemplateColumns: "1fr 90px 90px 90px", padding: "10px 14px", borderBottom: i < analyticsAgent.recentJobs.length - 1 ? "1px solid #F1F5F9" : "none", alignItems: "center" }}
+                            >
+                              <span style={{ fontSize: "12px", color: "#64748b", fontFamily: "monospace" }}>
+                                {job.escrowTxHash ? (
+                                  <a href={`${ARBISCAN}/tx/${job.escrowTxHash}`} target="_blank" rel="noreferrer" style={{ color: "#2563EB", textDecoration: "none" }}>
+                                    {job.flowJobId.slice(0, 10)}…
+                                  </a>
+                                ) : `${job.flowJobId.slice(0, 10)}…`}
+                              </span>
+                              <span style={{ textAlign: "right" }}>
+                                <span style={{ fontSize: "11px", fontWeight: 600, padding: "2px 7px", borderRadius: "5px", background: sc.bg, color: sc.text }}>{job.status}</span>
+                              </span>
+                              <span style={{ fontSize: "12px", fontWeight: 600, color: "#10b981", textAlign: "right", fontFamily: "monospace" }}>{fmt(job.amountEth)} ETH</span>
+                              <span style={{ fontSize: "11px", color: "#94a3b8", textAlign: "right" }}>{job.executedAt ? timeAgo(job.executedAt) : "—"}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : null}
+          </div>
+        </div>
       )}
     </AuthGate>
   );
