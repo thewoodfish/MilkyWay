@@ -7,6 +7,7 @@ import {
 import { QuickExecute } from "@/components/QuickExecute";
 import { AgentCard } from "@/components/AgentCard";
 import { TechnicalDetails } from "@/components/TechnicalDetails";
+import { AgentAvatar } from "@/components/AgentAvatar";
 
 
 const CATEGORY_META: Record<string, { color: string; bg: string; border: string }> = {
@@ -215,15 +216,12 @@ export default async function AgentProfilePage({
 
           <div className="flex flex-col sm:flex-row gap-6 items-start">
             {/* Icon */}
-            <div
-              className="w-[72px] h-[72px] rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden text-2xl font-bold"
-              style={{ background: cm.bg, color: cm.color, border: `2px solid ${cm.border}` }}
-            >
-              {agent.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={agent.logoUrl} alt={agent.name} className="w-full h-full object-cover" />
-              ) : agent.name[0]}
-            </div>
+            <AgentAvatar
+              agentId={agent.agentId!}
+              logoUrl={agent.logoUrl}
+              badgeTier={(agent.badgeTier ?? "NONE") as "NONE" | "BRONZE" | "SILVER" | "GOLD"}
+              size={80}
+            />
 
             {/* Name + pills */}
             <div className="flex-1 min-w-0">

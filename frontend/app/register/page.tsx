@@ -10,6 +10,7 @@ import { apiFetch, CATEGORY_LABELS } from "@/lib/utils";
 import { authFetch, getNonce, buildSiweMessage, verifySignature } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { AuthGate } from "@/components/AuthGate";
+import { AgentAvatarUpload } from "@/components/AgentAvatarUpload";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -444,6 +445,15 @@ export default function RegisterPage() {
                             : "✗ Cannot reach endpoint — ensure GET /health returns 200"}
                         </p>
                       )}
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Agent logo</label>
+                      <AgentAvatarUpload
+                        agentId={registeredAgentId ?? (Math.abs(profileId.split("").reduce((a, c) => a + c.charCodeAt(0), 0)) || 1)}
+                        currentLogoUrl={form.logoUrl || null}
+                        onUpload={(url) => field("logoUrl", url)}
+                      />
                     </div>
                   </div>
 

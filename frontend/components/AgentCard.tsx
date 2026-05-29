@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Agent } from "@/lib/types";
 import { agentStatus, formatPrice, shortAddress, CATEGORY_LABELS } from "@/lib/utils";
+import { AgentAvatar } from "./AgentAvatar";
 
 const CATEGORY_META: Record<string, { color: string; bg: string; border: string }> = {
   DEFI:         { color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" },
@@ -62,17 +63,13 @@ export function AgentCard({ agent }: AgentCardProps) {
       <div className="p-5">
         {/* Header row */}
         <div className="flex items-start gap-3 mb-3">
-          <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-[15px] font-bold overflow-hidden"
-            style={{ background: cm.bg, color: cm.color, border: `1px solid ${cm.border}` }}
-          >
-            {agent.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={agent.logoUrl} alt={agent.name} className="w-full h-full object-cover" />
-            ) : (
-              agent.name[0]
-            )}
-          </div>
+          <AgentAvatar
+            agentId={agent.agentId!}
+            logoUrl={agent.logoUrl}
+            badgeTier={(agent.badgeTier ?? "NONE") as "NONE" | "BRONZE" | "SILVER" | "GOLD"}
+            size={48}
+            showTooltip={false}
+          />
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap mb-0.5">

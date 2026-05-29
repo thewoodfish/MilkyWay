@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { AuthGate } from "@/components/AuthGate";
 import { REGISTRY_ABI } from "@/lib/registry-abi";
 import { CATEGORY_LABELS, timeAgo } from "@/lib/utils";
+import { AgentAvatar } from "@/components/AgentAvatar";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from "recharts";
@@ -57,6 +58,7 @@ interface DashAgent {
   name: string;
   category: string;
   badgeTier: string;
+  logoUrl?: string | null;
   active: boolean;
   verifiedAt: string | null;
   failedChecks: number;
@@ -578,11 +580,20 @@ export default function DashboardPage() {
                               onMouseEnter={(e) => (e.currentTarget.style.background = "#FAFBFC")}
                               onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                             >
-                              <div>
-                                <p style={{ fontSize: "14px", fontWeight: 600, color: "#0A2540" }}>{agent.name}</p>
-                                <p style={{ fontSize: "11px", color: "#94a3b8", fontFamily: "monospace" }}>
-                                  #{agent.agentId} · {CATEGORY_LABELS[agent.category] ?? agent.category}
-                                </p>
+                              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                <AgentAvatar
+                                  agentId={agent.agentId}
+                                  logoUrl={agent.logoUrl}
+                                  badgeTier={(agent.badgeTier ?? "NONE") as "NONE" | "BRONZE" | "SILVER" | "GOLD"}
+                                  size={40}
+                                  showTooltip={false}
+                                />
+                                <div>
+                                  <p style={{ fontSize: "14px", fontWeight: 600, color: "#0A2540" }}>{agent.name}</p>
+                                  <p style={{ fontSize: "11px", color: "#94a3b8", fontFamily: "monospace" }}>
+                                    #{agent.agentId} · {CATEGORY_LABELS[agent.category] ?? agent.category}
+                                  </p>
+                                </div>
                               </div>
                               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                                 <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: hs.dot, flexShrink: 0 }} />

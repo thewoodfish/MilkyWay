@@ -1,6 +1,15 @@
 import { prisma } from "../lib/db";
 import { fetchAbout } from "./about";
 
+export function computeBadgeTier(
+  totalJobs: number,
+  successRate: number // 0–100
+): "NONE" | "BRONZE" | "SILVER" | "GOLD" {
+  if (totalJobs >= 1000 && successRate >= 99) return "GOLD";
+  if (totalJobs >= 100  && successRate >= 95) return "SILVER";
+  return "BRONZE";
+}
+
 export interface PingResult {
   success: boolean;
   statusCode?: number;
@@ -66,12 +75,26 @@ export async function runVerificationCycle() {
 
     if (result.success) {
       const aboutResult = await fetchAbout(agent.endpoint);
+
+      // Compute badge tier from job history
+      const logs = agent.agentId != null
+        ? await prisma.verificationLog.findMany({
+            where: { agentId: agent.agentId },
+            select: { success: true },
+          })
+        : [];
+      const totalJobs = logs.length;
+      const successRate = totalJobs > 0
+        ? (logs.filter((l) => l.success).length / totalJobs) * 100
+        : 0;
+      const badgeTier = computeBadgeTier(totalJobs, successRate);
+
       await prisma.agent.update({
         where: { id: agent.id },
         data: {
           failedChecks: 0,
           verifiedAt: new Date(),
-          badgeTier: "BRONZE",
+          badgeTier,
           ...(aboutResult.success && {
             aboutSchema: aboutResult.schema as object,
             phase2Ready: true,
