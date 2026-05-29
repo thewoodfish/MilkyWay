@@ -155,6 +155,7 @@ router.get("/agents", authenticateJWT, async (req: AuthRequest, res: Response) =
         name: agent.name,
         category: agent.category,
         badgeTier: agent.badgeTier,
+        logoUrl: agent.logoUrl,
         active: agent.active,
         verifiedAt: agent.verifiedAt,
         failedChecks: agent.failedChecks,
