@@ -39,7 +39,7 @@ const STATUS_COLORS: Record<FlowStatus, string> = {
   LOCKED: "text-amber-400 bg-amber-500/10 border-amber-500/30",
   RUNNING: "text-blue-400 bg-blue-500/10 border-blue-500/30",
   COMPLETED: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
-  REFUNDED: "text-purple-400 bg-purple-500/10 border-purple-500/30",
+  REFUNDED: "text-blue-600 bg-blue-50 border-blue-200",
   FAILED: "text-red-400 bg-red-500/10 border-red-500/30",
 };
 
@@ -185,7 +185,7 @@ export default function FlowPage() {
                     <p className="text-[#8892A4] text-xs mt-1">{timeAgo(fa.executedAt)}</p>
                   )}
                   {!!fa.output && (
-                    <p className="text-indigo-400 text-xs mt-1">View output →</p>
+                    <p className="text-blue-600 text-xs mt-1">View output →</p>
                   )}
                 </div>
                 {i < flow.agents.length - 1 && (
@@ -244,7 +244,7 @@ export default function FlowPage() {
               <button
                 onClick={refund}
                 disabled={isRefunding}
-                className="w-full bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20 rounded-xl py-3 text-sm font-medium transition-colors disabled:opacity-50"
+                className="w-full bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-100 rounded-xl py-3 text-sm font-medium transition-colors disabled:opacity-50"
               >
                 {isRefunding ? "Check Wallet…" : `Refund ${flow.totalAmountEth} ETH`}
               </button>

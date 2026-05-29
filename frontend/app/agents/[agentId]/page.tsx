@@ -88,7 +88,7 @@ export default async function AgentProfilePage({
                 </span>
               )}
               {agent.phase2Ready && (
-                <span title="Phase 2 Ready — implements /about and /execute" className="text-xs bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded-full px-3 py-1">
+                <span title="Phase 2 Ready — implements /about and /execute" className="text-xs bg-blue-50 border border-blue-200 text-blue-600 rounded-full px-3 py-1">
                   ⚡ Phase 2 Ready
                 </span>
               )}

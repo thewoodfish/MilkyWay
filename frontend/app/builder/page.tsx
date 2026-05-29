@@ -29,7 +29,7 @@ function AgentNode({ data }: { data: { agent: Agent; orderIndex: number } }) {
         <span className="text-lg">✦</span>
         <div>
           <p className="text-white text-sm font-semibold">{agent.name}</p>
-          <p className="text-xs text-indigo-400">{CATEGORY_LABELS[agent.category] ?? agent.category}</p>
+          <p className="text-xs text-blue-600">{CATEGORY_LABELS[agent.category] ?? agent.category}</p>
         </div>
       </div>
       <p className="text-xs text-[#8892A4] mb-2 line-clamp-2">{agent.description}</p>
@@ -38,7 +38,7 @@ function AgentNode({ data }: { data: { agent: Agent; orderIndex: number } }) {
           {agent.pricingModel === "FREE" ? "Free" : `${agent.priceEth} ETH`}
         </span>
         {agent.phase2Ready && (
-          <span className="text-xs bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-full px-2 py-0.5">P2</span>
+          <span className="text-xs bg-blue-100 text-blue-600 border border-blue-200 rounded-full px-2 py-0.5">P2</span>
         )}
       </div>
     </div>
@@ -198,7 +198,7 @@ export default function BuilderPage() {
               type="checkbox"
               checked={p2Only}
               onChange={(e) => setP2Only(e.target.checked)}
-              className="accent-indigo-500"
+              className="accent-blue-600"
             />
             Phase 2 Ready only
           </label>
@@ -218,7 +218,7 @@ export default function BuilderPage() {
               >
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-white text-xs font-medium truncate">{agent.name}</p>
-                  {agent.phase2Ready && <span className="text-xs text-indigo-400 ml-1">P2</span>}
+                  {agent.phase2Ready && <span className="text-xs text-blue-600 ml-1">P2</span>}
                 </div>
                 <p className="text-[#8892A4] text-xs">
                   {agent.pricingModel === "FREE" ? "Free" : `${agent.priceEth} ETH`}
@@ -260,7 +260,7 @@ export default function BuilderPage() {
           >
             <Background color="#ffffff08" gap={24} />
             <Controls />
-            <MiniMap nodeColor="#6366F1" style={{ background: "#0D0D1A" }} />
+            <MiniMap nodeColor="#2563eb" style={{ background: "#f8fafc" }} />
           </ReactFlow>
         </div>
 
@@ -344,7 +344,7 @@ export default function BuilderPage() {
               <p className="text-[#8892A4] text-xs font-medium uppercase tracking-wide mb-2">Trigger</p>
               {(["IMMEDIATE", "SCHEDULED", "CONDITION"] as const).map((t) => (
                 <label key={t} className="flex items-center gap-2 text-xs text-white mb-2 cursor-pointer">
-                  <input type="radio" value={t} checked={trigger === t} onChange={() => setTrigger(t)} className="accent-indigo-500" />
+                  <input type="radio" value={t} checked={trigger === t} onChange={() => setTrigger(t)} className="accent-blue-600" />
                   {t.charAt(0) + t.slice(1).toLowerCase()}
                 </label>
               ))}
@@ -360,7 +360,7 @@ export default function BuilderPage() {
                 step={30}
                 value={deadlineSeconds}
                 onChange={(e) => setDeadlineSeconds(Number(e.target.value))}
-                className="w-full accent-indigo-500"
+                className="w-full accent-blue-600"
               />
               <div className="flex justify-between text-xs text-[#8892A4] mt-1">
                 <span>30s</span><span>24h</span>
