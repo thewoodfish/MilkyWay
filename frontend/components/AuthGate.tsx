@@ -15,19 +15,20 @@ export function AuthGate({ children, description }: Props) {
   const { isConnected, address } = useAccount();
   const chainId = useChainId();
   const { signMessageAsync } = useSignMessage();
-  const { isSignedIn, setSignedIn } = useAuth();
+  const { isSignedIn, isHydrating, setSignedIn } = useAuth();
 
   const [signing, setSigning]   = useState(false);
   const [error, setError]       = useState("");
   const attemptedFor = useRef<string | null>(null);
 
-  // Auto-trigger SIWE as soon as wallet connects
+  // Auto-trigger SIWE only after hydration completes (avoids false prompts on reload)
   useEffect(() => {
+    if (isHydrating) return;
     if (isConnected && address && !isSignedIn && !signing && attemptedFor.current !== address) {
       attemptedFor.current = address;
       handleSignIn();
     }
-  }, [isConnected, address, isSignedIn]);
+  }, [isConnected, address, isSignedIn, isHydrating]);
 
   async function handleSignIn() {
     if (!address) return;
@@ -46,6 +47,12 @@ export function AuthGate({ children, description }: Props) {
       setSigning(false);
     }
   }
+
+  if (isHydrating) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f8faff" }}>
+      <div className="w-6 h-6 rounded-full border-2 border-[#2563EB] border-t-transparent animate-spin" />
+    </div>
+  );
 
   if (isSignedIn) return <>{children}</>;
 

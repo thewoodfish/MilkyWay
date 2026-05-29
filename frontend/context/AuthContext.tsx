@@ -7,6 +7,7 @@ import { clearToken, getToken, getSavedAddress, setToken } from "@/lib/auth";
 interface AuthState {
   address: string | null;
   isSignedIn: boolean;
+  isHydrating: boolean;
   token: string | null;
   signOut: () => void;
   setSignedIn: (address: string, token: string) => void;
@@ -15,6 +16,7 @@ interface AuthState {
 const AuthContext = createContext<AuthState>({
   address: null,
   isSignedIn: false,
+  isHydrating: true,
   token: null,
   signOut: () => {},
   setSignedIn: () => {},
@@ -22,14 +24,16 @@ const AuthContext = createContext<AuthState>({
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
+  const [isHydrating, setIsHydrating] = useState(true);
   const { disconnect } = useDisconnect();
   const { address: walletAddress } = useAccount();
 
-  // Hydrate from localStorage on mount
+  // Hydrate from localStorage on mount — must complete before AuthGate acts
   useEffect(() => {
     const saved = getSavedAddress();
     const token = getToken();
     if (saved && token) setAddress(saved);
+    setIsHydrating(false);
   }, []);
 
   // Sign out if wallet disconnects
@@ -50,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ address, isSignedIn: !!address, token: getToken(), signOut, setSignedIn }}>
+    <AuthContext.Provider value={{ address, isSignedIn: !!address, isHydrating, token: getToken(), signOut, setSignedIn }}>
       {children}
     </AuthContext.Provider>
   );
