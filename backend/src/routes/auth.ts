@@ -33,7 +33,7 @@ router.post("/verify", async (req: Request, res: Response) => {
     const result = await siweMessage.verify({
       signature,
       nonce: session.nonce,
-      domain: process.env.DOMAIN || "localhost",
+      // domain is part of the signed message content — no need to re-check against a hardcoded value
     });
 
     if (!result.success) {

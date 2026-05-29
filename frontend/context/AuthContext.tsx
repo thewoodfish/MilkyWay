@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
   const [isHydrating, setIsHydrating] = useState(true);
   const { disconnect } = useDisconnect();
-  const { address: walletAddress } = useAccount();
+  const { address: walletAddress, isReconnecting, isConnecting } = useAccount();
 
   // Hydrate from localStorage on mount — must complete before AuthGate acts
   useEffect(() => {
@@ -36,11 +36,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsHydrating(false);
   }, []);
 
-  // Sign out if wallet disconnects
+  // Sign out when wallet is explicitly disconnected — skip during page-load reconnection
+  // (wagmi briefly shows walletAddress=undefined while restoring the previous session)
   useEffect(() => {
+    if (isReconnecting || isConnecting) return;
     if (!walletAddress && address) signOut();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [walletAddress]);
+  }, [walletAddress, isReconnecting, isConnecting]);
 
   function setSignedIn(addr: string, token: string) {
     setToken(token, addr);
