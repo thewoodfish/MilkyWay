@@ -542,7 +542,7 @@ export default function DashboardPage() {
                       <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                           <thead>
-                            <tr style={{ borderBottom: "1px solid #E3E8EF", background: "#F8FAFC" }}>
+                            <tr style={{ borderBottom: "1px solid #DBEAFE", background: "#EFF6FF" }}>
                               {["When", "Agents", "Cost", "Status"].map((h, i) => (
                                 <th key={h} style={{ padding: "12px 16px", textAlign: i >= 2 ? "right" : "left", fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                                   {h}
@@ -556,7 +556,7 @@ export default function DashboardPage() {
                                 key={f.id}
                                 style={{ borderBottom: "1px solid #F1F5F9", cursor: "pointer" }}
                                 onClick={() => (window.location.href = `/flows/${f.jobId}`)}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = "#F8FAFC")}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F8FF")}
                                 onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                               >
                                 <td style={{ padding: "12px 16px", color: "#64748b", fontSize: "12px" }}>{timeAgo(f.createdAt)}</td>
@@ -593,7 +593,7 @@ export default function DashboardPage() {
                   ) : (
                     <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
                       {/* Table header */}
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 60px 70px 90px 110px", padding: "10px 20px", background: "#F8FAFC", borderBottom: "1px solid #E3E8EF" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 60px 70px 90px 110px", padding: "10px 20px", background: "#EFF6FF", borderBottom: "1px solid #DBEAFE" }}>
                         {["Agent", "Status", "Badge", "Jobs", "Earned", "Actions"].map((h, i) => (
                           <span key={h} style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: i >= 3 ? "right" : "left" }}>
                             {h}
@@ -611,10 +611,12 @@ export default function DashboardPage() {
                               onClick={() => openAnalytics(agent.agentId)}
                               style={{ display: "grid", gridTemplateColumns: "1fr 110px 60px 70px 90px 110px", padding: "14px 20px", cursor: "pointer", transition: "background 0.1s" }}
                               onMouseEnter={(e) => {
-                                (e.currentTarget as HTMLElement).style.background = "#F8FAFC";
+                                (e.currentTarget as HTMLElement).style.background = "#F5F8FF";
+                                (e.currentTarget as HTMLElement).style.borderLeft = "3px solid #2563EB";
                               }}
                               onMouseLeave={(e) => {
                                 (e.currentTarget as HTMLElement).style.background = "";
+                                (e.currentTarget as HTMLElement).style.borderLeft = "";
                               }}
                             >
                               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -745,7 +747,7 @@ export default function DashboardPage() {
 
                       {/* Per-agent */}
                       <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden", marginBottom: "20px" }}>
-                        <div style={{ padding: "14px 20px", borderBottom: "1px solid #E3E8EF", background: "#F8FAFC" }}>
+                        <div style={{ padding: "14px 20px", borderBottom: "1px solid #DBEAFE", background: "#EFF6FF" }}>
                           <SectionLabel>By agent</SectionLabel>
                         </div>
                         {earnings.perAgent.map((a) => {
@@ -777,12 +779,12 @@ export default function DashboardPage() {
                       {/* Recent payments */}
                       {earnings.recentPayments.length > 0 && (
                         <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
-                          <div style={{ padding: "14px 20px", borderBottom: "1px solid #E3E8EF", background: "#F8FAFC" }}>
+                          <div style={{ padding: "14px 20px", borderBottom: "1px solid #DBEAFE", background: "#EFF6FF" }}>
                             <SectionLabel>Recent payments</SectionLabel>
                           </div>
                           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                             <thead>
-                              <tr style={{ background: "#F8FAFC", borderBottom: "1px solid #E3E8EF" }}>
+                              <tr style={{ background: "#EFF6FF", borderBottom: "1px solid #DBEAFE" }}>
                                 {["Date", "Agent", "Flow", "Amount", "Tx"].map((h, i) => (
                                   <th key={h} style={{ padding: "10px 16px", textAlign: i >= 3 ? "right" : "left", fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                                     {h}
@@ -795,7 +797,7 @@ export default function DashboardPage() {
                                 <tr
                                   key={i}
                                   style={{ borderBottom: "1px solid #F1F5F9" }}
-                                  onMouseEnter={(e) => (e.currentTarget.style.background = "#F8FAFC")}
+                                  onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F8FF")}
                                   onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                                 >
                                   <td style={{ padding: "12px 16px", color: "#64748b", fontSize: "12px" }}>{p.executedAt ? timeAgo(p.executedAt) : "—"}</td>
