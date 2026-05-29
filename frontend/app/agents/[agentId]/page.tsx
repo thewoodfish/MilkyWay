@@ -8,6 +8,7 @@ import { QuickExecute } from "@/components/QuickExecute";
 import { AgentCard } from "@/components/AgentCard";
 import { TechnicalDetails } from "@/components/TechnicalDetails";
 import { AgentAvatar } from "@/components/AgentAvatar";
+import { AgentShare } from "@/components/AgentShare";
 
 
 const CATEGORY_META: Record<string, { color: string; bg: string; border: string }> = {
@@ -546,6 +547,24 @@ export default async function AgentProfilePage({
                 <Link href="/builder" className="block text-center text-[13px] font-semibold py-2.5 rounded-xl transition-colors" style={{ background: "#EFF6FF", color: "#2563EB" }}>
                   Open in Builder →
                 </Link>
+              </Card>
+            )}
+
+            {/* Share */}
+            {status !== "down" && (
+              <Card>
+                <AgentShare
+                  agent={{
+                    agentId: agent.agentId,
+                    name: agent.name,
+                    description: agent.description,
+                    priceEth: agent.priceEth ?? "0",
+                    pricingModel: agent.pricingModel,
+                    jobCount: logs.length,
+                    badgeTier: (agent.badgeTier ?? "NONE") as "NONE" | "BRONZE" | "SILVER" | "GOLD",
+                    successRate: successRate ?? 0,
+                  }}
+                />
               </Card>
             )}
 
