@@ -1,12 +1,12 @@
-@import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #050510;
-  --foreground: #fafafa;
+  --background: #ffffff;
+  --foreground: #0f172a;
 }
 
 * {
@@ -14,64 +14,26 @@
 }
 
 body {
-  background-color: #050510;
-  color: #fafafa;
-  font-family: "DM Sans", sans-serif;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-family: "Inter", sans-serif;
   min-height: 100vh;
-}
-
-/* Star field background */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image:
-    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.5) 0%, transparent 100%),
-    radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.3) 0%, transparent 100%),
-    radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.4) 0%, transparent 100%),
-    radial-gradient(1px 1px at 55% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
-    radial-gradient(1px 1px at 70% 25%, rgba(255,255,255,0.5) 0%, transparent 100%),
-    radial-gradient(1px 1px at 85% 50%, rgba(255,255,255,0.3) 0%, transparent 100%),
-    radial-gradient(1px 1px at 90% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
-    radial-gradient(1px 1px at 15% 75%, rgba(255,255,255,0.3) 0%, transparent 100%),
-    radial-gradient(1px 1px at 60% 85%, rgba(255,255,255,0.4) 0%, transparent 100%),
-    radial-gradient(1px 1px at 35% 90%, rgba(255,255,255,0.2) 0%, transparent 100%),
-    radial-gradient(2px 2px at 48% 30%, rgba(255,255,255,0.15) 0%, transparent 100%),
-    radial-gradient(2px 2px at 78% 70%, rgba(255,255,255,0.1) 0%, transparent 100%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Nebula glow for hero sections */
-.nebula-glow {
-  position: relative;
-}
-.nebula-glow::before {
-  content: "";
-  position: absolute;
-  top: -20%;
-  left: 30%;
-  width: 40%;
-  height: 60%;
-  background: radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
 .agent-card {
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
 }
 .agent-card:hover {
-  box-shadow: 0 0 24px rgba(99,102,241,0.18);
+  box-shadow: 0 8px 30px rgba(37, 99, 235, 0.10);
   transform: translateY(-2px);
 }
 
-/* Status dots */
-.status-live   { background: #10B981; box-shadow: 0 0 6px rgba(16,185,129,0.5); }
-.status-deg    { background: #F59E0B; box-shadow: 0 0 6px rgba(245,158,11,0.5); }
-.status-down   { background: #EF4444; box-shadow: 0 0 6px rgba(239,68,68,0.5); }
+.status-live { background: #10B981; box-shadow: 0 0 6px rgba(16,185,129,0.5); }
+.status-deg  { background: #F59E0B; box-shadow: 0 0 6px rgba(245,158,11,0.5); }
+.status-down { background: #EF4444; box-shadow: 0 0 6px rgba(239,68,68,0.5); }
 
 @layer utilities {
-  .font-display { font-family: "Syne", sans-serif; }
+  .font-display     { font-family: "Inter", sans-serif; }
   .font-mono-custom { font-family: "JetBrains Mono", monospace; }
 }

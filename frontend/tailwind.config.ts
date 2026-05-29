@@ -9,38 +9,39 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        space: "#050510",
-        "space-card": "#0D0D1A",
-        "space-border": "rgba(255,255,255,0.08)",
-        accent: "#6366F1",
-        "accent-hover": "#4F46E5",
-        muted: "#8892A4",
-        success: "#10B981",
-        warning: "#F59E0B",
+        // Surface
+        space:        "#ffffff",
+        "space-card": "#f8fafc",
+        "space-border": "#e2e8f0",
+        // Brand blue
+        accent:       "#2563eb",
+        "accent-hover": "#1d4ed8",
+        "accent-light": "#eff6ff",
+        // Text
+        ink:          "#0f172a",
+        muted:        "#64748b",
+        subtle:       "#94a3b8",
+        // Status
+        success:      "#10B981",
+        warning:      "#F59E0B",
+        danger:       "#EF4444",
       },
       fontFamily: {
-        display: ["Syne", "sans-serif"],
-        body: ["DM Sans", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
+        display: ["Inter", "sans-serif"],
+        body:    ["Inter", "sans-serif"],
+        mono:    ["JetBrains Mono", "monospace"],
       },
       borderRadius: {
-        card: "16px",
-        btn: "12px",
+        card: "12px",
+        btn:  "8px",
       },
-      backgroundImage: {
-        "star-field":
-          "radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(99,102,241,0.04) 0%, transparent 50%)",
+      boxShadow: {
+        card: "0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
+        "card-hover": "0 8px 30px rgba(37,99,235,0.10)",
+        btn: "0 1px 2px rgba(37,99,235,0.20)",
       },
       animation: {
         "pulse-slow": "pulse 4s cubic-bezier(0.4,0,0.6,1) infinite",
-        "star-appear": "starAppear 0.8s ease-out forwards",
-      },
-      keyframes: {
-        starAppear: {
-          "0%": { transform: "scale(0) rotate(0deg)", opacity: "0" },
-          "60%": { transform: "scale(1.2) rotate(180deg)", opacity: "1" },
-          "100%": { transform: "scale(1) rotate(360deg)", opacity: "1" },
-        },
       },
     },
   },

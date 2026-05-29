@@ -11,50 +11,54 @@ export function AgentCard({ agent }: AgentCardProps) {
   const statusClass = { live: "status-live", degraded: "status-deg", down: "status-down" }[status];
 
   return (
-    <div className="agent-card bg-space-card border border-white/8 rounded-card p-5 flex flex-col gap-3">
+    <div className="agent-card bg-white border border-slate-200 rounded-card p-5 flex flex-col gap-3 shadow-card">
+      {/* Header */}
       <div className="flex items-start gap-3">
-        <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="w-11 h-11 rounded-xl bg-accent-light border border-blue-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
           {agent.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={agent.logoUrl} alt={agent.name} className="w-full h-full object-cover" />
           ) : (
-            <span className="text-xl">✦</span>
+            <span className="text-accent text-lg font-bold">{agent.name[0]}</span>
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-display font-semibold text-white text-sm truncate">{agent.name}</h3>
-            <span className="text-xs bg-white/5 border border-white/10 rounded-full px-2 py-0.5 text-muted">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <h3 className="font-semibold text-ink text-sm truncate">{agent.name}</h3>
+            <span className="text-xs bg-slate-100 text-muted rounded-full px-2 py-0.5">
               v{agent.version}
             </span>
             {badgeEmoji(agent.badgeTier) && (
               <span title={agent.badgeTier}>{badgeEmoji(agent.badgeTier)}</span>
             )}
             {agent.phase2Ready && (
-              <span title="Phase 2 Ready — implements /about and /execute" className="text-xs bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded-full px-2 py-0.5">
+              <span title="Phase 2 Ready — implements /about and /execute"
+                className="text-xs bg-blue-50 border border-blue-200 text-accent rounded-full px-2 py-0.5 font-medium">
                 P2
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-0.5">
             <span className="text-xs text-accent font-medium">
               {CATEGORY_LABELS[agent.category] ?? agent.category}
             </span>
-            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${statusClass}`} />
+            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusClass}`} />
           </div>
         </div>
       </div>
 
+      {/* Description */}
       <p className="text-muted text-xs leading-relaxed line-clamp-2">{agent.description}</p>
 
-      <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/5">
+      {/* Footer */}
+      <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
         <div>
-          <p className="text-white text-xs font-medium">{formatPrice(agent)}</p>
-          <p className="text-muted text-xs font-mono-custom">by {shortAddress(agent.ownerAddress)}</p>
+          <p className="text-ink text-xs font-semibold">{formatPrice(agent)}</p>
+          <p className="text-subtle text-xs font-mono-custom">by {shortAddress(agent.ownerAddress)}</p>
         </div>
         <Link
           href={`/agents/${agent.agentId}`}
-          className="text-xs bg-accent/10 hover:bg-accent/20 border border-accent/30 text-accent rounded-btn px-3 py-1.5 transition-colors font-medium"
+          className="text-xs bg-accent hover:bg-accent-hover text-white rounded-btn px-3 py-1.5 transition-colors font-medium shadow-btn"
         >
           View →
         </Link>

@@ -11,34 +11,29 @@ export function Navbar() {
   const { isSignedIn, signOut } = useAuth();
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-white/5 bg-space/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <Link href="/" className="font-display font-bold text-xl text-white tracking-tight">
+        {/* Logo */}
+        <Link href="/" className="font-bold text-xl text-ink tracking-tight">
           Milky<span className="text-accent">Way</span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
-          <Link href="/agents" className="text-muted hover:text-white transition-colors text-sm font-medium">
-            Explore
-          </Link>
-          <Link href="/register" className="text-muted hover:text-white transition-colors text-sm font-medium">
-            Register Agent
-          </Link>
-          <Link href="/builder" className="text-muted hover:text-white transition-colors text-sm font-medium">
-            Builder
-          </Link>
-          <Link href="/dashboard" className="text-muted hover:text-white transition-colors text-sm font-medium">
-            Dashboard
-          </Link>
+        {/* Nav links */}
+        <div className="hidden md:flex items-center gap-1">
+          <Link href="/agents"    className="text-muted hover:text-ink transition-colors text-sm font-medium px-3 py-2 rounded-btn hover:bg-slate-50">Explore</Link>
+          <Link href="/register"  className="text-muted hover:text-ink transition-colors text-sm font-medium px-3 py-2 rounded-btn hover:bg-slate-50">Register Agent</Link>
+          <Link href="/builder"   className="text-muted hover:text-ink transition-colors text-sm font-medium px-3 py-2 rounded-btn hover:bg-slate-50">Builder</Link>
+          <Link href="/dashboard" className="text-muted hover:text-ink transition-colors text-sm font-medium px-3 py-2 rounded-btn hover:bg-slate-50">Dashboard</Link>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Wallet / auth */}
+        <div className="flex items-center gap-2">
           <ConnectButton chainStatus="icon" showBalance={false} />
           {isConnected && !isSignedIn && <SignInButton />}
           {isSignedIn && (
             <button
               onClick={signOut}
-              className="text-xs text-muted hover:text-white border border-white/10 rounded-btn px-3 py-1.5 transition-colors"
+              className="text-xs text-muted hover:text-ink border border-slate-200 rounded-btn px-3 py-1.5 transition-colors hover:bg-slate-50"
             >
               Sign Out
             </button>
