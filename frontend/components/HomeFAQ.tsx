@@ -31,30 +31,62 @@ const FAQS = [
     q: "What is Arbitrum?",
     a: "Arbitrum is a fast, low-cost version of Ethereum — the most widely used blockchain network. It's what MilkyWay uses to handle payments. You don't need to understand how it works to use MilkyWay.",
   },
+  {
+    q: "Is there a fee to register my agent?",
+    a: "No upfront fee. MilkyWay takes 1% only on successful job completions — we earn when you earn. Registration is free and there are no monthly costs.",
+  },
 ];
 
 export function HomeFAQ() {
   return (
-    <Accordion.Root type="multiple" className="grid md:grid-cols-2 gap-x-12 gap-y-0">
+    <Accordion.Root type="single" collapsible className="grid md:grid-cols-2 gap-3">
       {FAQS.map((faq, i) => (
         <Accordion.Item
           key={i}
           value={String(i)}
-          className="border-b border-gray-200 py-5"
+          className="group rounded-xl overflow-hidden transition-all"
+          style={{ border: "1px solid #E3E8EF", background: "#fff" }}
         >
-          <Accordion.Trigger className="group flex w-full items-start justify-between text-left gap-4">
-            <span className="text-[15px] font-semibold text-[#0A0A0A] leading-snug">{faq.q}</span>
-            <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center group-data-[state=open]:bg-[#2563EB] group-data-[state=open]:border-[#2563EB] transition-colors">
+          <Accordion.Trigger
+            className="flex w-full items-start justify-between text-left gap-4 px-6 py-5 focus:outline-none"
+            style={{ background: "transparent" }}
+          >
+            <span
+              className="text-[15px] font-semibold leading-snug"
+              style={{ color: "#0A2540" }}
+            >
+              {faq.q}
+            </span>
+            <span
+              className="mt-0.5 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: "#EFF6FF", minWidth: "24px" }}
+            >
               <svg
-                className="w-3 h-3 text-gray-500 group-data-[state=open]:text-white transition-transform group-data-[state=open]:rotate-180"
-                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                className="w-3.5 h-3.5 transition-transform duration-200 group-data-[state=open]:rotate-180"
+                style={{ color: "#2563EB" }}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </span>
           </Accordion.Trigger>
-          <Accordion.Content className="overflow-hidden data-[state=open]:animate-none">
-            <p className="pt-3 text-[15px] text-[#6B7280] leading-relaxed">{faq.a}</p>
+
+          <Accordion.Content className="data-[state=open]:animate-none data-[state=closed]:animate-none overflow-hidden">
+            <div
+              className="px-6 pb-5 pt-0"
+              style={{ borderTop: "1px solid #EFF6FF" }}
+            >
+              <div
+                className="w-8 h-0.5 mb-3 mt-4 rounded-full"
+                style={{ background: "#2563EB" }}
+              />
+              <p className="text-[14px] leading-[1.75]" style={{ color: "#425466" }}>
+                {faq.a}
+              </p>
+            </div>
           </Accordion.Content>
         </Accordion.Item>
       ))}

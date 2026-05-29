@@ -28,7 +28,6 @@ export function Navbar() {
 
         {/* Right: wallet + register */}
         <div className="flex items-center gap-3">
-          <ConnectButton chainStatus="icon" showBalance={false} />
           {isConnected && !isSignedIn && <SignInButton />}
           {isSignedIn && (
             <button
@@ -40,10 +39,11 @@ export function Navbar() {
           )}
           <Link
             href="/register"
-            className="hidden sm:inline-flex bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors"
+            className="hidden sm:inline-flex text-sm font-semibold text-[#2563EB] hover:underline transition-colors px-2"
           >
             Register Agent →
           </Link>
+          <ConnectButton chainStatus="icon" showBalance={false} />
         </div>
       </div>
     </nav>
