@@ -587,44 +587,100 @@ export default function RegisterPage() {
                     Confirm the details below, then approve the transaction.
                   </p>
 
-                  {/* Summary table */}
+                  {/* Agent summary card */}
                   <div
                     style={{
-                      background: "#F8FAFF",
                       border: "1px solid #E3E8EF",
                       borderRadius: "12px",
-                      padding: "20px",
+                      overflow: "hidden",
+                      marginBottom: "14px",
+                    }}
+                  >
+                    {/* Identity */}
+                    <div style={{ padding: "18px 20px", borderBottom: "1px solid #F1F5F9" }}>
+                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", marginBottom: "6px" }}>
+                        <span style={{ fontSize: "16px", fontWeight: 700, color: "#0A2540" }}>{form.name}</span>
+                        <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+                          <span style={{ fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "99px", background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE" }}>
+                            {CATEGORY_LABELS[form.category] ?? form.category}
+                          </span>
+                          <span style={{ fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "99px", background: "#F8FAFF", color: "#64748b", border: "1px solid #E3E8EF" }}>
+                            v{form.version}
+                          </span>
+                        </div>
+                      </div>
+                      <p style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5, margin: 0 }}>
+                        {form.description.length > 120 ? form.description.slice(0, 120) + "…" : form.description}
+                      </p>
+                    </div>
+
+                    {/* Endpoint */}
+                    <div style={{ padding: "12px 20px", borderBottom: "1px solid #F1F5F9", background: "#FAFBFC" }}>
+                      <p style={{ fontSize: "10px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>Endpoint</p>
+                      <p style={{ fontFamily: "monospace", fontSize: "12px", color: "#0A2540", wordBreak: "break-all", margin: 0 }}>{form.endpoint}</p>
+                    </div>
+
+                    {/* Pricing + Permissions */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", padding: "14px 20px", gap: "16px" }}>
+                      <div>
+                        <p style={{ fontSize: "10px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>Pricing</p>
+                        {form.pricingModel === "FREE" ? (
+                          <span style={{ fontSize: "13px", fontWeight: 700, color: "#10b981" }}>Free</span>
+                        ) : (
+                          <div>
+                            <span style={{ fontSize: "15px", fontWeight: 700, color: "#0A2540" }}>{form.priceEth} ETH</span>
+                            <span style={{ fontSize: "12px", color: "#64748b", marginLeft: "4px" }}>
+                              / {form.pricingModel.toLowerCase().replace("per_", "")}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p style={{ fontSize: "10px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>Permissions</p>
+                        {form.permissions.length === 0 ? (
+                          <span style={{ fontSize: "12px", color: "#94a3b8" }}>None</span>
+                        ) : (
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                            {form.permissions.map((p) => (
+                              <span key={p} style={{ fontSize: "10px", fontWeight: 600, padding: "2px 7px", borderRadius: "99px", background: "#FFF7ED", color: "#c2410c", border: "1px solid #FED7AA" }}>
+                                {PERMISSIONS.find(x => x.key === p)?.label ?? p}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment summary */}
+                  <div
+                    style={{
+                      border: "1px solid #BFDBFE",
+                      borderRadius: "12px",
+                      overflow: "hidden",
                       marginBottom: "16px",
                     }}
                   >
-                    <Row label="Name" value={form.name} />
-                    <Row label="Category" value={CATEGORY_LABELS[form.category] ?? form.category} />
-                    <Row label="Endpoint" value={form.endpoint.slice(0, 50) + (form.endpoint.length > 50 ? "…" : "")} />
-                    <Row
-                      label="Pricing"
-                      value={form.pricingModel === "FREE" ? "Free" : `${form.priceEth} ETH / ${form.pricingModel.toLowerCase().replace("per_", "")}`}
-                    />
-                    {form.permissions.length > 0 && (
-                      <Row label="Permissions" value={form.permissions.join(", ")} />
-                    )}
-                  </div>
-
-                  {/* Stake info */}
-                  <div
-                    style={{
-                      background: "#EFF6FF",
-                      border: "1px solid #BFDBFE",
-                      borderRadius: "12px",
-                      padding: "16px 20px",
-                      marginBottom: "20px",
-                    }}
-                  >
-                    <p style={{ fontSize: "14px", fontWeight: 700, color: "#1e40af", marginBottom: "4px" }}>
-                      Stake required: 0.01 ETH
-                    </p>
-                    <p style={{ fontSize: "12px", color: "#3b82f6" }}>
-                      Your stake is returned in full when you deactivate your agent.
-                    </p>
+                    <div style={{ padding: "12px 18px", background: "#EFF6FF", borderBottom: "1px solid #BFDBFE" }}>
+                      <p style={{ fontSize: "12px", fontWeight: 700, color: "#1e40af", margin: 0 }}>Payment summary</p>
+                    </div>
+                    <div style={{ padding: "14px 18px", background: "#fff" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                        <span style={{ fontSize: "13px", color: "#64748b" }}>Registration stake</span>
+                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#0A2540" }}>0.01 ETH</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "12px", borderBottom: "1px solid #F1F5F9" }}>
+                        <span style={{ fontSize: "13px", color: "#64748b" }}>Protocol fee</span>
+                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#10b981" }}>Free</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "12px" }}>
+                        <span style={{ fontSize: "14px", fontWeight: 700, color: "#0A2540" }}>Total due</span>
+                        <span style={{ fontSize: "14px", fontWeight: 700, color: "#2563EB" }}>0.01 ETH</span>
+                      </div>
+                      <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "8px", margin: "8px 0 0" }}>
+                        Stake is returned in full when you deactivate your agent.
+                      </p>
+                    </div>
                   </div>
 
                   {error && (

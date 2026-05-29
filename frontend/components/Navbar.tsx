@@ -1,11 +1,32 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAuth } from "@/context/AuthContext";
 
 export function Navbar() {
   const { isSignedIn, signOut } = useAuth();
+  const pathname = usePathname();
+
+  function navLink(href: string, label: string) {
+    const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+    return (
+      <Link
+        href={href}
+        className="relative text-sm font-medium px-3 py-2 transition-colors"
+        style={{ color: active ? "#0A0A0A" : "#6B7280" }}
+      >
+        {label}
+        {active && (
+          <span
+            className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full"
+            style={{ background: "#2563EB" }}
+          />
+        )}
+      </Link>
+    );
+  }
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-white">
@@ -18,9 +39,8 @@ export function Navbar() {
         {/* Center links — only when signed in */}
         {isSignedIn && (
           <div className="hidden md:flex items-center gap-1">
-            <Link href="/agents"    className="text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Explore</Link>
-            <Link href="/builder"   className="text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Builder</Link>
-            <Link href="/dashboard" className="text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Dashboard</Link>
+            {navLink("/agents", "Explore")}
+            {navLink("/dashboard", "Dashboard")}
           </div>
         )}
 

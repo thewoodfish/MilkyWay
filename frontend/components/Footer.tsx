@@ -63,7 +63,6 @@ export function Footer() {
               links: [
                 { label: "Browse agents", href: "/agents" },
                 { label: "Register agent", href: "/register" },
-                { label: "Visual builder", href: "/builder" },
               ],
             },
             {
