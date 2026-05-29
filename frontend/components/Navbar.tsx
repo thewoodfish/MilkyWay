@@ -15,26 +15,19 @@ export function Navbar() {
           MilkyWay
         </Link>
 
-        {/* Center links */}
-        <div className="hidden md:flex items-center gap-1">
-          <Link href="/agents" className="text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Explore</Link>
-          {isSignedIn && (
-            <>
-              <Link href="/builder"   className="text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Builder</Link>
-              <Link href="/dashboard" className="text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Dashboard</Link>
-            </>
-          )}
-        </div>
+        {/* Center links — only when signed in */}
+        {isSignedIn && (
+          <div className="hidden md:flex items-center gap-1">
+            <Link href="/agents"    className="text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Explore</Link>
+            <Link href="/builder"   className="text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Builder</Link>
+            <Link href="/dashboard" className="text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Dashboard</Link>
+          </div>
+        )}
 
-        {/* Right: wallet + register */}
+        {/* Right: explore (logged out) + register + wallet + sign out */}
         <div className="flex items-center gap-3">
-          {isSignedIn && (
-            <button
-              onClick={signOut}
-              className="text-xs text-[#6B7280] hover:text-[#0A0A0A] border border-[#E5E7EB] rounded-md px-3 py-1.5 transition-colors hover:bg-gray-50"
-            >
-              Sign Out
-            </button>
+          {!isSignedIn && (
+            <Link href="/agents" className="hidden md:inline-flex text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Explore</Link>
           )}
           <Link
             href="/register"
@@ -43,6 +36,25 @@ export function Navbar() {
             Register Agent →
           </Link>
           <ConnectButton chainStatus="icon" showBalance={false} />
+          {isSignedIn && (
+            <button
+              onClick={signOut}
+              className="text-[12px] font-semibold px-3.5 py-1.5 rounded-lg transition-all"
+              style={{
+                background: "#FEF2F2",
+                color: "#ef4444",
+                border: "1px solid #FECACA",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = "#FEE2E2";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = "#FEF2F2";
+              }}
+            >
+              Sign out
+            </button>
+          )}
         </div>
       </div>
     </nav>
