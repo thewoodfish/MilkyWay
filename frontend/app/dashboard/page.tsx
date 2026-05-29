@@ -903,7 +903,7 @@ export default function DashboardPage() {
       {(analyticsAgent || analyticsLoading) && (
         <div
           onClick={() => setAnalyticsAgent(null)}
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)", zIndex: 100, display: "flex", alignItems: "flex-start", justifyContent: "flex-end" }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "flex-end" }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -1049,7 +1049,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
   return (
     <div
       onClick={onClose}
-      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "16px" }}
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: "16px" }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
