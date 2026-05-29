@@ -24,21 +24,46 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 function AgentNode({ data }: { data: { agent: Agent; orderIndex: number } }) {
   const { agent } = data;
   return (
-    <div className="bg-[#0D0D1A] border border-white/20 rounded-xl p-4 min-w-[200px] shadow-lg">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-lg">✦</span>
-        <div>
-          <p className="text-white text-sm font-semibold">{agent.name}</p>
-          <p className="text-xs text-blue-600">{CATEGORY_LABELS[agent.category] ?? agent.category}</p>
+    <div
+      className="rounded-xl p-4 min-w-[220px]"
+      style={{
+        background: "#161b22",
+        border: "1px solid #30363d",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(37,99,235,0.06)",
+      }}
+    >
+      <div className="flex items-center gap-3 mb-3">
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center text-[13px] font-bold flex-shrink-0"
+          style={{ background: "rgba(37,99,235,0.2)", color: "#79c0ff" }}
+        >
+          {agent.name[0]}
+        </div>
+        <div className="min-w-0">
+          <p className="text-white text-[13px] font-semibold truncate">{agent.name}</p>
+          <p className="text-[11px]" style={{ color: "#484f58" }}>
+            {CATEGORY_LABELS[agent.category] ?? agent.category}
+          </p>
         </div>
       </div>
-      <p className="text-xs text-[#8892A4] mb-2 line-clamp-2">{agent.description}</p>
+      <p className="text-[11px] mb-3 leading-relaxed line-clamp-2" style={{ color: "#6e7681" }}>
+        {agent.description}
+      </p>
       <div className="flex items-center justify-between">
-        <span className="text-xs text-white font-mono">
+        <span className="text-[11px] font-mono-custom" style={{ color: "#484f58" }}>
           {agent.pricingModel === "FREE" ? "Free" : `${agent.priceEth} ETH`}
         </span>
         {agent.phase2Ready && (
-          <span className="text-xs bg-blue-100 text-blue-600 border border-blue-200 rounded-full px-2 py-0.5">P2</span>
+          <span
+            className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+            style={{
+              background: "rgba(37,99,235,0.15)",
+              color: "#60a5fa",
+              border: "1px solid rgba(37,99,235,0.25)",
+            }}
+          >
+            Phase 2
+          </span>
         )}
       </div>
     </div>
@@ -110,7 +135,16 @@ export default function BuilderPage() {
       .catch((e) => setError((e as Error).message));
   }, [isSuccess, txHash, flowInternalId]);
 
-  const onConnect = useCallback((conn: Connection) => setEdges((eds) => addEdge(conn, eds)), [setEdges]);
+  const onConnect = useCallback(
+    (conn: Connection) =>
+      setEdges((eds) =>
+        addEdge(
+          { ...conn, animated: true, style: { stroke: "#2563EB", strokeWidth: 2 } },
+          eds
+        )
+      ),
+    [setEdges]
+  );
 
   function addToCanvas(agent: Agent) {
     if (canvasAgents.find((a) => a.agentId === agent.agentId)) return;
@@ -182,18 +216,32 @@ export default function BuilderPage() {
     : null;
 
   return (
-    <div className="flex h-[calc(100vh-64px)]" style={{ background: "#050510" }}>
+    <div
+      className="flex h-[calc(100vh-64px)]"
+      style={{ background: "#0D1117" }}
+    >
       {/* LEFT — Agent Library */}
-      <div className="w-72 flex-shrink-0 border-r border-white/8 flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-white/8">
-          <h2 className="font-display font-bold text-white mb-3">Agent Library</h2>
+      <div
+        className="w-72 flex-shrink-0 flex flex-col overflow-hidden"
+        style={{ borderRight: "1px solid #21262d" }}
+      >
+        <div className="p-4" style={{ borderBottom: "1px solid #21262d" }}>
+          <h2 className="font-display font-bold text-white text-[14px] mb-3">
+            Agent Library
+          </h2>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search agents..."
-            className="w-full bg-white/5 border border-white/10 rounded-btn px-3 py-2 text-sm text-white placeholder-[#8892A4] outline-none focus:border-accent/50 mb-2"
+            placeholder="Search agents…"
+            className="w-full rounded-lg px-3 py-2 text-[13px] text-white placeholder-[#484f58] outline-none mb-2"
+            style={{
+              background: "#161b22",
+              border: "1px solid #21262d",
+            }}
+            onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
+            onBlur={(e) => (e.target.style.borderColor = "#21262d")}
           />
-          <label className="flex items-center gap-2 text-xs text-[#8892A4] cursor-pointer">
+          <label className="flex items-center gap-2 text-[12px] cursor-pointer" style={{ color: "#484f58" }}>
             <input
               type="checkbox"
               checked={p2Only}
@@ -210,24 +258,43 @@ export default function BuilderPage() {
               <div
                 key={agent.agentId}
                 onClick={() => !onCanvas && addToCanvas(agent)}
-                className={`p-3 rounded-xl border transition-all cursor-pointer ${
-                  onCanvas
-                    ? "border-accent/40 bg-accent/5 opacity-50 cursor-default"
-                    : "border-white/8 bg-white/3 hover:border-accent/40 hover:bg-accent/5"
-                }`}
+                className="p-3 rounded-xl transition-all cursor-pointer"
+                style={{
+                  background: onCanvas ? "rgba(37,99,235,0.06)" : "rgba(255,255,255,0.02)",
+                  border: `1px solid ${onCanvas ? "rgba(37,99,235,0.3)" : "#21262d"}`,
+                  opacity: onCanvas ? 0.5 : 1,
+                  cursor: onCanvas ? "default" : "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  if (!onCanvas)
+                    (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(37,99,235,0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!onCanvas)
+                    (e.currentTarget as HTMLDivElement).style.borderColor = "#21262d";
+                }}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-white text-xs font-medium truncate">{agent.name}</p>
-                  {agent.phase2Ready && <span className="text-xs text-blue-600 ml-1">P2</span>}
+                  <p className="text-white text-[12px] font-medium truncate">{agent.name}</p>
+                  {agent.phase2Ready && (
+                    <span
+                      className="text-[10px] font-semibold ml-1 px-1.5 py-0.5 rounded-full flex-shrink-0"
+                      style={{ background: "rgba(37,99,235,0.15)", color: "#60a5fa" }}
+                    >
+                      P2
+                    </span>
+                  )}
                 </div>
-                <p className="text-[#8892A4] text-xs">
+                <p className="text-[11px]" style={{ color: "#484f58" }}>
                   {agent.pricingModel === "FREE" ? "Free" : `${agent.priceEth} ETH`}
                 </p>
               </div>
             );
           })}
           {filteredAgents.length === 0 && (
-            <p className="text-[#8892A4] text-xs text-center py-8">No agents found</p>
+            <p className="text-[12px] text-center py-8" style={{ color: "#484f58" }}>
+              No agents found
+            </p>
           )}
         </div>
       </div>
@@ -238,9 +305,34 @@ export default function BuilderPage() {
           {canvasAgents.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
               <div className="text-center">
-                <p className="text-4xl mb-3">✦</p>
-                <p className="text-white font-display font-semibold mb-1">Drop agents here</p>
-                <p className="text-[#8892A4] text-sm">Click agents from the library to add them</p>
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                  style={{
+                    background: "rgba(37,99,235,0.1)",
+                    border: "1px solid rgba(37,99,235,0.2)",
+                  }}
+                >
+                  <svg
+                    className="w-7 h-7"
+                    style={{ color: "#2563EB" }}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-white font-semibold text-[15px] mb-1">
+                  Add agents to your flow
+                </p>
+                <p className="text-[13px]" style={{ color: "#484f58" }}>
+                  Click agents from the library on the left
+                </p>
               </div>
             </div>
           )}
@@ -256,36 +348,76 @@ export default function BuilderPage() {
             }}
             nodeTypes={nodeTypes}
             fitView
-            style={{ background: "#050510" }}
+            style={{ background: "#0D1117" }}
           >
-            <Background color="#ffffff08" gap={24} />
+            <Background color="#21262d" gap={28} size={1} />
             <Controls />
-            <MiniMap nodeColor="#2563eb" style={{ background: "#f8fafc" }} />
+            <MiniMap
+              nodeColor="#2563eb"
+              style={{ background: "#161b22", border: "1px solid #21262d" }}
+            />
           </ReactFlow>
         </div>
 
         {/* Bottom bar */}
         {canvasAgents.length > 0 && (
-          <div className="border-t border-white/8 bg-[#0D0D1A] px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-6 text-sm">
+          <div
+            className="px-6 py-4 flex items-center justify-between"
+            style={{ borderTop: "1px solid #21262d", background: "#161b22" }}
+          >
+            <div className="flex items-center gap-6">
               {preview && (
                 <>
-                  <span className="text-[#8892A4]">Subtotal: <span className="text-white">{preview.subtotal} ETH</span></span>
-                  <span className="text-[#8892A4]">Protocol fee (1%): <span className="text-white">{preview.protocolFee} ETH</span></span>
-                  <span className="text-[#8892A4]">Total: <span className="text-accent font-semibold">{preview.total} ETH</span></span>
+                  <span className="text-[12px]" style={{ color: "#484f58" }}>
+                    Subtotal:{" "}
+                    <span className="text-white font-mono-custom">{preview.subtotal} ETH</span>
+                  </span>
+                  <span className="text-[12px]" style={{ color: "#484f58" }}>
+                    Fee (1%):{" "}
+                    <span className="text-white font-mono-custom">{preview.protocolFee} ETH</span>
+                  </span>
+                  <span className="text-[13px] font-semibold" style={{ color: "#60a5fa" }}>
+                    Total:{" "}
+                    <span className="font-mono-custom">{preview.total} ETH</span>
+                  </span>
                 </>
               )}
             </div>
             <div className="flex items-center gap-3">
-              {error && <p className="text-red-400 text-xs">{error}</p>}
-              {!isConnected && <p className="text-[#8892A4] text-xs">Connect wallet to activate</p>}
-              {isConnected && !isSignedIn && <p className="text-[#8892A4] text-xs">Sign in to activate</p>}
+              {error && (
+                <p className="text-[12px]" style={{ color: "#f85149" }}>
+                  {error}
+                </p>
+              )}
+              {!isConnected && (
+                <p className="text-[12px]" style={{ color: "#484f58" }}>
+                  Connect wallet to activate
+                </p>
+              )}
+              {isConnected && !isSignedIn && (
+                <p className="text-[12px]" style={{ color: "#484f58" }}>
+                  Sign in to activate
+                </p>
+              )}
               <button
                 onClick={activateFlow}
-                disabled={!isConnected || !isSignedIn || isPending || activating || !canvasAgents.every((a) => a.phase2Ready)}
-                className="bg-accent hover:bg-accent-hover text-white rounded-btn px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-50"
+                disabled={
+                  !isConnected ||
+                  !isSignedIn ||
+                  isPending ||
+                  activating ||
+                  !canvasAgents.every((a) => a.phase2Ready)
+                }
+                className="text-white text-[13px] font-semibold px-5 py-2 rounded-lg transition-colors disabled:opacity-40"
+                style={{ background: "#2563EB" }}
+                onMouseEnter={(e) =>
+                  ((e.target as HTMLButtonElement).style.background = "#1d4ed8")
+                }
+                onMouseLeave={(e) =>
+                  ((e.target as HTMLButtonElement).style.background = "#2563EB")
+                }
               >
-                {isPending ? "Check Wallet…" : activating ? "Activating…" : "Activate Flow ✦"}
+                {isPending ? "Check Wallet…" : activating ? "Activating…" : "Activate Flow →"}
               </button>
             </div>
           </div>
@@ -293,24 +425,35 @@ export default function BuilderPage() {
       </div>
 
       {/* RIGHT — Config panel */}
-      <div className="w-72 flex-shrink-0 border-l border-white/8 flex flex-col overflow-y-auto">
-        <div className="p-4 border-b border-white/8">
-          <h2 className="font-display font-bold text-white">Configuration</h2>
+      <div
+        className="w-72 flex-shrink-0 flex flex-col overflow-y-auto"
+        style={{ borderLeft: "1px solid #21262d" }}
+      >
+        <div className="p-4" style={{ borderBottom: "1px solid #21262d" }}>
+          <h2 className="font-display font-bold text-white text-[14px]">Configuration</h2>
         </div>
 
         {selectedAgent ? (
           <div className="p-4 space-y-4">
             <div>
-              <p className="text-white font-medium text-sm">{selectedAgent.name}</p>
-              <p className="text-[#8892A4] text-xs mt-1">{selectedAgent.description}</p>
+              <p className="text-white font-semibold text-[13px]">{selectedAgent.name}</p>
+              <p className="text-[12px] mt-1 leading-relaxed" style={{ color: "#6e7681" }}>
+                {selectedAgent.description}
+              </p>
             </div>
             {inputSchema && (
               <div>
-                <p className="text-[#8892A4] text-xs font-medium uppercase tracking-wide mb-2">Inputs</p>
+                <p
+                  className="text-[11px] font-semibold uppercase tracking-widest mb-3"
+                  style={{ color: "#484f58" }}
+                >
+                  Inputs
+                </p>
                 {Object.entries(inputSchema).map(([field, def]) => (
                   <div key={field} className="mb-3">
-                    <label className="text-xs text-white block mb-1">
-                      {field} {def.required && <span className="text-red-400">*</span>}
+                    <label className="text-[12px] text-white block mb-1.5">
+                      {field}{" "}
+                      {def.required && <span style={{ color: "#f85149" }}>*</span>}
                     </label>
                     <input
                       value={staticInputs[String(selectedAgent.agentId)]?.[field] ?? ""}
@@ -324,7 +467,13 @@ export default function BuilderPage() {
                         }))
                       }
                       placeholder={def.description ?? def.type}
-                      className="w-full bg-white/5 border border-white/10 rounded-btn px-3 py-1.5 text-xs text-white placeholder-[#8892A4] outline-none focus:border-accent/50"
+                      className="w-full rounded-lg px-3 py-1.5 text-[12px] text-white outline-none"
+                      style={{
+                        background: "#161b22",
+                        border: "1px solid #21262d",
+                      }}
+                      onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
+                      onBlur={(e) => (e.target.style.borderColor = "#21262d")}
                     />
                   </div>
                 ))}
@@ -332,26 +481,59 @@ export default function BuilderPage() {
             )}
             <button
               onClick={() => removeFromCanvas(selectedAgent.agentId)}
-              className="w-full text-xs text-red-400/70 hover:text-red-400 border border-red-500/20 hover:border-red-500/40 rounded-btn py-2 transition-colors"
+              className="w-full text-[12px] py-2 rounded-lg transition-colors"
+              style={{
+                color: "#f85149",
+                border: "1px solid rgba(248,81,73,0.2)",
+                background: "transparent",
+              }}
+              onMouseEnter={(e) =>
+                ((e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(248,81,73,0.4)")
+              }
+              onMouseLeave={(e) =>
+                ((e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(248,81,73,0.2)")
+              }
             >
               Remove from canvas
             </button>
           </div>
         ) : (
-          <div className="p-4 space-y-4">
-            <p className="text-[#8892A4] text-xs">Click an agent on the canvas to configure its inputs.</p>
+          <div className="p-4 space-y-5">
+            <p className="text-[12px]" style={{ color: "#484f58" }}>
+              Click an agent on the canvas to configure its inputs.
+            </p>
             <div>
-              <p className="text-[#8892A4] text-xs font-medium uppercase tracking-wide mb-2">Trigger</p>
+              <p
+                className="text-[11px] font-semibold uppercase tracking-widest mb-3"
+                style={{ color: "#484f58" }}
+              >
+                Trigger
+              </p>
               {(["IMMEDIATE", "SCHEDULED", "CONDITION"] as const).map((t) => (
-                <label key={t} className="flex items-center gap-2 text-xs text-white mb-2 cursor-pointer">
-                  <input type="radio" value={t} checked={trigger === t} onChange={() => setTrigger(t)} className="accent-blue-600" />
+                <label
+                  key={t}
+                  className="flex items-center gap-2 text-[12px] text-white mb-2.5 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    value={t}
+                    checked={trigger === t}
+                    onChange={() => setTrigger(t)}
+                    className="accent-blue-600"
+                  />
                   {t.charAt(0) + t.slice(1).toLowerCase()}
                 </label>
               ))}
             </div>
             <div>
-              <p className="text-[#8892A4] text-xs font-medium uppercase tracking-wide mb-2">
-                Deadline: {deadlineSeconds}s
+              <p
+                className="text-[11px] font-semibold uppercase tracking-widest mb-3"
+                style={{ color: "#484f58" }}
+              >
+                Deadline:{" "}
+                <span className="font-mono-custom normal-case" style={{ color: "#60a5fa" }}>
+                  {deadlineSeconds}s
+                </span>
               </p>
               <input
                 type="range"
@@ -362,8 +544,12 @@ export default function BuilderPage() {
                 onChange={(e) => setDeadlineSeconds(Number(e.target.value))}
                 className="w-full accent-blue-600"
               />
-              <div className="flex justify-between text-xs text-[#8892A4] mt-1">
-                <span>30s</span><span>24h</span>
+              <div
+                className="flex justify-between text-[11px] mt-1"
+                style={{ color: "#484f58" }}
+              >
+                <span>30s</span>
+                <span>24h</span>
               </div>
             </div>
           </div>
@@ -371,17 +557,37 @@ export default function BuilderPage() {
 
         {/* Canvas agent list */}
         {canvasAgents.length > 0 && (
-          <div className="p-4 border-t border-white/8">
-            <p className="text-[#8892A4] text-xs font-medium uppercase tracking-wide mb-2">Flow ({canvasAgents.length} agents)</p>
+          <div className="p-4" style={{ borderTop: "1px solid #21262d" }}>
+            <p
+              className="text-[11px] font-semibold uppercase tracking-widest mb-3"
+              style={{ color: "#484f58" }}
+            >
+              Flow ({canvasAgents.length} agents)
+            </p>
             {canvasAgents.map((a, i) => (
-              <div key={a.agentId} className="flex items-center gap-2 mb-1">
-                <span className="text-xs text-[#8892A4]">{i + 1}.</span>
-                <span className="text-xs text-white flex-1 truncate">{a.name}</span>
-                {!a.phase2Ready && <span className="text-xs text-amber-400" title="Not Phase 2 Ready">⚠</span>}
+              <div key={a.agentId} className="flex items-center gap-2 mb-2">
+                <span
+                  className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+                  style={{ background: "rgba(37,99,235,0.15)", color: "#60a5fa" }}
+                >
+                  {i + 1}
+                </span>
+                <span className="text-[12px] text-white flex-1 truncate">{a.name}</span>
+                {!a.phase2Ready && (
+                  <span
+                    className="text-[10px]"
+                    style={{ color: "#d29922" }}
+                    title="Not Phase 2 Ready"
+                  >
+                    !
+                  </span>
+                )}
               </div>
             ))}
             {!canvasAgents.every((a) => a.phase2Ready) && (
-              <p className="text-xs text-amber-400 mt-2">⚠ All agents must be Phase 2 Ready to activate</p>
+              <p className="text-[11px] mt-3" style={{ color: "#d29922" }}>
+                All agents must be Phase 2 Ready to activate
+              </p>
             )}
           </div>
         )}
