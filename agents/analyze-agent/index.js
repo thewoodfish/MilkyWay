@@ -133,7 +133,8 @@ async function verifyEscrow(_escrowTx, jobId) {
     const provider = new ethers.JsonRpcProvider(rpc);
     const contract = new ethers.Contract(escrowAddress, ESCROW_ABI, provider);
     const job = await contract.getJob(jobId);
-    return job[6] === 1n || job[6] === 0n;
+    // status: 0=NONE, 1=LOCKED, 2=RUNNING, 3=COMPLETED, 4=REFUNDED
+    return job[6] === 1n || job[6] === 2n;
   } catch {
     return false;
   }

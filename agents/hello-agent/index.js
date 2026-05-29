@@ -89,7 +89,6 @@ app.post("/execute", async (req, res) => {
 // ── Escrow verification ────────────────────────────────────────────────
 
 const ESCROW_ABI = [
-  "function jobExists(bytes32 jobId) external view returns (bool)",
   "function getJob(bytes32 jobId) external view returns (tuple(bytes32,address,address[],uint256[],uint256,uint256,uint8,uint256,uint256))",
 ];
 
@@ -99,8 +98,9 @@ async function verifyEscrow(escrowTx, jobId) {
     const escrowAddress = process.env.JOB_ESCROW_ADDRESS || "0xdefea667504b720972cdc723124796a03756d384";
     const provider = new ethers.JsonRpcProvider(rpc);
     const contract = new ethers.Contract(escrowAddress, ESCROW_ABI, provider);
-    const exists = await contract.jobExists(jobId);
-    return exists;
+    const job = await contract.getJob(jobId);
+    // status: 0=NONE, 1=LOCKED, 2=RUNNING, 3=COMPLETED, 4=REFUNDED
+    return job[6] === 1n || job[6] === 2n;
   } catch {
     return false;
   }

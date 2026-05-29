@@ -60,15 +60,18 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
       })
     );
 
-    const totalEth = agentDetails.reduce((sum, a) => sum + parseFloat(a.amount), 0);
-    const fee = totalEth * 0.01;
-    const distributable = totalEth - fee;
+    // Compute msg.value using integer math so that:
+    //   msg.value - floor(msg.value / 100) === sum of agent amounts exactly
+    // (the contract verifies this with protocolFeeBps = 100)
+    const agentPricesWei = agentDetails.map((a) => ethers.parseEther(a.amount));
+    const totalPriceWei = agentPricesWei.reduce((s, v) => s + v, 0n);
+    const msgValueWei = (totalPriceWei * 10000n) / 9900n;
 
     const flow = await prisma.flow.create({
       data: {
         jobId: jobIdBytes32,
         callerAddress: req.user!.address,
-        totalAmountEth: (totalEth + fee).toFixed(6),
+        totalAmountEth: ethers.formatEther(msgValueWei),
         deadline: new Date(deadline * 1000),
         trigger,
         triggerValue: triggerValue?.toString() ?? null,
@@ -86,19 +89,13 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
       include: { agents: { orderBy: { orderIndex: "asc" } } },
     });
 
-    // Compute per-agent amounts after fee (proportional split)
-    const agentAmounts = agentDetails.map((a) => {
-      const share = (parseFloat(a.amount) / totalEth) * distributable;
-      return ethers.parseEther(share.toFixed(18)).toString();
-    });
-
     res.json({
       jobId: jobIdBytes32,
       internalId: flow.id,
       agentWallets: agentDetails.map((a) => a.wallet),
-      agentAmounts,
+      agentAmounts: agentPricesWei.map((v) => v.toString()),
       deadline,
-      totalEth: (totalEth + fee).toFixed(6),
+      totalEth: ethers.formatEther(msgValueWei),
     });
   } catch (err) {
     console.error(err);
