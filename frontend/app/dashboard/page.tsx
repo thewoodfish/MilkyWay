@@ -237,7 +237,7 @@ function ReliabilityCalendar({ days }: { days: DashAgent["reliabilityDays"] }) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "12px" }}>
+    <p style={{ fontSize: "11px", fontWeight: 700, color: "#2563EB", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0" }}>
       {children}
     </p>
   );
@@ -483,10 +483,12 @@ export default function DashboardPage() {
                   {/* Active */}
                   {activeFlows.length > 0 && (
                     <div style={{ marginBottom: "32px" }}>
-                      <SectionLabel>Running now</SectionLabel>
+                      <div style={{ borderLeft: "3px solid #2563EB", paddingLeft: "10px", marginBottom: "14px" }}>
+                        <SectionLabel>Running now</SectionLabel>
+                      </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                         {activeFlows.map((f) => (
-                          <div key={f.id} style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", padding: "20px" }}>
+                          <div key={f.id} style={{ background: "#fff", border: "1px solid #DBEAFE", borderRadius: "12px", padding: "20px", borderLeft: "3px solid #2563EB" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                                 <StatusChip status={f.status} />
@@ -498,7 +500,7 @@ export default function DashboardPage() {
                             </div>
                             <PipelineMini agents={f.agents} />
                             <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "12px" }}>
-                              Started {timeAgo(f.createdAt)} · {f.agents.filter((a) => a.status === "COMPLETED").length} of {f.agents.length} agents complete
+                              Started {timeAgo(f.createdAt)} · <span style={{ color: "#2563EB", fontWeight: 600 }}>{f.agents.filter((a) => a.status === "COMPLETED").length} of {f.agents.length}</span> agents complete
                             </p>
                           </div>
                         ))}
@@ -509,7 +511,7 @@ export default function DashboardPage() {
                   {/* History */}
                   <div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
-                      <SectionLabel>History</SectionLabel>
+                      <div style={{ borderLeft: "3px solid #2563EB", paddingLeft: "10px" }}><SectionLabel>History</SectionLabel></div>
                       <div style={{ display: "flex", gap: "4px" }}>
                         {(["ALL", "COMPLETED", "FAILED", "REFUNDED"] as HistoryFilter[]).map((f) => (
                           <button
@@ -537,12 +539,12 @@ export default function DashboardPage() {
                         href="/builder"
                       />
                     ) : (
-                      <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
+                      <div style={{ background: "#fff", border: "1px solid #DBEAFE", borderRadius: "12px", overflow: "hidden", borderTop: "3px solid #2563EB" }}>
                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                           <thead>
-                            <tr style={{ borderBottom: "1px solid #F1F5F9", background: "#FAFBFC" }}>
+                            <tr style={{ borderBottom: "1px solid #DBEAFE", background: "#EFF6FF" }}>
                               {["When", "Agents", "Cost", "Status"].map((h, i) => (
-                                <th key={h} style={{ padding: "12px 16px", textAlign: i >= 2 ? "right" : "left", fontSize: "11px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                <th key={h} style={{ padding: "12px 16px", textAlign: i >= 2 ? "right" : "left", fontSize: "11px", fontWeight: 700, color: "#2563EB", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                                   {h}
                                 </th>
                               ))}
@@ -552,14 +554,14 @@ export default function DashboardPage() {
                             {historyFlows.map((f) => (
                               <tr
                                 key={f.id}
-                                style={{ borderBottom: "1px solid #F1F5F9", cursor: "pointer" }}
+                                style={{ borderBottom: "1px solid #EEF2FF", cursor: "pointer" }}
                                 onClick={() => (window.location.href = `/flows/${f.jobId}`)}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = "#FAFBFC")}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F8FF")}
                                 onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                               >
-                                <td style={{ padding: "12px 16px", color: "#64748b" }}>{timeAgo(f.createdAt)}</td>
-                                <td style={{ padding: "12px 16px", color: "#0A2540" }}>{f.agents.map((a) => a.agentName).join(" → ")}</td>
-                                <td style={{ padding: "12px 16px", textAlign: "right", color: "#0A2540", fontWeight: 600, fontFamily: "monospace" }}><EthAmount amount={fmt(f.totalAmountEth)} size={12} /></td>
+                                <td style={{ padding: "12px 16px", color: "#64748b", fontSize: "12px" }}>{timeAgo(f.createdAt)}</td>
+                                <td style={{ padding: "12px 16px", color: "#0A2540", fontWeight: 500 }}>{f.agents.map((a) => a.agentName).join(" → ")}</td>
+                                <td style={{ padding: "12px 16px", textAlign: "right", color: "#0A2540", fontWeight: 700, fontFamily: "monospace" }}><EthAmount amount={fmt(f.totalAmountEth)} size={12} /></td>
                                 <td style={{ padding: "12px 16px", textAlign: "right" }}><StatusChip status={f.status} /></td>
                               </tr>
                             ))}
@@ -589,11 +591,11 @@ export default function DashboardPage() {
                       href="/register"
                     />
                   ) : (
-                    <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
+                    <div style={{ background: "#fff", border: "1px solid #DBEAFE", borderRadius: "12px", overflow: "hidden", borderTop: "3px solid #2563EB" }}>
                       {/* Table header */}
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 60px 70px 90px 110px", padding: "10px 20px", background: "#FAFBFC", borderBottom: "1px solid #F1F5F9" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 60px 70px 90px 110px", padding: "10px 20px", background: "#EFF6FF", borderBottom: "1px solid #DBEAFE" }}>
                         {["Agent", "Status", "Badge", "Jobs", "Earned", "Actions"].map((h, i) => (
-                          <span key={h} style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: i >= 3 ? "right" : "left" }}>
+                          <span key={h} style={{ fontSize: "11px", fontWeight: 700, color: "#2563EB", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: i >= 3 ? "right" : "left" }}>
                             {h}
                           </span>
                         ))}
@@ -604,12 +606,18 @@ export default function DashboardPage() {
                         const hs = HEALTH_STYLE[health];
 
                         return (
-                          <div key={agent.agentId} style={{ borderBottom: "1px solid #F1F5F9" }}>
+                          <div key={agent.agentId} style={{ borderBottom: "1px solid #EEF2FF" }}>
                             <div
                               onClick={() => openAnalytics(agent.agentId)}
-                              style={{ display: "grid", gridTemplateColumns: "1fr 110px 60px 70px 90px 110px", padding: "14px 20px", cursor: "pointer" }}
-                              onMouseEnter={(e) => (e.currentTarget.style.background = "#FAFBFC")}
-                              onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                              style={{ display: "grid", gridTemplateColumns: "1fr 110px 60px 70px 90px 110px", padding: "14px 20px", cursor: "pointer", transition: "background 0.1s" }}
+                              onMouseEnter={(e) => {
+                                (e.currentTarget as HTMLElement).style.background = "#F5F8FF";
+                                (e.currentTarget as HTMLElement).style.borderLeft = "3px solid #2563EB";
+                              }}
+                              onMouseLeave={(e) => {
+                                (e.currentTarget as HTMLElement).style.background = "";
+                                (e.currentTarget as HTMLElement).style.borderLeft = "";
+                              }}
                             >
                               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                                 <AgentAvatar
@@ -622,7 +630,11 @@ export default function DashboardPage() {
                                 <div>
                                   <p style={{ fontSize: "14px", fontWeight: 600, color: "#0A2540" }}>{agent.name}</p>
                                   <p style={{ fontSize: "11px", color: "#94a3b8", fontFamily: "monospace" }}>
-                                    #{agent.agentId} · {CATEGORY_LABELS[agent.category] ?? agent.category}
+                                    <span style={{ color: "#2563EB", fontWeight: 600 }}>#{agent.agentId}</span>
+                                    {" · "}
+                                    <span style={{ background: "#EFF6FF", color: "#2563EB", padding: "1px 5px", borderRadius: "4px", fontSize: "10px", fontWeight: 600 }}>
+                                      {CATEGORY_LABELS[agent.category] ?? agent.category}
+                                    </span>
                                   </p>
                                 </div>
                               </div>
@@ -635,7 +647,7 @@ export default function DashboardPage() {
                                   {agent.badgeTier === "BRONZE" ? "🥉" : agent.badgeTier === "SILVER" ? "🥈" : agent.badgeTier === "GOLD" ? "🥇" : "—"}
                                 </span>
                               </div>
-                              <p style={{ fontSize: "13px", color: "#0A2540", textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+                              <p style={{ fontSize: "13px", fontWeight: 700, color: "#2563EB", textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
                                 {agent.totalJobs}
                               </p>
                               <p style={{ fontSize: "12px", color: "#0A2540", fontWeight: 600, textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end", fontFamily: "monospace" }}>
@@ -734,30 +746,30 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Per-agent */}
-                      <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden", marginBottom: "20px" }}>
-                        <div style={{ padding: "14px 20px", borderBottom: "1px solid #F1F5F9" }}>
+                      <div style={{ background: "#fff", border: "1px solid #DBEAFE", borderRadius: "12px", overflow: "hidden", marginBottom: "20px", borderTop: "3px solid #2563EB" }}>
+                        <div style={{ padding: "14px 20px", borderBottom: "1px solid #DBEAFE", background: "#EFF6FF" }}>
                           <SectionLabel>By agent</SectionLabel>
                         </div>
                         {earnings.perAgent.map((a) => {
                           const total = parseFloat(earnings.totalEarnedEth);
                           const pct = total > 0 ? (parseFloat(a.totalEarnedEth) / total) * 100 : 0;
                           return (
-                            <div key={a.agentId} style={{ padding: "16px 20px", borderBottom: "1px solid #F1F5F9" }}>
+                            <div key={a.agentId} style={{ padding: "16px 20px", borderBottom: "1px solid #EEF2FF" }}>
                               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                                 <div>
                                   <p style={{ fontSize: "14px", fontWeight: 600, color: "#0A2540" }}>{a.name}</p>
                                   <p style={{ fontSize: "12px", color: "#64748b" }}>
-                                    {a.executions} job{a.executions !== 1 ? "s" : ""}
+                                    <span style={{ color: "#2563EB", fontWeight: 700 }}>{a.executions}</span> job{a.executions !== 1 ? "s" : ""}
                                     {a.lastRunAt && <> · last run {timeAgo(a.lastRunAt)}</>}
                                   </p>
                                 </div>
                                 <div style={{ textAlign: "right" }}>
                                   <p style={{ fontSize: "14px", fontWeight: 700, color: "#0A2540", fontFamily: "monospace", display: "flex", alignItems: "center", justifyContent: "flex-end" }}><EthAmount amount={fmt(a.totalEarnedEth)} size={13} /></p>
-                                  <p style={{ fontSize: "11px", color: "#94a3b8" }}>{pct.toFixed(0)}% of total</p>
+                                  <p style={{ fontSize: "11px", color: "#2563EB", fontWeight: 600 }}>{pct.toFixed(0)}% of total</p>
                                 </div>
                               </div>
-                              <div style={{ height: "6px", background: "#F1F5F9", borderRadius: "3px", overflow: "hidden" }}>
-                                <div style={{ height: "100%", width: `${pct}%`, background: "#2563EB", borderRadius: "3px" }} />
+                              <div style={{ height: "5px", background: "#EEF2FF", borderRadius: "3px", overflow: "hidden" }}>
+                                <div style={{ height: "100%", width: `${pct}%`, background: "linear-gradient(90deg, #2563EB, #60a5fa)", borderRadius: "3px" }} />
                               </div>
                             </div>
                           );
@@ -766,15 +778,15 @@ export default function DashboardPage() {
 
                       {/* Recent payments */}
                       {earnings.recentPayments.length > 0 && (
-                        <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
-                          <div style={{ padding: "14px 20px", borderBottom: "1px solid #F1F5F9" }}>
+                        <div style={{ background: "#fff", border: "1px solid #DBEAFE", borderRadius: "12px", overflow: "hidden", borderTop: "3px solid #2563EB" }}>
+                          <div style={{ padding: "14px 20px", borderBottom: "1px solid #DBEAFE", background: "#EFF6FF" }}>
                             <SectionLabel>Recent payments</SectionLabel>
                           </div>
                           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                             <thead>
-                              <tr style={{ background: "#FAFBFC", borderBottom: "1px solid #F1F5F9" }}>
+                              <tr style={{ background: "#EFF6FF", borderBottom: "1px solid #DBEAFE" }}>
                                 {["Date", "Agent", "Flow", "Amount", "Tx"].map((h, i) => (
-                                  <th key={h} style={{ padding: "10px 16px", textAlign: i >= 3 ? "right" : "left", fontSize: "11px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                  <th key={h} style={{ padding: "10px 16px", textAlign: i >= 3 ? "right" : "left", fontSize: "11px", fontWeight: 700, color: "#2563EB", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                                     {h}
                                   </th>
                                 ))}
@@ -782,14 +794,21 @@ export default function DashboardPage() {
                             </thead>
                             <tbody>
                               {earnings.recentPayments.map((p, i) => (
-                                <tr key={i} style={{ borderBottom: "1px solid #F1F5F9" }}>
-                                  <td style={{ padding: "12px 16px", color: "#64748b" }}>{p.executedAt ? timeAgo(p.executedAt) : "—"}</td>
-                                  <td style={{ padding: "12px 16px", color: "#0A2540", fontWeight: 500 }}>{p.agentName}</td>
-                                  <td style={{ padding: "12px 16px", color: "#94a3b8", fontFamily: "monospace", fontSize: "11px" }}>{p.flowJobId.slice(0, 16)}…</td>
+                                <tr
+                                  key={i}
+                                  style={{ borderBottom: "1px solid #EEF2FF" }}
+                                  onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F8FF")}
+                                  onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                                >
+                                  <td style={{ padding: "12px 16px", color: "#64748b", fontSize: "12px" }}>{p.executedAt ? timeAgo(p.executedAt) : "—"}</td>
+                                  <td style={{ padding: "12px 16px", color: "#0A2540", fontWeight: 600 }}>{p.agentName}</td>
+                                  <td style={{ padding: "12px 16px", fontFamily: "monospace", fontSize: "11px" }}>
+                                    <span style={{ background: "#EFF6FF", color: "#2563EB", padding: "2px 7px", borderRadius: "5px", fontWeight: 600 }}>{p.flowJobId.slice(0, 14)}…</span>
+                                  </td>
                                   <td style={{ padding: "12px 16px", textAlign: "right", color: "#10b981", fontWeight: 700, fontFamily: "monospace" }}><EthAmount amount={fmt(p.amountEth)} size={12} /></td>
                                   <td style={{ padding: "12px 16px", textAlign: "right" }}>
                                     {p.txHash
-                                      ? <a href={`${ARBISCAN}/tx/${p.txHash}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: "#2563EB", textDecoration: "none" }}>↗</a>
+                                      ? <a href={`${ARBISCAN}/tx/${p.txHash}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "#2563EB", textDecoration: "none", fontWeight: 600 }}>↗ Tx</a>
                                       : <span style={{ color: "#94a3b8" }}>—</span>
                                     }
                                   </td>
