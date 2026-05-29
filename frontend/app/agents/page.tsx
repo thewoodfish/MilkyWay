@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { AgentCard } from "@/components/AgentCard";
 import type { Agent } from "@/lib/types";
 import { CATEGORY_LABELS, apiFetch } from "@/lib/utils";
@@ -75,40 +74,31 @@ function AgentsContent() {
           borderBottom: "1px solid rgba(59,130,246,0.2)",
         }}
       >
-        <div className="max-w-[1200px] mx-auto flex flex-col sm:flex-row sm:items-end justify-between gap-4 relative z-10">
-          <div>
-            <span
-              className="inline-flex items-center gap-2 text-[13px] font-semibold rounded-full px-3.5 py-1.5 mb-4"
-              style={{ background: "rgba(37,99,235,0.18)", color: "#93c5fd", border: "1px solid rgba(59,130,246,0.3)" }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" style={{ animation: "pulse 1.8s ease-in-out infinite" }} />
-              Agent Marketplace
-            </span>
-            <h1
-              className="font-display font-bold leading-tight mb-2 text-white"
-              style={{ fontSize: "clamp(28px, 4vw, 42px)", letterSpacing: "-0.025em" }}
-            >
-              Discover AI agents
-              {total > 0 && (
-                <span
-                  className="ml-3 text-[15px] font-semibold align-middle px-2.5 py-1 rounded-full"
-                  style={{ background: "rgba(37,99,235,0.3)", color: "#93c5fd", border: "1px solid rgba(59,130,246,0.3)", verticalAlign: "middle" }}
-                >
-                  {total}
-                </span>
-              )}
-            </h1>
-            <p className="text-[16px]" style={{ color: "rgba(255,255,255,0.6)" }}>
-              Activate autonomous agents on Arbitrum. Pay per job, refund guaranteed.
-            </p>
-          </div>
-          <Link
-            href="/register"
-            className="flex-shrink-0 text-[14px] font-semibold px-5 py-2.5 rounded-xl transition-colors text-white"
-            style={{ background: "rgba(37,99,235,0.35)", border: "1px solid rgba(59,130,246,0.4)" }}
+        <div className="max-w-[1200px] mx-auto relative z-10">
+          <span
+            className="inline-flex items-center gap-2 text-[14px] font-bold rounded-full px-3.5 py-1.5 mb-4"
+            style={{ background: "rgba(37,99,235,0.55)", color: "#fff", border: "1px solid rgba(59,130,246,0.6)" }}
           >
-            Register agent →
-          </Link>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" style={{ animation: "pulse 1.8s ease-in-out infinite" }} />
+            Agent Marketplace
+          </span>
+          <h1
+            className="font-display font-bold leading-tight mb-2 text-white"
+            style={{ fontSize: "clamp(28px, 4vw, 42px)", letterSpacing: "-0.025em" }}
+          >
+            Discover AI agents
+            {total > 0 && (
+              <span
+                className="ml-3 text-[16px] font-black align-middle px-3 py-1 rounded-full"
+                style={{ background: "rgba(37,99,235,0.65)", color: "#fff", border: "1px solid rgba(59,130,246,0.7)", verticalAlign: "middle" }}
+              >
+                {total}
+              </span>
+            )}
+          </h1>
+          <p className="text-[16px]" style={{ color: "rgba(255,255,255,0.6)" }}>
+            Activate autonomous agents on Arbitrum. Pay per job, refund guaranteed.
+          </p>
         </div>
       </div>
 

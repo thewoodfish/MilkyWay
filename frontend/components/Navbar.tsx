@@ -23,7 +23,6 @@ export function Navbar() {
           <Link href="/agents"    className="text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Explore</Link>
           <Link href="/builder"   className="text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Builder</Link>
           <Link href="/dashboard" className="text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Dashboard</Link>
-          <Link href="/#pricing"  className="text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Pricing</Link>
         </div>
 
         {/* Right: wallet + register */}

@@ -1,7 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import type { Agent } from "@/lib/types";
 import { agentStatus, formatPrice, shortAddress, CATEGORY_LABELS } from "@/lib/utils";
 
+const CATEGORY_META: Record<string, { color: string; bg: string; border: string }> = {
+  DEFI:         { color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" },
+  TRADING:      { color: "#0d9488", bg: "#f0fdfa", border: "#99f6e4" },
+  DATA:         { color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
+  PRODUCTIVITY: { color: "#ea580c", bg: "#fff7ed", border: "#fed7aa" },
+  UTILITY:      { color: "#0284c7", bg: "#f0f9ff", border: "#bae6fd" },
+  SECURITY:     { color: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
+  GAMING:       { color: "#9333ea", bg: "#faf5ff", border: "#e9d5ff" },
+  SOCIAL:       { color: "#db2777", bg: "#fdf2f8", border: "#fbcfe8" },
+};
 const BLUE = { color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" };
 
 const STATUS_META = {
@@ -23,6 +35,7 @@ interface AgentCardProps {
 export function AgentCard({ agent }: AgentCardProps) {
   const status = agentStatus(agent);
   const sm = STATUS_META[status];
+  const cm = CATEGORY_META[agent.category] ?? BLUE;
   const bm = agent.badgeTier && agent.badgeTier !== "NONE" ? BADGE_META[agent.badgeTier] : null;
 
   return (
@@ -35,8 +48,8 @@ export function AgentCard({ agent }: AgentCardProps) {
         boxShadow: "0 2px 12px rgba(10,37,64,0.06)",
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 32px rgba(37,99,235,0.14), 0 0 0 1px #BFDBFE";
-        (e.currentTarget as HTMLElement).style.borderColor = "#BFDBFE";
+        (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 32px rgba(10,37,64,0.12), 0 0 0 1px ${cm.border}`;
+        (e.currentTarget as HTMLElement).style.borderColor = cm.border;
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 12px rgba(10,37,64,0.06)";
@@ -44,14 +57,14 @@ export function AgentCard({ agent }: AgentCardProps) {
       }}
     >
       {/* Top accent strip */}
-      <div className="h-1 w-full" style={{ background: "#2563EB" }} />
+      <div className="h-1 w-full" style={{ background: cm.color }} />
 
       <div className="p-5">
         {/* Header row */}
         <div className="flex items-start gap-3 mb-3">
           <div
             className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-[15px] font-bold overflow-hidden"
-            style={{ background: BLUE.bg, color: BLUE.color, border: `1px solid ${BLUE.border}` }}
+            style={{ background: cm.bg, color: cm.color, border: `1px solid ${cm.border}` }}
           >
             {agent.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -74,7 +87,7 @@ export function AgentCard({ agent }: AgentCardProps) {
             <div className="flex items-center gap-2 flex-wrap">
               <span
                 className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                style={{ background: BLUE.bg, color: BLUE.color }}
+                style={{ background: cm.bg, color: cm.color }}
               >
                 {CATEGORY_LABELS[agent.category] ?? agent.category}
               </span>
@@ -126,7 +139,7 @@ export function AgentCard({ agent }: AgentCardProps) {
           </div>
           <span
             className="text-[13px] font-semibold px-4 py-1.5 rounded-lg"
-            style={{ background: BLUE.bg, color: BLUE.color, border: `1px solid ${BLUE.border}` }}
+            style={{ background: cm.bg, color: cm.color, border: `1px solid ${cm.border}` }}
           >
             View →
           </span>
