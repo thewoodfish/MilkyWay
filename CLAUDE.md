@@ -1,1112 +1,1238 @@
-# MILKYWAY_PHASE1.md
-## MilkyWay — Phase 1: Identity Registry
+# MILKYWAY_PHASE2.md
+## MilkyWay — Phase 2: Protocol + Visual Builder + Execution Engine
 ### Complete Build Specification for Claude Code
 
-Read this file completely before writing a single line of code.
-This is a startup, not a hackathon project. Every decision here is intentional.
-Do not deviate from the architecture without flagging it first.
+Read MILKYWAY_PHASE1.md and SIWE.md before reading this file.
+Phase 2 builds directly on Phase 1. The registry, contract, database, and auth
+from Phase 1 are all still in use. This file describes what changes, what's added,
+and what's new.
 
 ---
 
-## What MilkyWay Is
+## What Phase 2 Is
 
-MilkyWay is the universe of autonomous AI agents.
+Phase 1 answered: *do agents exist?*
+Phase 2 answers: *can agents work together and get paid?*
 
-A marketplace and protocol where developers publish agents and earn automatically
-every time someone uses them. Users browse, activate, and pay agents per use.
-Agents hire other agents. Everything settles on-chain on Arbitrum.
+Three things ship together in Phase 2. They are inseparable:
 
-**Phase 1 is the foundation: a trusted, verified, on-chain registry of AI agents.**
+```
+1. The Protocol     — the standard every agent speaks
+2. The Builder      — the visual canvas where humans compose flows
+3. The Engine       — the backend that runs flows and settles payment
+```
 
-Nothing more. Nothing less. Done completely.
+The visual builder IS the protocol made human-readable.
+The engine IS the protocol made executable.
+You cannot ship one without the others.
 
 ---
 
-## Phase 1 Scope
+## Phase 1 Changes (Do These First)
 
-**What Phase 1 IS:**
-- On-chain agent identity (ERC-721 NFT per agent)
-- Agent profile stored in Postgres, integrity hash on-chain
-- Endpoint liveness verification (health check ping)
-- Badge system: Bronze / Silver / Gold
-- Five UI screens: Home, Listing, Profile, Register, Builder Dashboard
-- Staking at registration (0.01 ETH minimum)
-- Verification oracle (backend cron, pings every 24h)
-
-**What Phase 1 IS NOT:**
-- Payments between users and agents (Phase 2)
-- Agent-to-agent communication (Phase 2)
-- Ratings and reviews (Phase 4)
-- No-code agent builder (Phase 3)
-- Hosted agent deployment (Phase 3)
-- Custom token $MWY (future)
-- Governance (future)
-- Multichain (future)
+These are small surgical changes to Phase 1 before building anything new.
+They make Phase 1 backward compatible with Phase 2.
 
 ---
 
-## Tech Stack
+### Change 1: Add /about to the Registration Flow
 
-```
-Blockchain:     Arbitrum One (Chain ID: 42161)
-                Arbitrum Sepolia for testing (Chain ID: 421614)
-Smart Contract: Solidity 0.8.24 + Foundry
-Database:       Postgres via Neon (serverless, free tier to start)
-Backend:        Node.js + Express + TypeScript
-Frontend:       Next.js 14 (App Router) + TypeScript + Tailwind CSS
-Wallet:         wagmi v2 + viem v2 + RainbowKit
-Images/Logos:   Cloudinary (free tier)
-ORM:            Prisma
-Deployment:     Vercel (frontend + backend API routes)
-```
+**File: backend/src/routes/agents.ts**
 
----
-
-## Repository Structure
-
-```
-milkyway/
-├── MILKYWAY_PHASE1.md              ← this file
-├── README.md
-├── contracts/                      ← Solidity + Foundry
-│   ├── foundry.toml
-│   ├── src/
-│   │   └── AgentRegistry.sol
-│   ├── script/
-│   │   └── Deploy.s.sol
-│   └── test/
-│       └── AgentRegistry.t.sol
-├── backend/                        ← Node.js + Express + TypeScript
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── prisma/
-│   │   └── schema.prisma
-│   └── src/
-│       ├── index.ts                ← Express server, port 4000
-│       ├── routes/
-│       │   ├── agents.ts           ← CRUD for agents
-│       │   └── verify.ts           ← verification oracle trigger
-│       ├── services/
-│       │   ├── verification.ts     ← health check ping logic
-│       │   └── ipfs.ts             ← image upload to Cloudinary
-│       └── lib/
-│           ├── db.ts               ← Prisma client
-│           └── chain.ts            ← viem client for Arbitrum
-└── frontend/                       ← Next.js 14
-    ├── package.json
-    ├── next.config.js
-    ├── tailwind.config.js
-    └── app/
-        ├── layout.tsx
-        ├── page.tsx                ← Screen 1: Home / Discovery
-        ├── agents/
-        │   ├── page.tsx            ← Screen 2: Agent Listing
-        │   └── [agentId]/
-        │       └── page.tsx        ← Screen 3: Agent Profile
-        ├── register/
-        │   └── page.tsx            ← Screen 4: Register Agent
-        └── dashboard/
-            └── page.tsx            ← Screen 5: Builder Dashboard
-```
-
----
-
-## Smart Contract: AgentRegistry.sol
-
-One contract. Mints and manages agent NFT identities.
-
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
-
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-
-contract AgentRegistry is ERC721URIStorage, Ownable, ReentrancyGuard {
-
-    // ── State ──────────────────────────────────────────────────────────
-
-    uint256 private _nextAgentId;
-    uint256 public minimumStake = 0.01 ether;
-
-    struct AgentData {
-        address owner;
-        bytes32 metadataHash;   // keccak256 of full profile JSON in Postgres
-        uint256 stake;          // ETH staked at registration
-        uint256 registeredAt;
-        uint256 lastVerifiedAt;
-        bool active;
-        uint8 badgeTier;        // 0=none, 1=Bronze, 2=Silver, 3=Gold
-    }
-
-    mapping(uint256 => AgentData) public agents;
-
-    // ── Events ─────────────────────────────────────────────────────────
-
-    event AgentRegistered(
-        uint256 indexed agentId,
-        address indexed owner,
-        bytes32 metadataHash,
-        uint256 stake,
-        uint256 timestamp
-    );
-    event AgentUpdated(uint256 indexed agentId, bytes32 newMetadataHash);
-    event AgentDeactivated(uint256 indexed agentId, uint256 stakeReturned);
-    event AgentVerified(uint256 indexed agentId, uint256 timestamp);
-    event BadgeUpdated(uint256 indexed agentId, uint8 newBadge);
-
-    // ── Constructor ────────────────────────────────────────────────────
-
-    constructor() ERC721("MilkyWay Agent", "MWAGENT") Ownable(msg.sender) {}
-
-    // ── Core Functions ─────────────────────────────────────────────────
-
-    /// @notice Register a new agent. Requires minimum ETH stake.
-    /// @param metadataHash keccak256 hash of the full profile JSON stored in Postgres
-    /// @return agentId The newly minted agent NFT ID
-    function registerAgent(
-        bytes32 metadataHash
-    ) external payable nonReentrant returns (uint256 agentId) {
-        require(msg.value >= minimumStake, "Insufficient stake");
-        require(metadataHash != bytes32(0), "Invalid metadata hash");
-
-        agentId = _nextAgentId++;
-        _safeMint(msg.sender, agentId);
-
-        agents[agentId] = AgentData({
-            owner: msg.sender,
-            metadataHash: metadataHash,
-            stake: msg.value,
-            registeredAt: block.timestamp,
-            lastVerifiedAt: 0,
-            active: true,
-            badgeTier: 0   // starts with no badge, oracle assigns Bronze after first successful ping
-        });
-
-        emit AgentRegistered(agentId, msg.sender, metadataHash, msg.value, block.timestamp);
-    }
-
-    /// @notice Update agent metadata hash after profile update in Postgres
-    function updateMetadata(
-        uint256 agentId,
-        bytes32 newMetadataHash
-    ) external {
-        require(ownerOf(agentId) == msg.sender, "Not agent owner");
-        require(agents[agentId].active, "Agent not active");
-        require(newMetadataHash != bytes32(0), "Invalid hash");
-
-        agents[agentId].metadataHash = newMetadataHash;
-        emit AgentUpdated(agentId, newMetadataHash);
-    }
-
-    /// @notice Deactivate agent and return stake to owner
-    function deactivateAgent(uint256 agentId) external nonReentrant {
-        require(ownerOf(agentId) == msg.sender, "Not agent owner");
-        require(agents[agentId].active, "Already inactive");
-
-        uint256 stakeToReturn = agents[agentId].stake;
-        agents[agentId].active = false;
-        agents[agentId].stake = 0;
-
-        (bool sent,) = msg.sender.call{value: stakeToReturn}("");
-        require(sent, "Stake return failed");
-
-        emit AgentDeactivated(agentId, stakeToReturn);
-    }
-
-    // ── Oracle Functions (MilkyWay backend only) ───────────────────────
-
-    /// @notice Called by MilkyWay verification oracle after successful health check
-    function markVerified(uint256 agentId, uint8 badgeTier) external onlyOwner {
-        require(agents[agentId].active, "Agent not active");
-        agents[agentId].lastVerifiedAt = block.timestamp;
-        agents[agentId].badgeTier = badgeTier;
-        emit AgentVerified(agentId, block.timestamp);
-        emit BadgeUpdated(agentId, badgeTier);
-    }
-
-    // ── View Functions ─────────────────────────────────────────────────
-
-    function getAgent(uint256 agentId) external view returns (AgentData memory) {
-        return agents[agentId];
-    }
-
-    function totalAgents() external view returns (uint256) {
-        return _nextAgentId;
-    }
-
-    function isActive(uint256 agentId) external view returns (bool) {
-        return agents[agentId].active;
-    }
-
-    // ── Admin ──────────────────────────────────────────────────────────
-
-    function setMinimumStake(uint256 newMinimum) external onlyOwner {
-        minimumStake = newMinimum;
-    }
-
-    // ERC-721 transfer clears verification status
-    function _update(
-        address to,
-        uint256 agentId,
-        address auth
-    ) internal override returns (address) {
-        address from = super._update(to, agentId, auth);
-        if (from != address(0) && to != address(0)) {
-            agents[agentId].owner = to;
-            agents[agentId].lastVerifiedAt = 0;
-            agents[agentId].badgeTier = 0;
-        }
-        return from;
-    }
-}
-```
-
-### foundry.toml
-```toml
-[profile.default]
-src = "src"
-out = "out"
-libs = ["lib"]
-solc = "0.8.24"
-
-[rpc_endpoints]
-arbitrum_one = "${ARBITRUM_RPC}"
-arbitrum_sepolia = "${ARBITRUM_SEPOLIA_RPC}"
-
-[etherscan]
-arbitrum_one = { key = "${ARBISCAN_API_KEY}", url = "https://api.arbiscan.io/api" }
-arbitrum_sepolia = { key = "${ARBISCAN_API_KEY}", url = "https://api-sepolia.arbiscan.io/api" }
-```
-
-### Deploy.s.sol
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
-
-import "forge-std/Script.sol";
-import "../src/AgentRegistry.sol";
-
-contract Deploy is Script {
-    function run() external {
-        uint256 pk = vm.envUint("DEPLOYER_PRIVATE_KEY");
-        vm.startBroadcast(pk);
-        AgentRegistry registry = new AgentRegistry();
-        console.log("AgentRegistry deployed:", address(registry));
-        vm.stopBroadcast();
-    }
-}
-```
-
-### Deploy Commands
-```bash
-# Install dependencies
-forge install OpenZeppelin/openzeppelin-contracts --no-commit
-
-# Test
-forge test -vvv
-
-# Deploy to Sepolia first
-forge script script/Deploy.s.sol --rpc-url arbitrum_sepolia --broadcast --verify
-
-# Deploy to Arbitrum One
-forge script script/Deploy.s.sol --rpc-url arbitrum_one --broadcast --verify
-```
-
----
-
-## Database Schema: Prisma
-
-```prisma
-// backend/prisma/schema.prisma
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-model Agent {
-  id              String    @id @default(cuid())
-  agentId         Int       @unique           // on-chain NFT ID
-  name            String
-  description     String
-  category        Category
-  subcategory     String?
-  version         String    @default("1.0.0")
-  endpoint        String                      // agent's base URL
-  pricingModel    PricingModel
-  priceEth        String                      // stored as string to avoid float issues
-  permissions     String[]                    // ["read_wallet", "execute_transactions"]
-  logoUrl         String?                     // Cloudinary URL
-  metadataHash    String                      // keccak256 — must match on-chain
-  ownerAddress    String                      // wallet address
-  badgeTier       BadgeTier @default(NONE)
-  active          Boolean   @default(true)
-  verifiedAt      DateTime?
-  failedChecks    Int       @default(0)
-  registeredAt    DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  txHash          String?                     // registration transaction hash
-
-  builder         Builder   @relation(fields: [ownerAddress], references: [address])
-
-  @@index([category])
-  @@index([ownerAddress])
-  @@index([active])
-  @@index([badgeTier])
-}
-
-model Builder {
-  address         String    @id             // wallet address
-  agentsCount     Int       @default(0)
-  totalEarnings   String    @default("0")   // in ETH, stored as string
-  joinedAt        DateTime  @default(now())
-  agents          Agent[]
-}
-
-model VerificationLog {
-  id              String    @id @default(cuid())
-  agentId         Int
-  endpoint        String
-  success         Boolean
-  statusCode      Int?
-  responseTimeMs  Int?
-  checkedAt       DateTime  @default(now())
-
-  @@index([agentId])
-  @@index([checkedAt])
-}
-
-enum Category {
-  DEFI
-  TRADING
-  DATA
-  PRODUCTIVITY
-  UTILITY
-  SECURITY
-  GAMING
-  SOCIAL
-}
-
-enum PricingModel {
-  PER_CALL
-  PER_DAY
-  PER_MONTH
-  FREE
-}
-
-enum BadgeTier {
-  NONE
-  BRONZE
-  SILVER
-  GOLD
-}
-```
-
----
-
-## Backend API: Express + TypeScript
-
-### Environment Variables
-```bash
-# backend/.env
-DATABASE_URL=postgresql://...         # Neon connection string
-ARBITRUM_RPC=https://arb1.arbitrum.io/rpc
-ARBITRUM_SEPOLIA_RPC=https://sepolia-rollup.arbitrum.io/rpc
-AGENT_REGISTRY_ADDRESS=0x...          # deployed contract address
-DEPLOYER_PRIVATE_KEY=0x...            # oracle signing wallet
-CLOUDINARY_URL=cloudinary://...
-PORT=4000
-```
-
-### API Routes
-
-```
-GET    /api/agents                    list all agents (with filters)
-GET    /api/agents/:agentId           get single agent
-POST   /api/agents/register           register new agent (pre-chain)
-PUT    /api/agents/:agentId           update agent metadata
-DELETE /api/agents/:agentId           deactivate agent
-
-GET    /api/builders/:address         get builder profile + their agents
-GET    /api/stats                     total agents, builders, ETH staked
-
-POST   /api/verify/ping               manually trigger health check (admin)
-GET    /api/verify/logs/:agentId      verification history
-```
-
-### backend/src/routes/agents.ts
+In the `POST /api/agents/register` route, after the `/health` ping succeeds,
+add a second ping to `/about`:
 
 ```typescript
-import { Router, Request, Response } from "express";
-import { prisma } from "../lib/db";
-import { ethers } from "ethers";
-import { verifyEndpoint } from "../services/verification";
+// After health check passes:
+const aboutResult = await fetchAbout(endpoint);
 
-const router = Router();
-
-// GET /api/agents — list with filters
-router.get("/", async (req: Request, res: Response) => {
-  const {
-    category,
-    badge,
-    search,
-    page = "1",
-    limit = "20"
-  } = req.query;
-
-  const where: any = { active: true };
-  if (category) where.category = category;
-  if (badge) where.badgeTier = badge;
-  if (search) {
-    where.OR = [
-      { name: { contains: search as string, mode: "insensitive" } },
-      { description: { contains: search as string, mode: "insensitive" } }
-    ];
+// Store in Postgres regardless of result
+// If /about exists → agent is Phase 2 ready
+// If /about missing → agent registers fine, marked phase1Only
+await prisma.agent.update({
+  where: { id: agent.id },
+  data: {
+    aboutSchema: aboutResult.success ? aboutResult.schema : null,
+    phase2Ready: aboutResult.success,
+    aboutCachedAt: aboutResult.success ? new Date() : null
   }
-
-  const [agents, total] = await Promise.all([
-    prisma.agent.findMany({
-      where,
-      orderBy: { registeredAt: "desc" },
-      skip: (Number(page) - 1) * Number(limit),
-      take: Number(limit)
-    }),
-    prisma.agent.count({ where })
-  ]);
-
-  res.json({ agents, total, page: Number(page), limit: Number(limit) });
 });
-
-// GET /api/agents/:agentId
-router.get("/:agentId", async (req: Request, res: Response) => {
-  const agent = await prisma.agent.findUnique({
-    where: { agentId: Number(req.params.agentId) },
-    include: {
-      builder: true
-    }
-  });
-  if (!agent) return res.status(404).json({ error: "Agent not found" });
-  res.json(agent);
-});
-
-// POST /api/agents/register
-// Called BEFORE the on-chain transaction.
-// Frontend calls this to:
-//   1. Validate the endpoint is live
-//   2. Get the metadataHash to sign on-chain
-router.post("/register", async (req: Request, res: Response) => {
-  const {
-    name,
-    description,
-    category,
-    subcategory,
-    version,
-    endpoint,
-    pricingModel,
-    priceEth,
-    permissions,
-    logoUrl,
-    ownerAddress
-  } = req.body;
-
-  // Validate required fields
-  if (!name || !description || !category || !endpoint || !ownerAddress) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  // Ping the endpoint first
-  const pingResult = await verifyEndpoint(endpoint);
-  if (!pingResult.success) {
-    return res.status(400).json({
-      error: "Endpoint verification failed",
-      detail: pingResult.error
-    });
-  }
-
-  // Build the profile object
-  const profile = {
-    name,
-    description,
-    category,
-    subcategory: subcategory || null,
-    version: version || "1.0.0",
-    endpoint,
-    pricingModel,
-    priceEth,
-    permissions: permissions || [],
-    logoUrl: logoUrl || null,
-    ownerAddress
-  };
-
-  // Compute metadata hash (must match what goes on-chain)
-  const profileJSON = JSON.stringify(profile, Object.keys(profile).sort());
-  const metadataHash = ethers.keccak256(ethers.toUtf8Bytes(profileJSON));
-
-  // Store in Postgres as PENDING (no agentId yet — assigned after tx confirms)
-  const agent = await prisma.agent.create({
-    data: {
-      agentId: -1,            // placeholder — updated after tx confirms
-      metadataHash,
-      active: false,          // activated after tx confirms
-      ...profile,
-      builder: {
-        connectOrCreate: {
-          where: { address: ownerAddress },
-          create: { address: ownerAddress }
-        }
-      }
-    }
-  });
-
-  // Return hash for frontend to use in registerAgent(metadataHash) call
-  res.json({
-    metadataHash,
-    profileId: agent.id,      // internal DB id to update after tx confirms
-    pingResult
-  });
-});
-
-// POST /api/agents/confirm
-// Called AFTER the on-chain transaction confirms.
-// Updates Postgres with the real agentId and activates the agent.
-router.post("/confirm", async (req: Request, res: Response) => {
-  const { profileId, agentId, txHash } = req.body;
-
-  const agent = await prisma.agent.update({
-    where: { id: profileId },
-    data: {
-      agentId,
-      txHash,
-      active: true,
-      badgeTier: "BRONZE"       // first verification sets Bronze
-    }
-  });
-
-  // Update builder agent count
-  await prisma.builder.update({
-    where: { address: agent.ownerAddress },
-    data: { agentsCount: { increment: 1 } }
-  });
-
-  res.json({ success: true, agent });
-});
-
-export default router;
 ```
 
-### backend/src/services/verification.ts
+**New service: backend/src/services/about.ts**
 
 ```typescript
-import { prisma } from "../lib/db";
-
-interface PingResult {
+interface AboutResult {
   success: boolean;
-  statusCode?: number;
-  responseTimeMs?: number;
+  schema?: MilkyWayAboutSchema;
   error?: string;
 }
 
-export async function verifyEndpoint(endpoint: string): Promise<PingResult> {
-  const start = Date.now();
+export async function fetchAbout(endpoint: string): Promise<AboutResult> {
   try {
-    const url = `${endpoint.replace(/\/$/, "")}/health`;
+    const url = `${endpoint.replace(/\/$/, "")}/about`;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout
+    setTimeout(() => controller.abort(), 5000);
 
-    const response = await fetch(url, {
+    const res = await fetch(url, {
       signal: controller.signal,
       headers: { "User-Agent": "MilkyWay-Verifier/1.0" }
     });
 
-    clearTimeout(timeout);
-    const responseTimeMs = Date.now() - start;
-
-    if (response.status === 200) {
-      return { success: true, statusCode: 200, responseTimeMs };
+    if (res.status !== 200) {
+      return { success: false, error: `HTTP ${res.status}` };
     }
 
-    return {
-      success: false,
-      statusCode: response.status,
-      responseTimeMs,
-      error: `Endpoint returned HTTP ${response.status}`
-    };
+    const schema = await res.json();
+
+    // Validate minimum required fields
+    if (!schema.milkyway_version || !schema.input_schema || !schema.output_schema) {
+      return { success: false, error: "Missing required /about fields" };
+    }
+
+    return { success: true, schema };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+```
+
+---
+
+### Change 2: Add New Fields to Prisma Schema
+
+**File: backend/prisma/schema.prisma**
+
+Add these fields to the `Agent` model:
+
+```prisma
+model Agent {
+  // ... all existing fields unchanged ...
+
+  // Phase 2 additions
+  aboutSchema     Json?         // cached /about response
+  phase2Ready     Boolean       @default(false)
+  aboutCachedAt   DateTime?
+}
+```
+
+Run migration:
+```bash
+npx prisma migrate dev --name add_phase2_fields
+```
+
+---
+
+### Change 3: Add /about Refresh to Verification Cycle
+
+**File: backend/src/services/verification.ts**
+
+In `runVerificationCycle()`, after the health check, also refresh `/about`:
+
+```typescript
+// After successful health check:
+if (result.success) {
+  const aboutResult = await fetchAbout(agent.endpoint);
+  await prisma.agent.update({
+    where: { id: agent.id },
+    data: {
+      failedChecks: 0,
+      verifiedAt: new Date(),
+      badgeTier: "BRONZE",
+      // Refresh /about cache
+      ...(aboutResult.success && {
+        aboutSchema: aboutResult.schema,
+        phase2Ready: true,
+        aboutCachedAt: new Date()
+      })
+    }
+  });
+}
+```
+
+---
+
+### Change 4: Add phase2Ready Badge to UI
+
+**File: frontend/app/agents/page.tsx and agents/[agentId]/page.tsx**
+
+Add a "Phase 2 Ready" indicator on agent cards and profiles:
+
+```
+Bronze badge  → agent is verified alive
+Phase 2 badge → agent implements /about and /execute
+               → can be used in the visual builder
+```
+
+Agents without the Phase 2 badge still appear in the registry.
+They just cannot be dragged onto the builder canvas.
+
+---
+
+### Change 5: Upgrade hello-agent
+
+**File: agents/hello-agent**
+
+Add `/about` and `/execute` endpoints to the hello-agent.
+This is the reference implementation every developer copies.
+Full spec in the Protocol section below.
+
+---
+
+## Phase 2 New Additions
+
+Everything below is net new. Nothing from Phase 1 is removed.
+
+---
+
+## The MilkyWay Protocol Standard
+
+This is the spec every agent must implement to be Phase 2 ready.
+Document this in a separate PROTOCOL.md in the repo root.
+Developers read this to make their agents compatible.
+
+---
+
+### Endpoint 1: GET /health (Phase 1 — unchanged)
+
+```
+Response: { "name": string, "version": string, "status": "ok" }
+```
+
+---
+
+### Endpoint 2: GET /about (Phase 2 — new)
+
+The agent's complete self-description.
+Called by MilkyWay at registration, on 24h cycle, and when builder loads agent.
+
+```
+Response (HTTP 200):
+{
+  "milkyway_version": "1.0",
+  "name": "Research Agent",
+  "description": "Searches and summarizes topics on demand.",
+  "capabilities": ["research", "summarize"],
+  "pricing": {
+    "model": "per_job",
+    "amount": "0.001",
+    "currency": "ETH"
+  },
+  "input_schema": {
+    "query":  { "type": "string",  "required": true,  "description": "The search query" },
+    "limit":  { "type": "number",  "required": false, "default": 10 }
+  },
+  "output_schema": {
+    "results": { "type": "array",  "description": "Array of result objects" },
+    "count":   { "type": "number", "description": "Total results found" }
+  },
+  "max_deadline_seconds": 30
+}
+```
+
+**Field rules:**
+- `milkyway_version` — always "1.0" for Phase 2
+- `input_schema` — every field has: type, required, description (optional), default (optional)
+- `output_schema` — every field has: type, description
+- `max_deadline_seconds` — how long the agent needs at most to complete a job
+- `pricing.currency` — always "ETH" for Phase 2
+
+---
+
+### Endpoint 3: POST /execute (Phase 2 — new)
+
+The job execution endpoint. Only called after escrow is locked on-chain.
+
+**Request:**
+```json
+{
+  "milkyway_version": "1.0",
+  "job_id": "uuid-v4",
+  "caller": "0x<wallet_address>",
+  "escrow_tx": "0x<transaction_hash>",
+  "task": {
+    "input": {
+      "query": "latest ETH price movements",
+      "limit": 5
+    }
+  },
+  "deadline": 1234567890
+}
+```
+
+**Fixed fields (always required — agent must validate these):**
+```
+milkyway_version  must be "1.0"
+job_id            unique UUID for this job — agent must not process same job_id twice
+caller            wallet address of who locked the escrow
+escrow_tx         on-chain tx hash — agent MUST verify this before executing
+deadline          unix timestamp — agent must refuse if deadline has passed
+task.input        shape must match input_schema from /about
+```
+
+**Response (HTTP 200 — success):**
+```json
+{
+  "milkyway_version": "1.0",
+  "job_id": "uuid-v4",
+  "status": "completed",
+  "output": {
+    "results": [...],
+    "count": 5
+  },
+  "completed_at": 1234567890
+}
+```
+
+**Response (HTTP 402 — escrow not verified):**
+```json
+{
+  "milkyway_version": "1.0",
+  "job_id": "uuid-v4",
+  "status": "payment_required",
+  "error": "Escrow transaction not found or insufficient"
+}
+```
+
+**Response (HTTP 408 — deadline passed):**
+```json
+{
+  "milkyway_version": "1.0",
+  "job_id": "uuid-v4",
+  "status": "expired",
+  "error": "Deadline has passed"
+}
+```
+
+**Agent-side escrow verification (inside /execute handler):**
+```typescript
+// Agent MUST do this before executing any work
+async function verifyEscrow(escrowTx: string, jobId: string, expectedAmount: string): Promise<boolean> {
+  const provider = new ethers.JsonRpcProvider(process.env.ARBITRUM_RPC);
+  const escrowContract = new ethers.Contract(
+    process.env.MILKYWAY_ESCROW_ADDRESS!,
+    ESCROW_ABI,
+    provider
+  );
+  const job = await escrowContract.getJob(jobId);
+  return (
+    job.exists &&
+    job.status === JobStatus.LOCKED &&
+    job.agentAddress.toLowerCase() === process.env.AGENT_WALLET!.toLowerCase() &&
+    BigInt(job.amount) >= BigInt(expectedAmount)
+  );
+}
+```
+
+---
+
+## Smart Contract: JobEscrow.sol
+
+**Location: contracts/src/JobEscrow.sol**
+
+New contract. Deployed alongside AgentRegistry.sol.
+Holds ETH, tracks flow state, releases or refunds.
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+contract JobEscrow is Ownable, ReentrancyGuard {
+
+    // ── State ──────────────────────────────────────────────────────────
+
+    // MilkyWay takes 1% of every payment
+    uint256 public protocolFeeBps = 100; // 100 basis points = 1%
+
+    enum JobStatus { NONE, LOCKED, RUNNING, COMPLETED, REFUNDED }
+
+    struct Job {
+        bytes32 jobId;
+        address caller;
+        address[] agents;       // ordered list of agents in the flow
+        uint256[] amounts;      // payment per agent (must sum to total)
+        uint256 totalAmount;
+        uint256 deadline;
+        JobStatus status;
+        uint256 lockedAt;
+        uint256 completedAt;
+    }
+
+    mapping(bytes32 => Job) public jobs;
+
+    // ── Events ─────────────────────────────────────────────────────────
+
+    event JobLocked(
+        bytes32 indexed jobId,
+        address indexed caller,
+        address[] agents,
+        uint256 totalAmount,
+        uint256 deadline
+    );
+    event JobCompleted(bytes32 indexed jobId, uint256 completedAt);
+    event JobRefunded(bytes32 indexed jobId, address indexed caller, uint256 amount);
+    event AgentPaid(bytes32 indexed jobId, address indexed agent, uint256 amount);
+
+    // ── Constructor ────────────────────────────────────────────────────
+
+    constructor() Ownable(msg.sender) {}
+
+    // ── Core Functions ─────────────────────────────────────────────────
+
+    /// @notice Lock ETH payment for a flow of agents
+    /// @param jobId unique identifier (UUID as bytes32)
+    /// @param agents ordered list of agent wallet addresses
+    /// @param amounts ETH amount per agent (must sum to msg.value minus fee)
+    /// @param deadline unix timestamp when escrow expires
+    function lockPayment(
+        bytes32 jobId,
+        address[] calldata agents,
+        uint256[] calldata amounts,
+        uint256 deadline
+    ) external payable nonReentrant {
+        require(jobs[jobId].status == JobStatus.NONE, "Job ID already exists");
+        require(agents.length > 0, "No agents specified");
+        require(agents.length == amounts.length, "Agents and amounts mismatch");
+        require(deadline > block.timestamp, "Deadline must be in future");
+        require(msg.value > 0, "Must send ETH");
+
+        // Validate amounts sum correctly after fee
+        uint256 fee = (msg.value * protocolFeeBps) / 10000;
+        uint256 distributable = msg.value - fee;
+        uint256 amountSum = 0;
+        for (uint i = 0; i < amounts.length; i++) {
+            amountSum += amounts[i];
+        }
+        require(amountSum == distributable, "Amounts must sum to value minus fee");
+
+        jobs[jobId] = Job({
+            jobId: jobId,
+            caller: msg.sender,
+            agents: agents,
+            amounts: amounts,
+            totalAmount: msg.value,
+            deadline: deadline,
+            status: JobStatus.LOCKED,
+            lockedAt: block.timestamp,
+            completedAt: 0
+        });
+
+        emit JobLocked(jobId, msg.sender, agents, msg.value, deadline);
+    }
+
+    /// @notice MilkyWay execution engine calls this after all agents complete
+    /// Releases payment to each agent in the flow
+    function releasePayment(bytes32 jobId) external onlyOwner nonReentrant {
+        Job storage job = jobs[jobId];
+        require(job.status == JobStatus.LOCKED || job.status == JobStatus.RUNNING, "Invalid status");
+        require(block.timestamp <= job.deadline, "Job expired");
+
+        job.status = JobStatus.COMPLETED;
+        job.completedAt = block.timestamp;
+
+        // Pay each agent their share
+        for (uint i = 0; i < job.agents.length; i++) {
+            (bool sent,) = job.agents[i].call{value: job.amounts[i]}("");
+            require(sent, "Payment failed");
+            emit AgentPaid(jobId, job.agents[i], job.amounts[i]);
+        }
+
+        // Protocol fee stays in contract — owner withdraws separately
+        emit JobCompleted(jobId, block.timestamp);
+    }
+
+    /// @notice Caller gets refund if deadline passes without completion
+    function refundPayment(bytes32 jobId) external nonReentrant {
+        Job storage job = jobs[jobId];
+        require(job.caller == msg.sender, "Not job caller");
+        require(
+            job.status == JobStatus.LOCKED || job.status == JobStatus.RUNNING,
+            "Cannot refund"
+        );
+        require(block.timestamp > job.deadline, "Deadline not passed yet");
+
+        uint256 refundAmount = job.totalAmount;
+        job.status = JobStatus.REFUNDED;
+
+        (bool sent,) = msg.sender.call{value: refundAmount}("");
+        require(sent, "Refund failed");
+
+        emit JobRefunded(jobId, msg.sender, refundAmount);
+    }
+
+    /// @notice Mark job as running (called by engine when execution starts)
+    function markRunning(bytes32 jobId) external onlyOwner {
+        require(jobs[jobId].status == JobStatus.LOCKED, "Job not locked");
+        jobs[jobId].status = JobStatus.RUNNING;
+    }
+
+    // ── View Functions ─────────────────────────────────────────────────
+
+    function getJob(bytes32 jobId) external view returns (Job memory) {
+        return jobs[jobId];
+    }
+
+    function jobExists(bytes32 jobId) external view returns (bool) {
+        return jobs[jobId].status != JobStatus.NONE;
+    }
+
+    // ── Admin ──────────────────────────────────────────────────────────
+
+    function setProtocolFee(uint256 newFeeBps) external onlyOwner {
+        require(newFeeBps <= 500, "Max 5%");
+        protocolFeeBps = newFeeBps;
+    }
+
+    function withdrawFees() external onlyOwner {
+        uint256 balance = address(this).balance;
+        // Only withdraw what's not locked in active jobs
+        // Simple approach: owner tracks this off-chain
+        (bool sent,) = owner().call{value: balance}("");
+        require(sent, "Withdraw failed");
+    }
+}
+```
+
+**Deploy commands:**
+```bash
+# Sepolia first
+forge script script/Deploy.s.sol --rpc-url arbitrum_sepolia --broadcast --verify
+
+# Then mainnet
+forge script script/Deploy.s.sol --rpc-url arbitrum_one --broadcast --verify
+```
+
+Update Deploy.s.sol to deploy both AgentRegistry and JobEscrow.
+Save JobEscrow address to all .env files as `JOB_ESCROW_ADDRESS`.
+
+---
+
+## Database Changes
+
+**File: backend/prisma/schema.prisma**
+
+Add two new models:
+
+```prisma
+model Flow {
+  id              String      @id @default(cuid())
+  jobId           String      @unique    // bytes32 as hex string
+  callerAddress   String
+  agents          FlowAgent[]
+  totalAmountEth  String                 // as string, no floats
+  deadline        DateTime
+  trigger         TriggerType
+  triggerValue    String?                // e.g. interval seconds, or condition
+  status          FlowStatus  @default(LOCKED)
+  escrowTxHash    String?
+  completedAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([callerAddress])
+  @@index([status])
+}
+
+model FlowAgent {
+  id              String   @id @default(cuid())
+  flowId          String
+  agentId         Int                    // references Agent.agentId
+  agentAddress    String                 // wallet address for payment
+  orderIndex      Int                    // execution order in the flow
+  amountEth       String                 // this agent's cut
+  staticInputs    Json?                  // user-filled static fields
+  inputMapping    Json?                  // field mappings from previous agent output
+  status          AgentJobStatus @default(PENDING)
+  output          Json?                  // stored after execution
+  executedAt      DateTime?
+
+  flow            Flow     @relation(fields: [flowId], references: [id])
+
+  @@index([flowId])
+  @@index([orderIndex])
+}
+
+enum FlowStatus {
+  LOCKED
+  RUNNING
+  COMPLETED
+  REFUNDED
+  FAILED
+}
+
+enum AgentJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum TriggerType {
+  IMMEDIATE
+  SCHEDULED
+  CONDITION
+}
+```
+
+Run migration:
+```bash
+npx prisma migrate dev --name add_phase2_flows
+```
+
+---
+
+## New Backend Routes
+
+### backend/src/routes/flows.ts
+
+```
+POST  /api/flows/preview      compute total cost from agent list
+POST  /api/flows/create       create flow, return jobId + payment details
+POST  /api/flows/confirm      called after escrow tx confirms on-chain
+GET   /api/flows/:jobId       get flow status
+GET   /api/flows/my           get caller's flows (auth required)
+POST  /api/flows/:jobId/run   manually trigger execution (immediate flows)
+```
+
+### POST /api/flows/preview
+
+Called by the builder UI when user assembles agents.
+Does NOT create anything. Just returns cost breakdown.
+
+```typescript
+router.post("/preview", async (req, res) => {
+  const { agents } = req.body;
+  // agents: [{ agentId: number, staticInputs: {} }]
+
+  const agentDetails = await Promise.all(
+    agents.map(async (a: any) => {
+      const agent = await prisma.agent.findUnique({
+        where: { agentId: a.agentId }
+      });
+      return {
+        agentId: a.agentId,
+        name: agent?.name,
+        priceEth: agent?.priceEth,
+        aboutSchema: agent?.aboutSchema
+      };
+    })
+  );
+
+  const totalEth = agentDetails.reduce(
+    (sum, a) => sum + parseFloat(a.priceEth || "0"), 0
+  );
+  const protocolFee = totalEth * 0.01;
+
+  res.json({
+    agents: agentDetails,
+    subtotal: totalEth.toString(),
+    protocolFee: protocolFee.toFixed(6),
+    total: (totalEth + protocolFee).toFixed(6),
+    currency: "ETH"
+  });
+});
+```
+
+### POST /api/flows/create
+
+Creates the flow in Postgres and returns what the frontend needs
+to call `lockPayment()` on-chain.
+
+```typescript
+router.post("/create", authenticateJWT, async (req, res) => {
+  const { agents, trigger, triggerValue, deadlineSeconds } = req.body;
+  // agents: [{ agentId, orderIndex, staticInputs, inputMapping }]
+
+  const jobId = uuidv4();
+  const jobIdBytes32 = ethers.id(jobId); // keccak256 → bytes32
+
+  const deadline = Math.floor(Date.now() / 1000) + (deadlineSeconds || 300);
+
+  // Build agent list with wallet addresses and amounts
+  const agentDetails = await Promise.all(
+    agents.map(async (a: any) => {
+      const agent = await prisma.agent.findUnique({
+        where: { agentId: a.agentId }
+      });
+      return {
+        ...a,
+        wallet: agent?.ownerAddress,  // payment goes to agent owner
+        amount: agent?.priceEth
+      };
+    })
+  );
+
+  // Store flow in Postgres
+  const flow = await prisma.flow.create({
+    data: {
+      jobId: jobIdBytes32,
+      callerAddress: req.user.address,
+      totalAmountEth: agentDetails.reduce(
+        (sum, a) => (parseFloat(sum) + parseFloat(a.amount)).toString(), "0"
+      ),
+      deadline: new Date(deadline * 1000),
+      trigger,
+      triggerValue: triggerValue?.toString(),
+      agents: {
+        create: agentDetails.map(a => ({
+          agentId: a.agentId,
+          agentAddress: a.wallet,
+          orderIndex: a.orderIndex,
+          amountEth: a.amount,
+          staticInputs: a.staticInputs || {},
+          inputMapping: a.inputMapping || {}
+        }))
+      }
+    },
+    include: { agents: true }
+  });
+
+  // Return everything frontend needs for lockPayment() call
+  res.json({
+    jobId: jobIdBytes32,
+    internalId: flow.id,
+    agentWallets: agentDetails.map(a => a.wallet),
+    agentAmounts: agentDetails.map(a =>
+      ethers.parseEther(a.amount).toString()
+    ),
+    deadline,
+    totalEth: flow.totalAmountEth
+  });
+});
+```
+
+### POST /api/flows/confirm
+
+Called by frontend after `lockPayment()` tx confirms on-chain.
+
+```typescript
+router.post("/confirm", authenticateJWT, async (req, res) => {
+  const { internalId, escrowTxHash } = req.body;
+
+  await prisma.flow.update({
+    where: { id: internalId },
+    data: { escrowTxHash, status: "LOCKED" }
+  });
+
+  // If trigger is IMMEDIATE, start execution right away
+  const flow = await prisma.flow.findUnique({
+    where: { id: internalId },
+    include: { agents: { orderBy: { orderIndex: "asc" } } }
+  });
+
+  if (flow?.trigger === "IMMEDIATE") {
+    executeFlow(flow).catch(console.error); // async, don't await
+  }
+
+  res.json({ success: true, jobId: flow?.jobId });
+});
+```
+
+---
+
+## Execution Engine
+
+### backend/src/services/engine.ts
+
+The core of Phase 2. Runs flows sequentially.
+
+```typescript
+import { prisma } from "../lib/db";
+import { ethers } from "ethers";
+import { v4 as uuidv4 } from "uuid";
+
+const provider = new ethers.JsonRpcProvider(process.env.ARBITRUM_RPC);
+const signer = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY!, provider);
+
+const ESCROW_ABI = [
+  "function markRunning(bytes32 jobId) external",
+  "function releasePayment(bytes32 jobId) external",
+];
+const escrow = new ethers.Contract(
+  process.env.JOB_ESCROW_ADDRESS!,
+  ESCROW_ABI,
+  signer
+);
+
+export async function executeFlow(flow: any) {
+  console.log(`Executing flow: ${flow.jobId}`);
+
+  try {
+    // Mark as running on-chain
+    await escrow.markRunning(flow.jobId);
+    await prisma.flow.update({
+      where: { id: flow.id },
+      data: { status: "RUNNING" }
+    });
+
+    let previousOutput: any = null;
+
+    // Execute each agent in order
+    for (const flowAgent of flow.agents) {
+      const agent = await prisma.agent.findUnique({
+        where: { agentId: flowAgent.agentId }
+      });
+
+      if (!agent) throw new Error(`Agent ${flowAgent.agentId} not found`);
+
+      // Build input: merge static inputs + mapped fields from previous output
+      const taskInput = buildInput(
+        flowAgent.staticInputs,
+        flowAgent.inputMapping,
+        previousOutput
+      );
+
+      // Mark this agent as running
+      await prisma.flowAgent.update({
+        where: { id: flowAgent.id },
+        data: { status: "RUNNING" }
+      });
+
+      // Call the agent's /execute endpoint
+      const result = await callAgent(
+        agent.endpoint,
+        flow.jobId,
+        flow.callerAddress,
+        flow.escrowTxHash,
+        taskInput,
+        flow.deadline
+      );
+
+      if (!result.success) {
+        throw new Error(`Agent ${agent.name} failed: ${result.error}`);
+      }
+
+      // Store output, mark completed
+      await prisma.flowAgent.update({
+        where: { id: flowAgent.id },
+        data: {
+          status: "COMPLETED",
+          output: result.output,
+          executedAt: new Date()
+        }
+      });
+
+      previousOutput = result.output;
+      console.log(`Agent ${agent.name} completed`);
+    }
+
+    // All agents done — release payment on-chain
+    const tx = await escrow.releasePayment(flow.jobId);
+    await tx.wait();
+
+    await prisma.flow.update({
+      where: { id: flow.id },
+      data: { status: "COMPLETED", completedAt: new Date() }
+    });
+
+    console.log(`Flow ${flow.jobId} completed. Payment released.`);
+
+  } catch (err: any) {
+    console.error(`Flow ${flow.jobId} failed:`, err.message);
+    await prisma.flow.update({
+      where: { id: flow.id },
+      data: { status: "FAILED" }
+    });
+    // Do NOT release payment. Caller can refund after deadline.
+  }
+}
+
+// Build task input for an agent
+function buildInput(
+  staticInputs: any,
+  inputMapping: any,
+  previousOutput: any
+): any {
+  const input = { ...staticInputs };
+
+  // Map fields from previous agent's output
+  if (inputMapping && previousOutput) {
+    for (const [targetField, sourceField] of Object.entries(inputMapping)) {
+      if (previousOutput[sourceField as string] !== undefined) {
+        input[targetField] = previousOutput[sourceField as string];
+      }
+    }
+  }
+
+  return input;
+}
+
+// Call a single agent's /execute endpoint
+async function callAgent(
+  endpoint: string,
+  jobId: string,
+  caller: string,
+  escrowTx: string,
+  taskInput: any,
+  deadline: Date
+): Promise<{ success: boolean; output?: any; error?: string }> {
+  try {
+    const controller = new AbortController();
+    const timeoutMs = Math.max(
+      0,
+      new Date(deadline).getTime() - Date.now() - 2000
+    );
+    setTimeout(() => controller.abort(), timeoutMs);
+
+    const res = await fetch(`${endpoint.replace(/\/$/, "")}/execute`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "MilkyWay-Engine/1.0"
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        milkyway_version: "1.0",
+        job_id: jobId,
+        caller,
+        escrow_tx: escrowTx,
+        task: { input: taskInput },
+        deadline: Math.floor(new Date(deadline).getTime() / 1000)
+      })
+    });
+
+    if (res.status === 200) {
+      const data = await res.json();
+      return { success: true, output: data.output };
+    }
+
+    const err = await res.json();
+    return { success: false, error: err.error || `HTTP ${res.status}` };
 
   } catch (err: any) {
     return {
       success: false,
-      responseTimeMs: Date.now() - start,
-      error: err.name === "AbortError" ? "Timeout after 5 seconds" : err.message
+      error: err.name === "AbortError" ? "Agent timed out" : err.message
     };
   }
 }
-
-// Cron job — runs every 24 hours
-// Call this from a scheduler (node-cron or Vercel cron)
-export async function runVerificationCycle() {
-  console.log("Starting verification cycle...");
-
-  const agents = await prisma.agent.findMany({
-    where: { active: true },
-    select: { id: true, agentId: true, endpoint: true, failedChecks: true }
-  });
-
-  for (const agent of agents) {
-    const result = await verifyEndpoint(agent.endpoint);
-
-    // Log every check
-    await prisma.verificationLog.create({
-      data: {
-        agentId: agent.agentId,
-        endpoint: agent.endpoint,
-        success: result.success,
-        statusCode: result.statusCode || null,
-        responseTimeMs: result.responseTimeMs || null
-      }
-    });
-
-    if (result.success) {
-      // Reset failed checks, update badge to Bronze minimum
-      await prisma.agent.update({
-        where: { id: agent.id },
-        data: {
-          failedChecks: 0,
-          verifiedAt: new Date(),
-          badgeTier: "BRONZE"
-        }
-      });
-    } else {
-      const newFailedCount = agent.failedChecks + 1;
-
-      await prisma.agent.update({
-        where: { id: agent.id },
-        data: {
-          failedChecks: newFailedCount,
-          // Downgrade badge after 3 failures, flag after 7
-          badgeTier: newFailedCount >= 3 ? "NONE" : undefined
-        }
-      });
-
-      if (newFailedCount >= 7) {
-        console.warn(`Agent ${agent.agentId} flagged as inactive after 7 failed checks`);
-      }
-    }
-  }
-
-  console.log(`Verification cycle complete. Checked ${agents.length} agents.`);
-}
 ```
 
 ---
 
-## Frontend: Next.js 14
+## Visual Builder UI
 
-### Design Direction
+### New screen: frontend/app/builder/page.tsx
 
-MilkyWay is a universe. The design must feel like space.
-
-```
-Theme:          Dark. Deep space. Not generic dark UI.
-Background:     Near-black with subtle star field texture (#050510)
-Primary:        Bright white (#FAFAFA)
-Secondary:      Muted blue-grey (#8892A4)
-Accent:         Electric indigo (#6366F1) — the galaxy's glow
-Success:        Emerald (#10B981)
-Warning:        Amber (#F59E0B)
-Cards:          Semi-transparent dark (#0D0D1A) with subtle border
-Border:         rgba(255,255,255,0.08)
-Font display:   'Syne' — geometric, futuristic, confident
-Font body:      'DM Sans' — clean, readable, modern
-Monospace:      'JetBrains Mono' — addresses and hashes
-Border radius:  16px cards, 12px buttons
-```
-
-Star field: CSS background with radial gradients and tiny white dots.
-Subtle nebula glow behind hero sections.
-Agent cards have a faint glow on hover — like stars brightening.
-
-### Screen 1 — Home (app/page.tsx)
+The canvas where users compose and activate flows.
 
 ```
-HERO SECTION
-  Headline: "The Universe of Autonomous Agents"
-  Subline: "Build agents. Publish once. Earn forever."
-  CTA buttons: "Explore Agents" | "Register Your Agent"
-  Background: animated star field, subtle nebula
+LAYOUT (three panels side by side)
 
-STATS BAR
-  [X Agents] [X Builders] [X ETH Staked] [X Verifications Today]
-  Live numbers from /api/stats
+LEFT PANEL — Agent Library
+  Search agents
+  Filter: Phase 2 Ready only (toggle)
+  Agent cards — smaller format
+  Drag to canvas
 
-CATEGORY FILTER ROW
-  DeFi | Trading | Data | Productivity | Utility | Security | All
+CENTER PANEL — Canvas
+  Drop zone for agents
+  Agents appear as nodes
+  Click and drag to connect them
+  Arrow shows data flow direction
+  Each connection shows:
+    → matched fields (green)
+    → missing fields (amber — user must fill)
+  Bottom bar:
+    Total cost: 0.003 ETH
+    Protocol fee: 0.00003 ETH
+    Total: 0.00303 ETH
 
-FEATURED AGENTS
-  3 manually curated agent cards
-  Full-width cards, larger format
-
-LATEST AGENTS
-  Grid of agent cards — most recently registered
-  "View All" → /agents
+RIGHT PANEL — Configuration
+  Shows when agent is selected:
+    Agent name + description
+    Input fields (static ones user must fill)
+    Field mapping (which output field maps to which input)
+  Shows when connection is selected:
+    Source field → Target field mapping
+    Add manual mapping button
+  Shows flow settings:
+    Trigger: Immediate / Scheduled / Condition
+    Deadline: slider (30s to 24h)
 ```
 
-### Screen 2 — Agent Listing (app/agents/page.tsx)
+### Canvas Implementation
 
-```
-HEADER
-  "All Agents" with total count
-  Search input — queries name and description
-  Filters: Category, Badge Tier, Pricing Model
-  Sort: Newest | Most Used | Price Low-High
-
-AGENT GRID
-  Responsive: 3 cols desktop, 2 tablet, 1 mobile
-  Each card:
-    Logo (or generated galaxy avatar if none)
-    Name + version badge
-    Category tag
-    Badge tier icon: 🥉 🥈 🥇 (Bronze/Silver/Gold)
-    Description (2 lines, truncated)
-    Price: "0.001 ETH / call" or "Free"
-    Builder: "by 0x1234...5678"
-    Status dot: green (live) / amber (degraded) / red (down)
-    "View Agent →" link
-
-PAGINATION
-  Infinite scroll or page numbers
-```
-
-### Screen 3 — Agent Profile (app/agents/[agentId]/page.tsx)
-
-```
-HEADER
-  Large logo
-  Name + version
-  Category + subcategory tags
-  Badge tier (with tooltip explaining what it means)
-  Status indicator (live/degraded/down) + "Last verified X ago"
-
-DESCRIPTION
-  Full description, no truncation
-
-TWO COLUMN LAYOUT
-  LEFT:
-    Pricing details
-    Permissions required (with explanations)
-    Endpoint (truncated, not full URL for security)
-    "Activate Agent" button — STUBBED with "Coming in Phase 2"
-
-  RIGHT:
-    Builder card
-      Wallet address
-      "X agents published"
-      "Member since X"
-    
-    On-chain details
-      Agent ID: #42
-      Contract: 0x... (link to Arbiscan)
-      TX Hash: 0x... (link to Arbiscan)
-      Registered: date
-      Stake: 0.01 ETH
-
-VERIFICATION HISTORY
-  Last 10 verification logs
-  Timestamp | Status | Response time
-```
-
-### Screen 4 — Register Agent (app/register/page.tsx)
-
-Multi-step form. Each step is a separate visual state.
-
-```
-STEP 1 — Connect Wallet
-  "Connect your wallet to register an agent"
-  RainbowKit connect button
-  Shows: MetaMask, WalletConnect, Coinbase Wallet
-
-STEP 2 — Agent Profile
-  Fields:
-    Name*
-    Description* (textarea, 500 chars max)
-    Category* (dropdown)
-    Subcategory (text input)
-    Version (default 1.0.0)
-    Endpoint URL* (must be https://)
-    Logo (image upload → Cloudinary)
-  
-  "Test Endpoint" button
-    → calls POST /api/agents/register with just the endpoint
-    → shows: ✅ "Endpoint is live" or ❌ "Cannot reach endpoint"
-
-STEP 3 — Pricing
-  Pricing model: Per Call / Per Day / Per Month / Free
-  Price in ETH (input with USD estimate below)
-  Permissions checklist:
-    □ Read wallet balance
-    □ Execute transactions
-    □ Access external APIs
-    □ Manage other agents
-
-STEP 4 — Review + Stake
-  Summary of everything entered
-  "Registration requires staking 0.01 ETH"
-  "Your stake is returned when you deactivate your agent"
-  Total cost shown: 0.01 ETH stake + gas estimate
-  "Register Agent" button → triggers wallet transaction
-
-STEP 5 — Success
-  Animated star appearing in the galaxy
-  "Your agent is live in the MilkyWay universe"
-  Agent ID: #42
-  "View Your Agent →"
-  "Register Another →"
-```
-
-### Screen 5 — Builder Dashboard (app/dashboard/page.tsx)
-
-```
-Requires wallet connected
-
-HEADER
-  Builder address
-  "X agents published" | "X ETH staked total"
-
-MY AGENTS TABLE
-  Columns: Name | Badge | Status | Last Verified | Actions
-  Actions: Edit | View | Deactivate
-
-EDIT MODAL
-  Update name, description, pricing, logo
-  Cannot change endpoint or category (requires re-registration)
-  On save: recomputes metadataHash, calls updateMetadata on-chain
-
-DEACTIVATE FLOW
-  Confirmation dialog: "This will return your 0.01 ETH stake"
-  "Are you sure?" → calls deactivateAgent on-chain
-
-VERIFICATION HISTORY
-  Table of all pings across all agents
-  Filter by agent
-```
-
----
-
-## Registration Flow (Frontend ↔ Backend ↔ Chain)
-
-This is the most critical flow. Implement exactly in this order.
-
-```
-1. User fills form (Steps 1-3)
-
-2. User clicks "Test Endpoint"
-   → POST /api/agents/pre-verify { endpoint }
-   → Backend pings {endpoint}/health
-   → Returns: { success: true/false, responseTimeMs }
-   → UI shows result inline
-
-3. User clicks "Register Agent" (Step 4)
-   → POST /api/agents/register (full profile)
-   → Backend pings endpoint again (double check)
-   → Backend computes metadataHash
-   → Backend creates Postgres record (agentId: -1, active: false)
-   → Returns: { metadataHash, profileId }
-
-4. Frontend calls AgentRegistry.registerAgent(metadataHash)
-   with value: 0.01 ETH (from user's wallet via wagmi)
-   → User signs in wallet
-   → Transaction submitted to Arbitrum
-
-5. Frontend waits for transaction confirmation
-   → useWaitForTransactionReceipt (wagmi)
-   → Parse AgentRegistered event from receipt logs
-   → Extract agentId from event
-
-6. Frontend calls POST /api/agents/confirm
-   { profileId, agentId, txHash }
-   → Backend updates Postgres: agentId = real value, active = true
-   → Backend triggers immediate verification ping
-   → Badge set to BRONZE on success
-
-7. Show Step 5 success screen
-```
-
----
-
-## Metadata Hash — Critical Implementation Detail
-
-The metadataHash links the off-chain Postgres profile to the on-chain record.
-It must be computed identically in both backend and frontend.
-
-**The rule: always sort keys alphabetically before hashing.**
-
-```typescript
-// ALWAYS use this function. Never hash a profile any other way.
-import { ethers } from "ethers";
-
-export function computeMetadataHash(profile: AgentProfile): string {
-  // Sort keys deterministically
-  const sorted = JSON.stringify(profile, Object.keys(profile).sort());
-  return ethers.keccak256(ethers.toUtf8Bytes(sorted));
-}
-
-// The profile fields included in the hash (exactly these, in this order after sort):
-// category, description, endpoint, logoUrl, name, ownerAddress,
-// permissions, priceEth, pricingModel, subcategory, version
-```
-
-If you change what's included in the hash, you must re-register the agent on-chain.
-The hash is immutable once minted. This is intentional — it's the integrity guarantee.
-
----
-
-## Health Endpoint Standard (Phase 1)
-
-Every agent registered on MilkyWay MUST implement:
-
-```
-GET /health
-
-Response (HTTP 200):
-{
-  "name": "My Agent Name",
-  "version": "1.0.0",
-  "status": "ok"
-}
-```
-
-This is the only interface requirement in Phase 1.
-The full MilkyWay protocol interface is defined in Phase 2.
-
-Document this clearly in the README — developers need to know this before registering.
-
----
-
-## Environment Variables
+Use **React Flow** library for the drag-and-drop canvas.
 
 ```bash
-# contracts/.env
-DEPLOYER_PRIVATE_KEY=0x...
-ARBITRUM_RPC=https://arb1.arbitrum.io/rpc
-ARBITRUM_SEPOLIA_RPC=https://sepolia-rollup.arbitrum.io/rpc
-ARBISCAN_API_KEY=...
-
-# backend/.env
-DATABASE_URL=postgresql://...
-ARBITRUM_RPC=https://arb1.arbitrum.io/rpc
-AGENT_REGISTRY_ADDRESS=0x...
-DEPLOYER_PRIVATE_KEY=0x...        # oracle wallet — separate from registration wallet
-CLOUDINARY_URL=cloudinary://...
-PORT=4000
-
-# frontend/.env.local
-NEXT_PUBLIC_API_URL=http://localhost:4000
-NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS=0x...
-NEXT_PUBLIC_ARBITRUM_CHAIN_ID=42161
+npm install reactflow
 ```
+
+```typescript
+// Key components:
+// - AgentNode: custom node showing agent name, badge, price
+// - ConnectionLine: shows field mapping status
+// - FieldMatcher: reads /about from both agents, computes matches
+
+// Field matching logic:
+function matchFields(sourceSchema: any, targetSchema: any): FieldMatch[] {
+  const matches: FieldMatch[] = [];
+
+  for (const [targetField, targetDef] of Object.entries(targetSchema)) {
+    const def = targetDef as any;
+
+    // Find matching source field by name and type
+    const sourceField = Object.entries(sourceSchema).find(
+      ([name, srcDef]) =>
+        name === targetField &&
+        (srcDef as any).type === def.type
+    );
+
+    matches.push({
+      targetField,
+      sourceField: sourceField?.[0] || null,
+      matched: !!sourceField,
+      required: def.required || false,
+      type: def.type
+    });
+  }
+
+  return matches;
+}
+```
+
+### Activate Flow (builder/page.tsx)
+
+```typescript
+async function activateFlow() {
+  // 1. Call /api/flows/create
+  const { jobId, internalId, agentWallets, agentAmounts, deadline, totalEth } =
+    await authFetch(`${API}/api/flows/create`, {
+      method: "POST",
+      body: JSON.stringify({ agents, trigger, triggerValue, deadlineSeconds })
+    }).then(r => r.json());
+
+  // 2. Call lockPayment() on JobEscrow contract via wagmi
+  const { writeContract } = useWriteContract();
+  writeContract({
+    address: JOB_ESCROW_ADDRESS,
+    abi: JOB_ESCROW_ABI,
+    functionName: "lockPayment",
+    args: [jobId, agentWallets, agentAmounts, deadline],
+    value: parseEther(totalEth)
+  });
+
+  // 3. Wait for tx confirmation
+  // useWaitForTransactionReceipt → get txHash
+
+  // 4. Call /api/flows/confirm
+  await authFetch(`${API}/api/flows/confirm`, {
+    method: "POST",
+    body: JSON.stringify({ internalId, escrowTxHash: txHash })
+  });
+
+  // 5. Navigate to flow status page
+  router.push(`/flows/${jobId}`);
+}
+```
+
+### New screen: frontend/app/flows/[jobId]/page.tsx
+
+Flow status page. Real-time updates via polling every 3 seconds.
+
+```
+HEADER
+  Flow ID (truncated)
+  Status badge: LOCKED / RUNNING / COMPLETED / REFUNDED / FAILED
+  Total paid: 0.003 ETH
+
+AGENT PIPELINE (visual)
+  [Agent A] ──→ [Agent B] ──→ [Agent C]
+    ✓ done        ⟳ running     ○ pending
+
+  Each agent shows:
+    Status icon
+    Time taken (when done)
+    "View Output" expandable (shows JSON output)
+
+PAYMENT SECTION
+  Each agent: name + amount paid
+  Protocol fee
+  On COMPLETED: "Payment released on-chain" + tx link
+  On FAILED: "Refund available after [deadline time]" + Refund button
+
+REFUND BUTTON (shows after deadline if status != COMPLETED)
+  Calls refundPayment(jobId) on-chain via wagmi
+```
+
+---
+
+## hello-agent Upgrade
+
+**File: agents/hello-agent**
+
+Add full Phase 2 compliance. This is the reference every developer copies.
+
+```typescript
+// GET /about
+app.get("/about", (req, res) => {
+  res.json({
+    milkyway_version: "1.0",
+    name: "Hello Agent",
+    description: "A simple hello world agent. Greets any input name.",
+    capabilities: ["greet"],
+    pricing: {
+      model: "per_job",
+      amount: "0.0001",
+      currency: "ETH"
+    },
+    input_schema: {
+      name: { type: "string", required: true, description: "Name to greet" }
+    },
+    output_schema: {
+      greeting: { type: "string", description: "The greeting message" },
+      timestamp: { type: "number", description: "Unix timestamp of greeting" }
+    },
+    max_deadline_seconds: 5
+  });
+});
+
+// POST /execute
+app.post("/execute", async (req, res) => {
+  const { milkyway_version, job_id, caller, escrow_tx, task, deadline } = req.body;
+
+  // Validate protocol version
+  if (milkyway_version !== "1.0") {
+    return res.status(400).json({ error: "Unsupported protocol version" });
+  }
+
+  // Check deadline
+  if (deadline < Math.floor(Date.now() / 1000)) {
+    return res.status(408).json({
+      milkyway_version: "1.0",
+      job_id,
+      status: "expired",
+      error: "Deadline has passed"
+    });
+  }
+
+  // Verify escrow on-chain
+  const valid = await verifyEscrow(escrow_tx, job_id);
+  if (!valid) {
+    return res.status(402).json({
+      milkyway_version: "1.0",
+      job_id,
+      status: "payment_required",
+      error: "Escrow not verified"
+    });
+  }
+
+  // Do the work
+  const { name } = task.input;
+  const greeting = `Hello, ${name}! Welcome to MilkyWay.`;
+
+  res.json({
+    milkyway_version: "1.0",
+    job_id,
+    status: "completed",
+    output: {
+      greeting,
+      timestamp: Math.floor(Date.now() / 1000)
+    },
+    completed_at: Math.floor(Date.now() / 1000)
+  });
+});
+```
+
+---
+
+## Where ERC-8004 and x402 Fit
+
+**ERC-8004:**
+AgentRegistry.sol IS an ERC-8004 implementation.
+In Phase 2, explicitly add the ERC-8004 interface declaration to AgentRegistry.sol:
+```solidity
+// Add to AgentRegistry.sol
+string public constant ERC8004_VERSION = "1.0";
+```
+And add to PROTOCOL.md: "MilkyWay implements ERC-8004 for agent identity."
+This makes MilkyWay agents compatible with any ecosystem reading ERC-8004 registries.
+
+**x402:**
+The X-PAYMENT header pattern from x402 is the inspiration for how
+MilkyWay passes payment proof to agents via the `escrow_tx` field in /execute.
+In Phase 2, the engine passes the escrow tx hash. Agents verify on-chain.
+In Phase 3, this can be upgraded to full x402 compliance with X-PAYMENT headers
+for external agents outside MilkyWay to plug in via standard x402.
 
 ---
 
 ## Build Order for Claude Code
 
-Follow exactly. Each phase must be complete before the next.
-
 ```
-PHASE A — CONTRACTS
-  1. forge install OpenZeppelin/openzeppelin-contracts --no-commit
-  2. Write AgentRegistry.sol
-  3. Write AgentRegistry.t.sol (test register, update, deactivate, verify)
-  4. forge test -vvv — must pass 100%
-  5. Deploy to Arbitrum Sepolia
-  6. Save address → all .env files
-  7. Deploy to Arbitrum One
-  8. Verify on Arbiscan
+PHASE A — CONTRACT + DB
+  1. Write JobEscrow.sol
+  2. Update Deploy.s.sol to deploy both contracts
+  3. forge test -vvv (write JobEscrow.t.sol)
+  4. Deploy to Arbitrum Sepolia, save address
+  5. npx prisma migrate dev --name add_phase2_flows
 
-PHASE B — DATABASE
-  9.  Write prisma/schema.prisma
-  10. Set up Neon database, get connection string
-  11. npx prisma migrate dev --name init
-  12. npx prisma generate
+PHASE B — PHASE 1 CHANGES
+  6. Write backend/src/services/about.ts
+  7. Update backend/src/routes/agents.ts (add /about ping)
+  8. Update backend/src/services/verification.ts (/about refresh)
+  9. Update frontend agent cards (phase2Ready badge)
+  10. Upgrade agents/hello-agent (/about + /execute)
 
 PHASE C — BACKEND
-  13. Write backend/src/lib/db.ts
-  14. Write backend/src/lib/chain.ts (viem client)
-  15. Write backend/src/services/verification.ts
-  16. Write backend/src/routes/agents.ts
-  17. Write backend/src/index.ts
-  18. Test all routes with curl or Postman
-  19. Verify: POST /api/agents/register with a live endpoint succeeds
-  20. Verify: GET /api/agents returns results
+  11. Write backend/src/routes/flows.ts (all routes)
+  12. Write backend/src/services/engine.ts
+  13. Wire executeFlow into flows/confirm route
+  14. Test end-to-end with hello-agent:
+      → create flow → lock escrow → confirm → engine runs → payment released
 
 PHASE D — FRONTEND
-  21. npx create-next-app@14 frontend (TypeScript, Tailwind, App Router)
-  22. Install: wagmi viem @rainbow-me/rainbowkit ethers
-  23. Configure RainbowKit for Arbitrum One + Sepolia
-  24. Write app/layout.tsx (providers, fonts, star field background)
-  25. Write app/page.tsx (Home — hero, stats, featured agents)
-  26. Write app/agents/page.tsx (Listing — grid, search, filters)
-  27. Write app/agents/[agentId]/page.tsx (Profile — full details)
-  28. Write app/register/page.tsx (Registration — 5 step flow)
-  29. Write app/dashboard/page.tsx (Builder Dashboard)
-  30. End-to-end test: register a real agent, see it appear in listing
+  15. npm install reactflow
+  16. Write frontend/app/builder/page.tsx (canvas + three panels)
+  17. Write frontend/app/flows/[jobId]/page.tsx (status page)
+  18. Wire lockPayment() wagmi call in builder
+  19. Wire refundPayment() wagmi call in flow status page
+  20. End-to-end test through browser
 
-PHASE E — VERIFICATION ORACLE
-  31. Write the cron job (node-cron or Vercel cron)
-  32. Schedule every 24 hours
-  33. Test manually: POST /api/verify/ping/:agentId
+PHASE E — DEPLOY
+  21. Deploy JobEscrow to Arbitrum One
+  22. Deploy frontend to Vercel
+  23. Update README with Phase 2 contracts
 ```
 
 ---
 
 ## Common Mistakes — Never Make These
 
-- **Never store ETH amounts as floats.** Always strings or BigInt.
-- **Never skip key sorting in metadataHash computation.** The hash must be deterministic.
-- **Never call the chain directly from the frontend for writes.** All write transactions go through wagmi.
-- **Never hardcode contract addresses.** Always environment variables.
-- **Never store the deployer private key anywhere except .env.** .gitignore must cover all .env files.
-- **The oracle wallet is separate from the deployer wallet.** markVerified() is called by the oracle. Use a different key.
-- **agentId in Postgres starts at -1 (pending).** Only update to the real value after the on-chain event confirms.
-- **The metadataHash in Postgres must always match what's on-chain.** Sync them on every update.
-- **Health check timeout is 5 seconds.** Hard limit. Never wait longer.
-- **Failed checks counter resets to 0 on success.** It's not cumulative — it counts consecutive failures.
+- **Never release payment before all agents complete.** releasePayment() is called once, at the end.
+- **Never float ETH amounts.** Always strings or BigInt.
+- **job_id must be idempotent.** If an agent receives the same job_id twice, it must not execute twice. Store processed job_ids.
+- **Always verify escrow before executing agent work.** Never trust the caller blindly.
+- **inputMapping and staticInputs are separate.** staticInputs are user-defined constants. inputMapping maps previous agent output fields. Never confuse them.
+- **Deadline is unix seconds, not milliseconds.** Consistent everywhere.
+- **The engine wallet (DEPLOYER_PRIVATE_KEY) is the JobEscrow owner.** markRunning() and releasePayment() are onlyOwner.
+- **React Flow nodes must be memoized.** Performance degrades badly without it.
+- **Never store flow output in the contract.** All output lives in Postgres. Chain only tracks payment state.
+- **protocolFeeBps is 100 (1%).** This is MilkyWay's revenue. Never set to 0.
 
 ---
 
-## Success Metric
-
-Phase 1 is complete when:
+## Success Metric for Phase 2
 
 ```
-✅ Contract deployed and verified on Arbitrum One
-✅ 5 real agents registered by real builders (not test data)
-✅ All 5 screens working end-to-end
-✅ Verification oracle running and updating badges
-✅ Search and filtering working
-✅ Mobile responsive
-✅ One agent can be transferred between wallets (ERC-721)
+✅ JobEscrow.sol deployed and verified on Arbitrum One
+✅ hello-agent implements /about and /execute
+✅ Visual builder: drag two agents, connect them, see field matching
+✅ User fills missing fields manually
+✅ Activate: escrow locks on-chain
+✅ Engine runs both agents in sequence
+✅ Output of first agent passes to second
+✅ Payment releases to both agent wallets
+✅ Flow status page shows real-time progress
+✅ Refund works after deadline
 ```
-
----
-
-## What Comes Next (Phase 2 Preview)
-
-Phase 2 is the protocol layer — discovery, trust, and payments between agents.
-
-When Phase 1 has real agents registered, Phase 2 activates:
-- The "Activate Agent" button on every profile goes live
-- Agents can be called and paid per use in ETH on Arbitrum
-- The MilkyWay protocol defines the standard interface all agents implement
-- x402-style payment rails connect buyers to agents
-
-But that's Phase 2. Ship Phase 1 first.
 
 ---
 
 *MilkyWay — The Universe of Autonomous Agents*
-*Built on Arbitrum. Phase 1: Identity Registry.*
+*Phase 2: Protocol + Visual Builder + Execution Engine*
+*Built on Arbitrum. 1% protocol fee. Open standard.*
