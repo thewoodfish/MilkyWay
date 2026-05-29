@@ -1,22 +1,78 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef, Fragment } from "react";
 import Link from "next/link";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import type { Agent } from "@/lib/types";
-import { apiFetch, badgeEmoji, agentStatus, timeAgo, CATEGORY_LABELS } from "@/lib/utils";
 import { authFetch } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import { SignInButton } from "@/components/SignInButton";
 import { AuthGate } from "@/components/AuthGate";
 import { REGISTRY_ABI } from "@/lib/registry-abi";
+import { CATEGORY_LABELS, timeAgo } from "@/lib/utils";
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+} from "recharts";
 
-const REGISTRY = process.env.NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS as `0x${string}`;
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const ARBISCAN = "https://sepolia.arbiscan.io";
+const REGISTRY = process.env.NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS as `0x${string}`;
 
-interface EarningsData {
+type Tab = "flows" | "agents" | "earnings";
+type HistoryFilter = "ALL" | "COMPLETED" | "FAILED" | "REFUNDED";
+type EarningsPeriod = "7d" | "30d" | "all";
+
+interface Summary {
+  totalEarnedEth: string;
+  totalJobsRun: number;
+  activeFlows: number;
+  agentsLive: number;
+  agentsTotal: number;
+}
+
+interface FlowAgent {
+  id: string;
+  agentId: number;
+  agentName: string;
+  orderIndex: number;
+  status: "PENDING" | "RUNNING" | "COMPLETED" | "FAILED";
+  amountEth: string;
+  executedAt: string | null;
+  output: unknown;
+}
+
+interface DashFlow {
+  id: string;
+  jobId: string;
+  status: "LOCKED" | "RUNNING" | "COMPLETED" | "REFUNDED" | "FAILED";
+  trigger: string;
+  totalAmountEth: string;
+  escrowTxHash: string | null;
+  createdAt: string;
+  completedAt: string | null;
+  deadline: string;
+  agents: FlowAgent[];
+}
+
+interface DashAgent {
+  agentId: number;
+  name: string;
+  category: string;
+  badgeTier: string;
+  active: boolean;
+  verifiedAt: string | null;
+  failedChecks: number;
+  priceEth: string;
+  pricingModel: string;
+  phase2Ready: boolean;
+  aboutSchema: unknown;
+  registeredAt: string;
+  txHash: string | null;
+  totalJobs: number;
+  totalEarnedEth: string;
+  recentJobs: { flowJobId: string; executedAt: string | null; amountEth: string }[];
+  reliabilityDays: { date: string; hasData: boolean; success: boolean | null }[];
+}
+
+interface Earnings {
   totalEarnedEth: string;
   totalExecutions: number;
   activeFlows: number;
@@ -28,7 +84,7 @@ interface EarningsData {
     lastRunAt: string | null;
   }[];
   recentPayments: {
-    executedAt: string;
+    executedAt: string | null;
     agentId: number;
     agentName: string;
     flowJobId: string;
@@ -37,454 +93,840 @@ interface EarningsData {
   }[];
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+function fmt(eth: string): string {
+  const n = parseFloat(eth);
+  if (n === 0) return "0";
+  return n.toFixed(6).replace(/\.?0+$/, "");
+}
+
+function shortAddr(addr: string) {
+  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+}
+
+function agentHealth(a: DashAgent): "live" | "degraded" | "down" {
+  if (!a.active) return "down";
+  if (!a.verifiedAt) return "down";
+  const hrs = (Date.now() - new Date(a.verifiedAt).getTime()) / 3_600_000;
+  if (hrs < 2) return "live";
+  if (hrs < 24) return "degraded";
+  return "down";
+}
+
+const STATUS_COLOR: Record<string, { bg: string; text: string }> = {
+  LOCKED:    { bg: "#F1F5F9", text: "#64748b" },
+  RUNNING:   { bg: "#FFFBEB", text: "#92400e" },
+  COMPLETED: { bg: "#F0FDF4", text: "#166534" },
+  REFUNDED:  { bg: "#EFF6FF", text: "#1e40af" },
+  FAILED:    { bg: "#FEF2F2", text: "#991b1b" },
+};
+
+const HEALTH_STYLE = {
+  live:     { dot: "#10b981", label: "Live" },
+  degraded: { dot: "#f59e0b", label: "Degraded" },
+  down:     { dot: "#ef4444", label: "Down" },
+};
+
+const AGENT_STATUS_ICON: Record<string, string> = {
+  PENDING:   "○",
+  RUNNING:   "⟳",
+  COMPLETED: "✓",
+  FAILED:    "✗",
+};
+
+// ── Sub-components ────────────────────────────────────────────────────────
+
+function StatCard({ label, value, sub }: { label: string; value: string; sub: string }) {
+  return (
+    <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", padding: "18px 20px" }}>
+      <p style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
+        {label}
+      </p>
+      <p style={{ fontSize: "22px", fontWeight: 700, color: "#0A2540", marginBottom: "2px" }}>{value}</p>
+      <p style={{ fontSize: "11px", color: "#94a3b8" }}>{sub}</p>
+    </div>
+  );
+}
+
+function StatusChip({ status }: { status: string }) {
+  const s = STATUS_COLOR[status] ?? STATUS_COLOR.LOCKED;
+  return (
+    <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "99px", background: s.bg, color: s.text }}>
+      {status}
+    </span>
+  );
+}
+
+function PipelineMini({ agents }: { agents: FlowAgent[] }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+      {agents.map((a, i) => {
+        const icon = AGENT_STATUS_ICON[a.status] ?? "○";
+        const isDone = a.status === "COMPLETED";
+        const isFailed = a.status === "FAILED";
+        const isRunning = a.status === "RUNNING";
+        return (
+          <Fragment key={a.id}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+              <span style={{ fontSize: "14px", color: isDone ? "#10b981" : isFailed ? "#ef4444" : isRunning ? "#f59e0b" : "#94a3b8" }}>
+                {icon}
+              </span>
+              <span style={{ fontSize: "10px", color: "#64748b", maxWidth: "72px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {a.agentName}
+              </span>
+            </div>
+            {i < agents.length - 1 && (
+              <span style={{ fontSize: "12px", color: "#CBD5E1", marginBottom: "14px" }}>→</span>
+            )}
+          </Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+function ReliabilityCalendar({ days }: { days: DashAgent["reliabilityDays"] }) {
+  const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  return (
+    <div style={{ display: "flex", gap: "4px" }}>
+      {days.map((d, i) => {
+        const bg = !d.hasData ? "#F1F5F9" : d.success ? "#10b981" : "#ef4444";
+        return (
+          <div key={d.date} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
+            <div style={{ width: "22px", height: "22px", borderRadius: "4px", background: bg }} title={d.date} />
+            <span style={{ fontSize: "9px", color: "#94a3b8" }}>{dayNames[i]}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "12px" }}>
+      {children}
+    </p>
+  );
+}
+
+function EmptyState({ icon, title, body, cta, href }: {
+  icon: React.ReactNode; title: string; body: string; cta: string; href: string;
+}) {
+  return (
+    <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", padding: "48px 24px", textAlign: "center" }}>
+      <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+        {icon}
+      </div>
+      <p style={{ fontWeight: 700, color: "#0A2540", marginBottom: "6px" }}>{title}</p>
+      <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "20px" }}>{body}</p>
+      <Link href={href} style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", textDecoration: "none" }}>
+        {cta} →
+      </Link>
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────
+
 export default function DashboardPage() {
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const { isSignedIn } = useAuth();
-  const [tab, setTab] = useState<"agents" | "earnings">("agents");
-  const [agents, setAgents] = useState<Agent[]>([]);
+
+  const [summary, setSummary] = useState<Summary | null>(null);
+  const [flows, setFlows] = useState<DashFlow[]>([]);
+  const [agents, setAgents] = useState<DashAgent[]>([]);
+  const [earnings, setEarnings] = useState<Earnings | null>(null);
   const [loading, setLoading] = useState(true);
-  const [earnings, setEarnings] = useState<EarningsData | null>(null);
-  const [earningsLoading, setEarningsLoading] = useState(false);
+
+  const [tab, setTab] = useState<Tab>("flows");
+  const [historyFilter, setHistoryFilter] = useState<HistoryFilter>("ALL");
+  const [earningsPeriod, setEarningsPeriod] = useState<EarningsPeriod>("30d");
+  const [expandedAgents, setExpandedAgents] = useState<Set<number>>(new Set());
+  const [confirmDeactivate, setConfirmDeactivate] = useState<DashAgent | null>(null);
+  const [editAgent, setEditAgent] = useState<DashAgent | null>(null);
+  const [editForm, setEditForm] = useState({ name: "", priceEth: "", pricingModel: "" });
+  const [editSaving, setEditSaving] = useState(false);
   const [deactivating, setDeactivating] = useState<number | null>(null);
-  const [confirmDeactivate, setConfirmDeactivate] = useState<number | null>(null);
   const [error, setError] = useState("");
 
-  const { writeContract, data: txHash, isPending } = useWriteContract();
-  const { isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const { writeContract, data: txHash, isPending: isTxPending } = useWriteContract();
+  const { isSuccess: isTxDone } = useWaitForTransactionReceipt({ hash: txHash });
+
+  const fetchFlows = useCallback(async () => {
+    if (!isSignedIn) return;
+    try {
+      const r = await authFetch(`${API}/api/dashboard/flows`);
+      const data = await r.json();
+      setFlows(data);
+    } catch { /* silent */ }
+  }, [isSignedIn]);
 
   useEffect(() => {
-    if (!address) return;
-    setLoading(true);
-    apiFetch<{ agents: Agent[] }>(`/api/agents?limit=50`)
-      .then((d) => setAgents(d.agents.filter((a) => a.ownerAddress?.toLowerCase() === address.toLowerCase())))
-      .catch(() => setAgents([]))
-      .finally(() => setLoading(false));
-  }, [address]);
-
-  const fetchEarnings = useCallback(() => {
     if (!address || !isSignedIn) return;
-    setEarningsLoading(true);
-    authFetch(`${API}/api/earnings/${address}`)
-      .then((r) => r.json())
-      .then((data) => setEarnings(data))
+    setLoading(true);
+    Promise.all([
+      authFetch(`${API}/api/dashboard/summary`).then((r) => r.json()),
+      authFetch(`${API}/api/dashboard/flows`).then((r) => r.json()),
+      authFetch(`${API}/api/dashboard/agents`).then((r) => r.json()),
+    ])
+      .then(([sum, fls, ags]) => {
+        setSummary(sum);
+        setFlows(fls);
+        setAgents(ags);
+        if ((ags as DashAgent[]).length > 0) setTab("agents");
+      })
       .catch(() => {})
-      .finally(() => setEarningsLoading(false));
+      .finally(() => setLoading(false));
   }, [address, isSignedIn]);
 
+  // Poll active flows every 3s
   useEffect(() => {
-    if (tab === "earnings") {
-      fetchEarnings();
-      const interval = setInterval(fetchEarnings, 30_000);
-      return () => clearInterval(interval);
+    const hasActive = flows.some((f) => f.status === "LOCKED" || f.status === "RUNNING");
+    if (hasActive && !pollRef.current) {
+      pollRef.current = setInterval(fetchFlows, 3000);
+    } else if (!hasActive && pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
     }
-  }, [tab, fetchEarnings]);
+    return () => {
+      if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+    };
+  }, [flows, fetchFlows]);
 
+  // Lazy load earnings when tab switches
   useEffect(() => {
-    if (isSuccess && deactivating !== null) {
-      authFetch(`${API}/api/agents/${deactivating}`, { method: "DELETE" })
-        .then(() => {
-          setAgents((prev) =>
-            prev.map((a) => (a.agentId === deactivating ? { ...a, active: false } : a))
-          );
-          setDeactivating(null);
-          setConfirmDeactivate(null);
-        })
-        .catch((e) => setError((e as Error).message));
-    }
-  }, [isSuccess, deactivating]);
+    if (tab !== "earnings" || !address || !isSignedIn || earnings) return;
+    authFetch(`${API}/api/earnings/${address}`)
+      .then((r) => r.json())
+      .then(setEarnings)
+      .catch(() => {});
+  }, [tab, address, isSignedIn, earnings]);
 
-  function startDeactivate(agentId: number) {
+  // Handle deactivation tx confirmation
+  useEffect(() => {
+    if (!isTxDone || deactivating === null) return;
+    authFetch(`${API}/api/agents/${deactivating}`, { method: "DELETE" })
+      .then(() => {
+        setAgents((prev) => prev.map((a) => a.agentId === deactivating ? { ...a, active: false } : a));
+        setDeactivating(null);
+        setConfirmDeactivate(null);
+      })
+      .catch((e) => setError((e as Error).message));
+  }, [isTxDone, deactivating]);
+
+  function startDeactivate(agent: DashAgent) {
     setError("");
-    setDeactivating(agentId);
+    setDeactivating(agent.agentId);
     writeContract({
       address: REGISTRY,
       abi: REGISTRY_ABI,
       functionName: "deactivateAgent",
-      args: [BigInt(agentId)],
+      args: [BigInt(agent.agentId)],
     });
     setConfirmDeactivate(null);
   }
 
-  if (!isConnected) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <svg className="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-            </svg>
-          </div>
-          <h1 className="font-bold text-3xl text-ink mb-3">Builder Dashboard</h1>
-          <p className="text-slate-500 mb-8">Connect your wallet to manage your agents and view earnings.</p>
-          <ConnectButton />
-        </div>
-      </div>
-    );
+  async function saveEdit() {
+    if (!editAgent) return;
+    setEditSaving(true);
+    try {
+      const r = await authFetch(`${API}/api/agents/${editAgent.agentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editForm.name, priceEth: editForm.priceEth, pricingModel: editForm.pricingModel }),
+      });
+      if (!r.ok) throw new Error("Failed to save");
+      setAgents((prev) => prev.map((a) => a.agentId === editAgent.agentId ? { ...a, ...editForm } : a));
+      setEditAgent(null);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setEditSaving(false);
+    }
   }
 
-  if (!isSignedIn) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <svg className="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-            </svg>
-          </div>
-          <h1 className="font-bold text-3xl text-ink mb-3">Sign In Required</h1>
-          <p className="text-slate-500 mb-8">Sign a message to verify you own this wallet.</p>
-          <SignInButton />
-        </div>
-      </div>
-    );
+  function toggleExpand(agentId: number) {
+    setExpandedAgents((prev) => {
+      const next = new Set(prev);
+      next.has(agentId) ? next.delete(agentId) : next.add(agentId);
+      return next;
+    });
   }
 
-  const activeAgents = agents.filter((a) => a.active);
-  const totalStaked = (activeAgents.length * 0.01).toFixed(2);
+  const activeFlows = flows.filter((f) => f.status === "LOCKED" || f.status === "RUNNING");
+  const historyFlows = flows.filter((f) => {
+    if (f.status === "LOCKED" || f.status === "RUNNING") return false;
+    return historyFilter === "ALL" || f.status === historyFilter;
+  });
+
+  function buildChartData() {
+    if (!earnings) return [];
+    return Array.from({ length: 30 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (29 - i));
+      const dateStr = d.toISOString().slice(0, 10);
+      const eth = earnings.recentPayments
+        .filter((p) => p.executedAt?.slice(0, 10) === dateStr)
+        .reduce((s, p) => s + parseFloat(p.amountEth), 0);
+      return { day: dateStr.slice(5), eth };
+    });
+  }
+
+  // ── Render ──────────────────────────────────────────────────────────────
 
   return (
-    <AuthGate description="Sign in to manage your agents, track earnings, and monitor performance.">
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
-      <div className="max-w-5xl mx-auto">
+    <AuthGate description="Sign in to manage your agents, track earnings, and monitor flows.">
+      <div style={{ background: "#f8faff", minHeight: "100vh", padding: "32px 16px" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
 
-        {/* Header */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 mb-6 shadow-card">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-            <div>
-              <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-1">Builder</p>
-              <p className="font-mono-custom text-sm text-accent break-all">{address}</p>
-            </div>
-            <div className="flex gap-8 text-center shrink-0">
-              <div>
-                <p className="font-bold text-2xl text-ink">{activeAgents.length}</p>
-                <p className="text-slate-500 text-xs">Active Agents</p>
-              </div>
-              <div>
-                <p className="font-bold text-2xl text-ink">{totalStaked} ETH</p>
-                <p className="text-slate-500 text-xs">Total Staked</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Tabs */}
-        <div className="flex items-center gap-1 mb-6 bg-white border border-slate-200 rounded-xl p-1 w-fit shadow-card">
-          <button
-            onClick={() => setTab("agents")}
-            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${
-              tab === "agents"
-                ? "bg-accent text-white shadow-btn"
-                : "text-slate-500 hover:text-ink"
-            }`}
-          >
-            My Agents
-          </button>
-          <button
-            onClick={() => setTab("earnings")}
-            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${
-              tab === "earnings"
-                ? "bg-accent text-white shadow-btn"
-                : "text-slate-500 hover:text-ink"
-            }`}
-          >
-            Earnings
-          </button>
-        </div>
-
-        {/* ── My Agents Tab ───────────────────────────────────────────── */}
-        {tab === "agents" && (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-xl text-ink">My Agents</h2>
-              <Link
-                href="/register"
-                className="bg-accent hover:bg-accent-hover text-white rounded-lg px-4 py-2 text-sm font-semibold transition-colors shadow-btn"
-              >
+          {/* Header */}
+          <div style={{ marginBottom: "24px" }}>
+            <p style={{ fontSize: "13px", color: "#94a3b8", marginBottom: "4px" }}>Welcome back</p>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
+              <p style={{ fontFamily: "monospace", fontSize: "16px", fontWeight: 700, color: "#0A2540" }}>
+                {address ? shortAddr(address) : "—"}
+              </p>
+              <Link href="/register" style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", textDecoration: "none", padding: "8px 14px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "8px" }}>
                 + Register Agent
               </Link>
             </div>
+          </div>
 
-            {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-white border border-slate-200 rounded-xl animate-pulse" />
-                ))}
-              </div>
-            ) : agents.length === 0 ? (
-              <div className="text-center py-20 bg-white border border-slate-200 rounded-xl shadow-card">
-                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                  </svg>
-                </div>
-                <p className="font-semibold text-ink mb-2">No agents yet</p>
-                <p className="text-slate-500 text-sm mb-6">Register your first agent to get started.</p>
-                <Link href="/register" className="text-accent hover:underline text-sm font-medium">
-                  Register now →
-                </Link>
-              </div>
-            ) : (
-              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-card">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-slate-500 border-b border-slate-100 text-left bg-slate-50">
-                      <th className="px-5 py-3.5 font-medium text-xs">Name</th>
-                      <th className="px-5 py-3.5 font-medium text-xs hidden md:table-cell">Category</th>
-                      <th className="px-5 py-3.5 font-medium text-xs">Badge</th>
-                      <th className="px-5 py-3.5 font-medium text-xs">Status</th>
-                      <th className="px-5 py-3.5 font-medium text-xs hidden lg:table-cell">Last Verified</th>
-                      <th className="px-5 py-3.5 font-medium text-xs text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {agents.map((agent) => {
-                      const status = agentStatus(agent);
-                      const dotColor = { live: "bg-emerald-400", degraded: "bg-yellow-400", down: "bg-red-400" }[status];
-                      return (
-                        <tr key={agent.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                          <td className="px-5 py-4">
-                            <p className="text-ink font-semibold">{agent.name}</p>
-                            <p className="text-slate-400 text-xs font-mono-custom">#{agent.agentId}</p>
-                          </td>
-                          <td className="px-5 py-4 hidden md:table-cell">
-                            <span className="text-xs text-accent font-medium">
-                              {CATEGORY_LABELS[agent.category] ?? agent.category}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4">
-                            {badgeEmoji(agent.badgeTier) || <span className="text-slate-300 text-xs">—</span>}
-                          </td>
-                          <td className="px-5 py-4">
-                            <div className="flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full ${dotColor}`} />
-                              <span className="text-slate-500 text-xs capitalize">{status}</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-4 hidden lg:table-cell text-slate-400 text-xs">
-                            {agent.verifiedAt ? timeAgo(agent.verifiedAt) : "Never"}
-                          </td>
-                          <td className="px-5 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <Link
-                                href={`/agents/${agent.agentId}`}
-                                className="text-xs text-slate-500 hover:text-accent transition-colors px-2 py-1 rounded hover:bg-blue-50"
-                              >
-                                View
-                              </Link>
-                              {agent.active && (
-                                <button
-                                  onClick={() => setConfirmDeactivate(agent.agentId)}
-                                  className="text-xs text-red-400 hover:text-red-600 transition-colors px-2 py-1 rounded hover:bg-red-50"
-                                >
-                                  Deactivate
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* ── Earnings Tab ────────────────────────────────────────────── */}
-        {tab === "earnings" && (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-xl text-ink">Earnings</h2>
-              {earningsLoading && (
-                <span className="text-xs text-slate-400 flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  Refreshing…
-                </span>
-              )}
+          {/* Summary strip */}
+          {summary && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px", marginBottom: "28px" }}>
+              {summary.agentsTotal > 0 && <StatCard label="Total earned" value={`${fmt(summary.totalEarnedEth)} ETH`} sub="all time" />}
+              {(summary.totalJobsRun > 0 || summary.activeFlows > 0) && <StatCard label="Jobs run" value={summary.totalJobsRun.toLocaleString()} sub="all time" />}
+              {(summary.totalJobsRun > 0 || summary.activeFlows > 0) && <StatCard label="Active flows" value={summary.activeFlows.toString()} sub="right now" />}
+              {summary.agentsTotal > 0 && <StatCard label="Agents" value={`${summary.agentsLive} live`} sub={`${summary.agentsTotal} total`} />}
             </div>
+          )}
 
-            {!earnings && earningsLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-24 bg-white border border-slate-200 rounded-xl animate-pulse" />
-                ))}
-              </div>
-            ) : earnings ? (
-              <>
-                {/* Summary cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-card">
-                    <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-2">Total Earned</p>
-                    <p className="text-2xl font-bold text-ink">
-                      {earnings.totalEarnedEth}{" "}
-                      <span className="text-base font-normal text-slate-400">ETH</span>
-                    </p>
-                    <p className="text-slate-400 text-xs mt-1">all time</p>
-                  </div>
-                  <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-card">
-                    <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-2">Executions</p>
-                    <p className="text-2xl font-bold text-ink">
-                      {earnings.totalExecutions}{" "}
-                      <span className="text-base font-normal text-slate-400">jobs</span>
-                    </p>
-                    <p className="text-slate-400 text-xs mt-1">all time</p>
-                  </div>
-                  <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-card">
-                    <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-2">Active Flows</p>
-                    <p className="text-2xl font-bold text-ink">
-                      {earnings.activeFlows}{" "}
-                      <span className="text-base font-normal text-slate-400">flows</span>
-                    </p>
-                    <p className="text-slate-400 text-xs mt-1">using my agents now</p>
-                  </div>
-                </div>
+          {/* Tabs */}
+          <div style={{ display: "flex", borderBottom: "1px solid #E3E8EF", marginBottom: "28px" }}>
+            {(["flows", "agents", "earnings"] as Tab[]).map((t) => {
+              const labels: Record<Tab, string> = { flows: "My Flows", agents: "My Agents", earnings: "Earnings" };
+              const active = tab === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  style={{
+                    padding: "10px 20px", fontSize: "14px", fontWeight: 600, background: "none", border: "none",
+                    cursor: "pointer", color: active ? "#0A2540" : "#94a3b8",
+                    borderBottom: active ? "2px solid #2563EB" : "2px solid transparent",
+                    marginBottom: "-1px", transition: "color 0.15s",
+                  }}
+                >
+                  {labels[t]}
+                </button>
+              );
+            })}
+          </div>
 
-                {/* Per-agent breakdown */}
-                {earnings.perAgent.length > 0 && (
-                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-card mb-6">
-                    <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-                      <h3 className="font-semibold text-ink text-sm">Per Agent Breakdown</h3>
-                    </div>
-                    <div className="divide-y divide-slate-100">
-                      {earnings.perAgent.map((a) => (
-                        <div key={a.agentId} className="px-5 py-4 hover:bg-slate-50 transition-colors">
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="min-w-0">
-                              <p className="font-semibold text-ink text-sm truncate">{a.name}</p>
-                              <p className="text-slate-400 text-xs mt-0.5">
-                                {a.executions} execution{a.executions !== 1 ? "s" : ""}
-                                {a.lastRunAt && <> · last run {timeAgo(a.lastRunAt)}</>}
-                              </p>
-                            </div>
-                            <div className="text-right shrink-0">
-                              <p className="font-bold text-ink text-sm">{a.totalEarnedEth} ETH</p>
-                              <Link
-                                href={`/agents/${a.agentId}`}
-                                className="text-xs text-accent hover:underline"
-                              >
-                                View agent →
+          {/* Loading skeletons */}
+          {loading && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} style={{ height: "68px", background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", opacity: 0.5 }} />
+              ))}
+            </div>
+          )}
+
+          {!loading && (
+            <>
+              {/* ══ My Flows ══ */}
+              {tab === "flows" && (
+                <div>
+                  {/* Active */}
+                  {activeFlows.length > 0 && (
+                    <div style={{ marginBottom: "32px" }}>
+                      <SectionLabel>Running now</SectionLabel>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                        {activeFlows.map((f) => (
+                          <div key={f.id} style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", padding: "20px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                <StatusChip status={f.status} />
+                                <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#94a3b8" }}>{f.jobId.slice(0, 18)}…</span>
+                              </div>
+                              <Link href={`/flows/${f.jobId}`} style={{ fontSize: "12px", color: "#2563EB", fontWeight: 600, textDecoration: "none" }}>
+                                View details →
                               </Link>
                             </div>
+                            <PipelineMini agents={f.agents} />
+                            <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "12px" }}>
+                              Started {timeAgo(f.createdAt)} · {f.agents.filter((a) => a.status === "COMPLETED").length} of {f.agents.length} agents complete
+                            </p>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Recent payments table */}
-                {earnings.recentPayments.length > 0 && (
-                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-card">
-                    <div className="px-5 py-4 border-b border-slate-100">
-                      <h3 className="font-semibold text-ink text-sm">Recent Payments</h3>
+                  {/* History */}
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
+                      <SectionLabel>History</SectionLabel>
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        {(["ALL", "COMPLETED", "FAILED", "REFUNDED"] as HistoryFilter[]).map((f) => (
+                          <button
+                            key={f}
+                            onClick={() => setHistoryFilter(f)}
+                            style={{
+                              padding: "4px 10px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", border: "1px solid",
+                              borderColor: historyFilter === f ? "#BFDBFE" : "#E3E8EF",
+                              background: historyFilter === f ? "#EFF6FF" : "#fff",
+                              color: historyFilter === f ? "#2563EB" : "#64748b",
+                            }}
+                          >
+                            {f === "ALL" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="text-slate-400 border-b border-slate-100 text-left bg-slate-50">
-                            <th className="px-5 py-3 font-medium text-xs">Date</th>
-                            <th className="px-5 py-3 font-medium text-xs">Agent</th>
-                            <th className="px-5 py-3 font-medium text-xs hidden md:table-cell">Flow</th>
-                            <th className="px-5 py-3 font-medium text-xs text-right">Amount</th>
-                            <th className="px-5 py-3 font-medium text-xs text-right">Tx</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {earnings.recentPayments.map((p, i) => (
-                            <tr key={i} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                              <td className="px-5 py-3.5 text-slate-500 text-xs">{timeAgo(p.executedAt)}</td>
-                              <td className="px-5 py-3.5 text-ink text-xs font-medium">{p.agentName}</td>
-                              <td className="px-5 py-3.5 text-slate-400 text-xs font-mono-custom hidden md:table-cell">
-                                {p.flowJobId.slice(0, 18)}…
-                              </td>
-                              <td className="px-5 py-3.5 text-right">
-                                <span className="text-emerald-600 text-xs font-semibold">{p.amountEth} ETH</span>
-                              </td>
-                              <td className="px-5 py-3.5 text-right">
-                                {p.txHash ? (
-                                  <a
-                                    href={`${ARBISCAN}/tx/${p.txHash}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-accent hover:underline text-xs"
-                                  >
-                                    View →
-                                  </a>
-                                ) : (
-                                  <span className="text-slate-300 text-xs">—</span>
-                                )}
-                              </td>
+
+                    {historyFlows.length === 0 ? (
+                      <EmptyState
+                        icon={<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#2563EB" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
+                        title="No flows yet"
+                        body="Build a multi-agent flow to automate on-chain tasks."
+                        cta="Open the Builder"
+                        href="/builder"
+                      />
+                    ) : (
+                      <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                          <thead>
+                            <tr style={{ borderBottom: "1px solid #F1F5F9", background: "#FAFBFC" }}>
+                              {["When", "Agents", "Cost", "Status"].map((h, i) => (
+                                <th key={h} style={{ padding: "12px 16px", textAlign: i >= 2 ? "right" : "left", fontSize: "11px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                  {h}
+                                </th>
+                              ))}
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
+                          </thead>
+                          <tbody>
+                            {historyFlows.map((f) => (
+                              <tr
+                                key={f.id}
+                                style={{ borderBottom: "1px solid #F1F5F9", cursor: "pointer" }}
+                                onClick={() => (window.location.href = `/flows/${f.jobId}`)}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = "#FAFBFC")}
+                                onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                              >
+                                <td style={{ padding: "12px 16px", color: "#64748b" }}>{timeAgo(f.createdAt)}</td>
+                                <td style={{ padding: "12px 16px", color: "#0A2540" }}>{f.agents.map((a) => a.agentName).join(" → ")}</td>
+                                <td style={{ padding: "12px 16px", textAlign: "right", color: "#0A2540", fontWeight: 600, fontFamily: "monospace" }}>{fmt(f.totalAmountEth)} ETH</td>
+                                <td style={{ padding: "12px 16px", textAlign: "right" }}><StatusChip status={f.status} /></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
 
-                {earnings.perAgent.length === 0 && (
-                  <div className="text-center py-16 bg-white border border-slate-200 rounded-xl shadow-card">
-                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                      </svg>
+                    <div style={{ marginTop: "20px", textAlign: "center" }}>
+                      <Link href="/builder" style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", textDecoration: "none" }}>
+                        + Build a new flow →
+                      </Link>
                     </div>
-                    <p className="font-semibold text-ink mb-2">No earnings yet</p>
-                    <p className="text-slate-500 text-sm">
-                      Your earnings will appear here once users execute your agents.
-                    </p>
                   </div>
-                )}
-              </>
-            ) : (
-              <div className="text-center py-16 bg-white border border-slate-200 rounded-xl shadow-card">
-                <p className="text-slate-400 text-sm">Unable to load earnings data.</p>
-                <button onClick={fetchEarnings} className="mt-3 text-accent hover:underline text-sm">
-                  Try again
-                </button>
+                </div>
+              )}
+
+              {/* ══ My Agents ══ */}
+              {tab === "agents" && (
+                <div>
+                  {agents.length === 0 ? (
+                    <EmptyState
+                      icon={<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#2563EB" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>}
+                      title="No agents registered"
+                      body="Build something useful. List it here. Earn automatically."
+                      cta="Register your first agent"
+                      href="/register"
+                    />
+                  ) : (
+                    <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
+                      {/* Table header */}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 60px 70px 90px 110px", padding: "10px 20px", background: "#FAFBFC", borderBottom: "1px solid #F1F5F9" }}>
+                        {["Agent", "Status", "Badge", "Jobs", "Earned", "Actions"].map((h, i) => (
+                          <span key={h} style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: i >= 3 ? "right" : "left" }}>
+                            {h}
+                          </span>
+                        ))}
+                      </div>
+
+                      {agents.map((agent) => {
+                        const health = agentHealth(agent);
+                        const hs = HEALTH_STYLE[health];
+                        const isExpanded = expandedAgents.has(agent.agentId);
+                        const about = agent.aboutSchema as {
+                          input_schema?: Record<string, { type: string; required?: boolean }>;
+                          output_schema?: Record<string, { type: string }>;
+                        } | null;
+
+                        return (
+                          <div key={agent.agentId} style={{ borderBottom: "1px solid #F1F5F9" }}>
+                            <div
+                              onClick={() => toggleExpand(agent.agentId)}
+                              style={{ display: "grid", gridTemplateColumns: "1fr 110px 60px 70px 90px 110px", padding: "14px 20px", cursor: "pointer" }}
+                              onMouseEnter={(e) => (e.currentTarget.style.background = "#FAFBFC")}
+                              onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                            >
+                              <div>
+                                <p style={{ fontSize: "14px", fontWeight: 600, color: "#0A2540" }}>{agent.name}</p>
+                                <p style={{ fontSize: "11px", color: "#94a3b8", fontFamily: "monospace" }}>
+                                  #{agent.agentId} · {CATEGORY_LABELS[agent.category] ?? agent.category}
+                                </p>
+                              </div>
+                              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: hs.dot, flexShrink: 0 }} />
+                                <span style={{ fontSize: "12px", color: "#64748b" }}>{hs.label}</span>
+                              </div>
+                              <div style={{ display: "flex", alignItems: "center" }}>
+                                <span style={{ fontSize: "16px" }}>
+                                  {agent.badgeTier === "BRONZE" ? "🥉" : agent.badgeTier === "SILVER" ? "🥈" : agent.badgeTier === "GOLD" ? "🥇" : "—"}
+                                </span>
+                              </div>
+                              <p style={{ fontSize: "13px", color: "#0A2540", textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+                                {agent.totalJobs}
+                              </p>
+                              <p style={{ fontSize: "12px", color: "#0A2540", fontWeight: 600, textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end", fontFamily: "monospace" }}>
+                                {fmt(agent.totalEarnedEth)}
+                              </p>
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "6px" }}>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditAgent(agent);
+                                    setEditForm({ name: agent.name, priceEth: agent.priceEth, pricingModel: agent.pricingModel });
+                                  }}
+                                  style={{ fontSize: "11px", fontWeight: 600, color: "#2563EB", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "6px", padding: "4px 8px", cursor: "pointer" }}
+                                >
+                                  Edit
+                                </button>
+                                {agent.active && (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setConfirmDeactivate(agent); }}
+                                    style={{ fontSize: "11px", fontWeight: 600, color: "#ef4444", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "6px", padding: "4px 8px", cursor: "pointer" }}
+                                  >
+                                    ✕
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Expanded detail */}
+                            {isExpanded && (
+                              <div style={{ padding: "16px 20px 20px", background: "#FAFBFC", borderTop: "1px solid #F1F5F9", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "24px" }}>
+                                <div>
+                                  <SectionLabel>Reliability — last 7 days</SectionLabel>
+                                  <ReliabilityCalendar days={agent.reliabilityDays} />
+                                  {agent.verifiedAt && (
+                                    <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "8px" }}>
+                                      Last verified {timeAgo(agent.verifiedAt)}
+                                    </p>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <SectionLabel>Recent jobs</SectionLabel>
+                                  {agent.recentJobs.length === 0 ? (
+                                    <p style={{ fontSize: "12px", color: "#94a3b8" }}>No jobs yet</p>
+                                  ) : (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                      {agent.recentJobs.map((j, i) => (
+                                        <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+                                          <span style={{ color: "#64748b", fontFamily: "monospace" }}>{j.flowJobId.slice(0, 14)}…</span>
+                                          <span style={{ color: "#10b981", fontWeight: 600 }}>{fmt(j.amountEth)} ETH</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div>
+                                  {about?.input_schema && (
+                                    <>
+                                      <SectionLabel>Inputs</SectionLabel>
+                                      <div style={{ display: "flex", flexDirection: "column", gap: "3px", marginBottom: "12px" }}>
+                                        {Object.entries(about.input_schema).map(([k, v]) => (
+                                          <p key={k} style={{ fontSize: "11px", color: "#64748b" }}>
+                                            <span style={{ color: "#0A2540", fontWeight: 600 }}>{k}</span> ({v.type}{v.required ? ", required" : ""})
+                                          </p>
+                                        ))}
+                                      </div>
+                                    </>
+                                  )}
+                                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                                    <Link
+                                      href={`/agents/${agent.agentId}`}
+                                      style={{ fontSize: "11px", fontWeight: 600, color: "#2563EB", textDecoration: "none", padding: "5px 10px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "6px" }}
+                                    >
+                                      Public page →
+                                    </Link>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ══ Earnings ══ */}
+              {tab === "earnings" && (
+                <div>
+                  <div style={{ display: "flex", gap: "6px", marginBottom: "20px" }}>
+                    {(["7d", "30d", "all"] as EarningsPeriod[]).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setEarningsPeriod(p)}
+                        style={{
+                          padding: "6px 14px", fontSize: "12px", fontWeight: 600, borderRadius: "8px", cursor: "pointer", border: "1px solid",
+                          borderColor: earningsPeriod === p ? "#BFDBFE" : "#E3E8EF",
+                          background: earningsPeriod === p ? "#EFF6FF" : "#fff",
+                          color: earningsPeriod === p ? "#2563EB" : "#64748b",
+                        }}
+                      >
+                        {p === "7d" ? "Last 7 days" : p === "30d" ? "Last 30 days" : "All time"}
+                      </button>
+                    ))}
+                  </div>
+
+                  {!earnings ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                      {[1, 2].map((i) => <div key={i} style={{ height: "80px", background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", opacity: 0.5 }} />)}
+                    </div>
+                  ) : earnings.perAgent.length === 0 ? (
+                    <EmptyState
+                      icon={<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#2563EB" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
+                      title="No earnings yet"
+                      body="Once someone runs your agent, your earnings appear here."
+                      cta="Share your agent page"
+                      href={agents.length > 0 ? `/agents/${agents[0].agentId}` : "/register"}
+                    />
+                  ) : (
+                    <>
+                      {/* Summary */}
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px", marginBottom: "20px" }}>
+                        <StatCard label="Total earned" value={`${fmt(earnings.totalEarnedEth)} ETH`} sub="all time" />
+                        <StatCard label="Executions" value={earnings.totalExecutions.toLocaleString()} sub="all time" />
+                        <StatCard
+                          label="Best agent"
+                          value={[...earnings.perAgent].sort((a, b) => parseFloat(b.totalEarnedEth) - parseFloat(a.totalEarnedEth))[0]?.name ?? "—"}
+                          sub={`${fmt([...earnings.perAgent].sort((a, b) => parseFloat(b.totalEarnedEth) - parseFloat(a.totalEarnedEth))[0]?.totalEarnedEth ?? "0")} ETH`}
+                        />
+                      </div>
+
+                      {/* Bar chart */}
+                      <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", padding: "20px", marginBottom: "20px" }}>
+                        <p style={{ fontSize: "12px", fontWeight: 600, color: "#64748b", marginBottom: "16px" }}>Daily earnings — last 30 days</p>
+                        <ResponsiveContainer width="100%" height={160}>
+                          <BarChart data={buildChartData()} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
+                            <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} interval={6} />
+                            <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} />
+                            <Tooltip
+                              formatter={(v: unknown) => [`${fmt(String(v))} ETH`, "Earned"]}
+                              contentStyle={{ border: "1px solid #E3E8EF", borderRadius: "8px", fontSize: "12px" }}
+                              cursor={{ fill: "#EFF6FF" }}
+                            />
+                            <Bar dataKey="eth" fill="#2563EB" radius={[3, 3, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Per-agent */}
+                      <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden", marginBottom: "20px" }}>
+                        <div style={{ padding: "14px 20px", borderBottom: "1px solid #F1F5F9" }}>
+                          <SectionLabel>By agent</SectionLabel>
+                        </div>
+                        {earnings.perAgent.map((a) => {
+                          const total = parseFloat(earnings.totalEarnedEth);
+                          const pct = total > 0 ? (parseFloat(a.totalEarnedEth) / total) * 100 : 0;
+                          return (
+                            <div key={a.agentId} style={{ padding: "16px 20px", borderBottom: "1px solid #F1F5F9" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                                <div>
+                                  <p style={{ fontSize: "14px", fontWeight: 600, color: "#0A2540" }}>{a.name}</p>
+                                  <p style={{ fontSize: "12px", color: "#64748b" }}>
+                                    {a.executions} job{a.executions !== 1 ? "s" : ""}
+                                    {a.lastRunAt && <> · last run {timeAgo(a.lastRunAt)}</>}
+                                  </p>
+                                </div>
+                                <div style={{ textAlign: "right" }}>
+                                  <p style={{ fontSize: "14px", fontWeight: 700, color: "#0A2540", fontFamily: "monospace" }}>{fmt(a.totalEarnedEth)} ETH</p>
+                                  <p style={{ fontSize: "11px", color: "#94a3b8" }}>{pct.toFixed(0)}% of total</p>
+                                </div>
+                              </div>
+                              <div style={{ height: "6px", background: "#F1F5F9", borderRadius: "3px", overflow: "hidden" }}>
+                                <div style={{ height: "100%", width: `${pct}%`, background: "#2563EB", borderRadius: "3px" }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Recent payments */}
+                      {earnings.recentPayments.length > 0 && (
+                        <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
+                          <div style={{ padding: "14px 20px", borderBottom: "1px solid #F1F5F9" }}>
+                            <SectionLabel>Recent payments</SectionLabel>
+                          </div>
+                          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                            <thead>
+                              <tr style={{ background: "#FAFBFC", borderBottom: "1px solid #F1F5F9" }}>
+                                {["Date", "Agent", "Flow", "Amount", "Tx"].map((h, i) => (
+                                  <th key={h} style={{ padding: "10px 16px", textAlign: i >= 3 ? "right" : "left", fontSize: "11px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                    {h}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {earnings.recentPayments.map((p, i) => (
+                                <tr key={i} style={{ borderBottom: "1px solid #F1F5F9" }}>
+                                  <td style={{ padding: "12px 16px", color: "#64748b" }}>{p.executedAt ? timeAgo(p.executedAt) : "—"}</td>
+                                  <td style={{ padding: "12px 16px", color: "#0A2540", fontWeight: 500 }}>{p.agentName}</td>
+                                  <td style={{ padding: "12px 16px", color: "#94a3b8", fontFamily: "monospace", fontSize: "11px" }}>{p.flowJobId.slice(0, 16)}…</td>
+                                  <td style={{ padding: "12px 16px", textAlign: "right", color: "#10b981", fontWeight: 700, fontFamily: "monospace" }}>{fmt(p.amountEth)} ETH</td>
+                                  <td style={{ padding: "12px 16px", textAlign: "right" }}>
+                                    {p.txHash
+                                      ? <a href={`${ARBISCAN}/tx/${p.txHash}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: "#2563EB", textDecoration: "none" }}>↗</a>
+                                      : <span style={{ color: "#94a3b8" }}>—</span>
+                                    }
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          {error && (
+            <div style={{ marginTop: "16px", padding: "12px 16px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "10px", fontSize: "13px", color: "#ef4444" }}>
+              {error}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Deactivate modal */}
+      {confirmDeactivate && (
+        <Modal onClose={() => setConfirmDeactivate(null)}>
+          <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#0A2540", marginBottom: "8px" }}>
+            Deactivate {confirmDeactivate.name}?
+          </h3>
+          <div style={{ fontSize: "13px", color: "#64748b", marginBottom: "20px", lineHeight: 1.6 }}>
+            <p>This will:</p>
+            <ul style={{ paddingLeft: "16px", marginTop: "8px" }}>
+              <li>Remove the agent from the marketplace</li>
+              <li>Return your <strong style={{ color: "#0A2540" }}>0.01 ETH</strong> stake to your wallet</li>
+              <li>Cancel any scheduled flows using this agent</li>
+            </ul>
+            <p style={{ marginTop: "10px", color: "#ef4444" }}>This cannot be undone.</p>
+          </div>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button onClick={() => setConfirmDeactivate(null)} style={{ flex: 1, padding: "11px", background: "#fff", border: "1px solid #E3E8EF", borderRadius: "10px", fontSize: "14px", fontWeight: 500, color: "#425466", cursor: "pointer" }}>
+              Cancel
+            </button>
+            <button
+              onClick={() => startDeactivate(confirmDeactivate)}
+              disabled={isTxPending}
+              style={{ flex: 1, padding: "11px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "10px", fontSize: "14px", fontWeight: 700, color: "#ef4444", cursor: "pointer", opacity: isTxPending ? 0.6 : 1 }}
+            >
+              {isTxPending ? "Check wallet…" : "Deactivate and refund"}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Edit modal */}
+      {editAgent && (
+        <Modal onClose={() => setEditAgent(null)}>
+          <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#0A2540", marginBottom: "4px" }}>
+            Edit: {editAgent.name}
+          </h3>
+          <p style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "20px" }}>
+            Endpoint and category cannot be changed after registration.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "20px" }}>
+            <div>
+              <label style={{ fontSize: "11px", fontWeight: 600, color: "#425466", display: "block", marginBottom: "6px" }}>Name</label>
+              <input
+                value={editForm.name}
+                onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                style={{ width: "100%", border: "1px solid #E3E8EF", borderRadius: "8px", padding: "9px 12px", fontSize: "13px", color: "#0A2540", outline: "none", boxSizing: "border-box" }}
+              />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              <div>
+                <label style={{ fontSize: "11px", fontWeight: 600, color: "#425466", display: "block", marginBottom: "6px" }}>Pricing model</label>
+                <select
+                  value={editForm.pricingModel}
+                  onChange={(e) => setEditForm((f) => ({ ...f, pricingModel: e.target.value }))}
+                  style={{ width: "100%", border: "1px solid #E3E8EF", borderRadius: "8px", padding: "9px 12px", fontSize: "13px", color: "#0A2540", outline: "none" }}
+                >
+                  {["PER_CALL", "PER_DAY", "PER_MONTH", "FREE"].map((o) => (
+                    <option key={o} value={o}>{o.replace("PER_", "Per ").charAt(0).toUpperCase() + o.replace("PER_", "Per ").slice(1).toLowerCase()}</option>
+                  ))}
+                </select>
               </div>
-            )}
-          </>
-        )}
-
-        {/* Deactivate confirmation modal */}
-        {confirmDeactivate !== null && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-            <div className="bg-white border border-slate-200 rounded-xl p-6 max-w-sm w-full shadow-xl">
-              <h3 className="font-bold text-ink text-lg mb-2">Deactivate Agent?</h3>
-              <p className="text-slate-500 text-sm mb-6">
-                This will return your <strong className="text-ink">0.01 ETH</strong> stake. The agent will be removed from the marketplace.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setConfirmDeactivate(null)}
-                  className="flex-1 bg-slate-100 text-ink rounded-lg py-2.5 text-sm font-semibold hover:bg-slate-200 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => startDeactivate(confirmDeactivate)}
-                  disabled={isPending}
-                  className="flex-1 bg-red-50 border border-red-200 text-red-600 rounded-lg py-2.5 text-sm font-semibold hover:bg-red-100 transition-colors disabled:opacity-50"
-                >
-                  {isPending ? "Check Wallet…" : "Deactivate"}
-                </button>
+              <div>
+                <label style={{ fontSize: "11px", fontWeight: 600, color: "#425466", display: "block", marginBottom: "6px" }}>Price (ETH)</label>
+                <input
+                  value={editForm.priceEth}
+                  onChange={(e) => setEditForm((f) => ({ ...f, priceEth: e.target.value }))}
+                  disabled={editForm.pricingModel === "FREE"}
+                  style={{ width: "100%", border: "1px solid #E3E8EF", borderRadius: "8px", padding: "9px 12px", fontSize: "13px", color: "#0A2540", outline: "none", opacity: editForm.pricingModel === "FREE" ? 0.4 : 1 }}
+                />
               </div>
             </div>
           </div>
-        )}
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button onClick={() => setEditAgent(null)} style={{ flex: 1, padding: "11px", background: "#fff", border: "1px solid #E3E8EF", borderRadius: "10px", fontSize: "14px", fontWeight: 500, color: "#425466", cursor: "pointer" }}>
+              Cancel
+            </button>
+            <button
+              onClick={saveEdit}
+              disabled={editSaving}
+              style={{ flex: 1, padding: "11px", background: "#2563EB", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: 700, color: "#fff", cursor: "pointer", opacity: editSaving ? 0.6 : 1 }}
+            >
+              {editSaving ? "Saving…" : "Save changes"}
+            </button>
+          </div>
+        </Modal>
+      )}
+    </AuthGate>
+  );
+}
+
+function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "16px" }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "16px", padding: "28px", maxWidth: "440px", width: "100%", boxShadow: "0 20px 60px rgba(10,37,64,0.15)" }}
+      >
+        {children}
       </div>
     </div>
-    </AuthGate>
   );
 }

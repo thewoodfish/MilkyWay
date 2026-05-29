@@ -6,6 +6,8 @@ import verifyRouter from "./routes/verify";
 import authRouter from "./routes/auth";
 import flowsRouter from "./routes/flows";
 import earningsRouter from "./routes/earnings";
+import dashboardRouter from "./routes/dashboard";
+import notificationsRouter from "./routes/notifications";
 import { prisma } from "./lib/db";
 import { runVerificationCycle } from "./services/verification";
 
@@ -22,6 +24,8 @@ app.use("/api/agents", agentsRouter);
 app.use("/api/verify", verifyRouter);
 app.use("/api/flows", flowsRouter);
 app.use("/api/earnings", earningsRouter);
+app.use("/api/dashboard", dashboardRouter);
+app.use("/api/notifications", notificationsRouter);
 
 // GET /api/builders/:address
 app.get("/api/builders/:address", async (req, res) => {
