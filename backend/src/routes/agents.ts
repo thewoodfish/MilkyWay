@@ -38,6 +38,23 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/agents/:agentId/about — cached /about schema
+router.get("/:agentId/about", async (req: Request, res: Response) => {
+  try {
+    const agent = await prisma.agent.findUnique({
+      where: { agentId: Number(req.params.agentId) },
+      select: { aboutSchema: true, phase2Ready: true, priceEth: true },
+    });
+    if (!agent) return res.status(404).json({ error: "Not found" });
+    if (!agent.phase2Ready || !agent.aboutSchema) {
+      return res.status(404).json({ error: "Agent not Phase 2 ready" });
+    }
+    res.json(agent.aboutSchema);
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // GET /api/agents/:agentId
 router.get("/:agentId", async (req: Request, res: Response) => {
   try {

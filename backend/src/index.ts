@@ -5,6 +5,7 @@ import agentsRouter from "./routes/agents";
 import verifyRouter from "./routes/verify";
 import authRouter from "./routes/auth";
 import flowsRouter from "./routes/flows";
+import earningsRouter from "./routes/earnings";
 import { prisma } from "./lib/db";
 import { runVerificationCycle } from "./services/verification";
 
@@ -20,6 +21,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/agents", agentsRouter);
 app.use("/api/verify", verifyRouter);
 app.use("/api/flows", flowsRouter);
+app.use("/api/earnings", earningsRouter);
 
 // GET /api/builders/:address
 app.get("/api/builders/:address", async (req, res) => {
