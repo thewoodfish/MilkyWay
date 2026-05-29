@@ -11,6 +11,7 @@ import { authFetch, getNonce, buildSiweMessage, verifySignature } from "@/lib/au
 import { useAuth } from "@/context/AuthContext";
 import { AuthGate } from "@/components/AuthGate";
 import { AgentAvatarUpload } from "@/components/AgentAvatarUpload";
+import { EthAmount } from "@/components/EthAmount";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -638,7 +639,7 @@ export default function RegisterPage() {
                           <span style={{ fontSize: "13px", fontWeight: 700, color: "#10b981" }}>Free</span>
                         ) : (
                           <div>
-                            <span style={{ fontSize: "15px", fontWeight: 700, color: "#0A2540" }}>{form.priceEth} ETH</span>
+                            <EthAmount amount={form.priceEth} size={13} style={{ fontSize: "15px", fontWeight: 700, color: "#0A2540" }} />
                             <span style={{ fontSize: "12px", color: "#64748b", marginLeft: "4px" }}>
                               / {form.pricingModel.toLowerCase().replace("per_", "")}
                             </span>
@@ -677,7 +678,7 @@ export default function RegisterPage() {
                     <div style={{ padding: "14px 18px", background: "#fff" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                         <span style={{ fontSize: "13px", color: "#64748b" }}>Registration stake</span>
-                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#0A2540" }}>0.01 ETH</span>
+                        <EthAmount amount="0.01" size={12} style={{ fontSize: "13px", fontWeight: 600, color: "#0A2540" }} />
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "12px", borderBottom: "1px solid #F1F5F9" }}>
                         <span style={{ fontSize: "13px", color: "#64748b" }}>Protocol fee</span>

@@ -9,6 +9,7 @@ import { AgentCard } from "@/components/AgentCard";
 import { TechnicalDetails } from "@/components/TechnicalDetails";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { AgentShare } from "@/components/AgentShare";
+import { EthAmount } from "@/components/EthAmount";
 
 
 const CATEGORY_META: Record<string, { color: string; bg: string; border: string }> = {
@@ -260,7 +261,11 @@ export default async function AgentProfilePage({
 
             {/* Price */}
             <div className="flex-shrink-0 sm:text-right">
-              <div className="text-[32px] font-bold font-mono-custom leading-none text-white mb-1">{formatPrice(agent)}</div>
+              <div className="text-[32px] font-bold font-mono-custom leading-none text-white mb-1">
+                {agent.pricingModel === "FREE" ? "Free" : (
+                  <EthAmount amount={agent.priceEth!} size={26} style={{ color: "#fff" }} />
+                )}
+              </div>
               <div className="text-[12px]" style={{ color: "rgba(255,255,255,0.4)" }}>{PRICING_SUFFIX[agent.pricingModel] ?? ""}</div>
             </div>
           </div>

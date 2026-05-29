@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import type { Agent } from "@/lib/types";
-import { agentStatus, formatPrice, shortAddress, CATEGORY_LABELS } from "@/lib/utils";
+import { agentStatus, shortAddress, CATEGORY_LABELS } from "@/lib/utils";
 import { AgentAvatar } from "./AgentAvatar";
+import { EthAmount } from "./EthAmount";
 
 const CATEGORY_META: Record<string, { color: string; bg: string; border: string }> = {
   DEFI:         { color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" },
@@ -128,7 +129,9 @@ export function AgentCard({ agent }: AgentCardProps) {
         >
           <div>
             <p className="text-[13px] font-semibold font-mono-custom" style={{ color: "#0A2540" }}>
-              {formatPrice(agent)}
+              {agent.pricingModel === "FREE" ? "Free" : (
+                <EthAmount amount={agent.priceEth!} size={12} />
+              )}
             </p>
             <p className="text-[11px] font-mono-custom mt-0.5" style={{ color: "#94a3b8" }}>
               {shortAddress(agent.ownerAddress)}

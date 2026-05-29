@@ -15,6 +15,7 @@ import { authFetch } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { ESCROW_ABI } from "@/lib/escrow-abi";
 import { AuthGate } from "@/components/AuthGate";
+import { EthAmount } from "@/components/EthAmount";
 import type { Agent } from "@/lib/types";
 
 const ESCROW = process.env.NEXT_PUBLIC_JOB_ESCROW_ADDRESS as `0x${string}`;
@@ -52,7 +53,7 @@ function AgentNode({ data }: { data: { agent: Agent; orderIndex: number } }) {
       </p>
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-mono-custom" style={{ color: "#484f58" }}>
-          {agent.pricingModel === "FREE" ? "Free" : `${agent.priceEth} ETH`}
+          {agent.pricingModel === "FREE" ? "Free" : <EthAmount amount={agent.priceEth!} size={11} />}
         </span>
         {agent.phase2Ready && (
           <span
@@ -288,7 +289,7 @@ export default function BuilderPage() {
                   )}
                 </div>
                 <p className="text-[11px]" style={{ color: "#484f58" }}>
-                  {agent.pricingModel === "FREE" ? "Free" : `${agent.priceEth} ETH`}
+                  {agent.pricingModel === "FREE" ? "Free" : <EthAmount amount={agent.priceEth!} size={11} />}
                 </p>
               </div>
             );
@@ -372,15 +373,15 @@ export default function BuilderPage() {
                 <>
                   <span className="text-[12px]" style={{ color: "#484f58" }}>
                     Subtotal:{" "}
-                    <span className="text-white font-mono-custom">{preview.subtotal} ETH</span>
+                    <span className="text-white font-mono-custom"><EthAmount amount={preview.subtotal} size={11} style={{ color: "#fff" }} /></span>
                   </span>
                   <span className="text-[12px]" style={{ color: "#484f58" }}>
                     Fee (1%):{" "}
-                    <span className="text-white font-mono-custom">{preview.protocolFee} ETH</span>
+                    <span className="text-white font-mono-custom"><EthAmount amount={preview.protocolFee} size={11} style={{ color: "#fff" }} /></span>
                   </span>
                   <span className="text-[13px] font-semibold" style={{ color: "#60a5fa" }}>
                     Total:{" "}
-                    <span className="font-mono-custom">{preview.total} ETH</span>
+                    <span className="font-mono-custom"><EthAmount amount={preview.total} size={12} style={{ color: "#60a5fa" }} /></span>
                   </span>
                 </>
               )}

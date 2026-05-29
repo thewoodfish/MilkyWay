@@ -10,6 +10,7 @@ import { REGISTRY_ABI } from "@/lib/registry-abi";
 import { CATEGORY_LABELS, timeAgo } from "@/lib/utils";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { Portal } from "@/components/Portal";
+import { EthAmount } from "@/components/EthAmount";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from "recharts";
@@ -168,14 +169,14 @@ const AGENT_STATUS_ICON: Record<string, string> = {
 
 // ── Sub-components ────────────────────────────────────────────────────────
 
-function StatCard({ label, value, sub }: { label: string; value: string; sub: string }) {
+function StatCard({ label, value, sub }: { label: string; value: React.ReactNode; sub: React.ReactNode }) {
   return (
     <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", padding: "18px 20px" }}>
       <p style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
         {label}
       </p>
-      <p style={{ fontSize: "22px", fontWeight: 700, color: "#0A2540", marginBottom: "2px" }}>{value}</p>
-      <p style={{ fontSize: "11px", color: "#94a3b8" }}>{sub}</p>
+      <p style={{ fontSize: "22px", fontWeight: 700, color: "#0A2540", marginBottom: "2px", display: "flex", alignItems: "center" }}>{value}</p>
+      <p style={{ fontSize: "11px", color: "#94a3b8", display: "flex", alignItems: "center" }}>{sub}</p>
     </div>
   );
 }
@@ -436,7 +437,7 @@ export default function DashboardPage() {
           {/* Summary strip */}
           {summary && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px", marginBottom: "28px" }}>
-              {summary.agentsTotal > 0 && <StatCard label="Total earned" value={`${fmt(summary.totalEarnedEth)} ETH`} sub="all time" />}
+              {summary.agentsTotal > 0 && <StatCard label="Total earned" value={<EthAmount amount={fmt(summary.totalEarnedEth)} size={17} />} sub="all time" />}
               {(summary.totalJobsRun > 0 || summary.activeFlows > 0) && <StatCard label="Jobs run" value={summary.totalJobsRun.toLocaleString()} sub="all time" />}
               {(summary.totalJobsRun > 0 || summary.activeFlows > 0) && <StatCard label="Active flows" value={summary.activeFlows.toString()} sub="right now" />}
               {summary.agentsTotal > 0 && <StatCard label="Agents" value={`${summary.agentsLive} live`} sub={`${summary.agentsTotal} total`} />}
@@ -558,7 +559,7 @@ export default function DashboardPage() {
                               >
                                 <td style={{ padding: "12px 16px", color: "#64748b" }}>{timeAgo(f.createdAt)}</td>
                                 <td style={{ padding: "12px 16px", color: "#0A2540" }}>{f.agents.map((a) => a.agentName).join(" → ")}</td>
-                                <td style={{ padding: "12px 16px", textAlign: "right", color: "#0A2540", fontWeight: 600, fontFamily: "monospace" }}>{fmt(f.totalAmountEth)} ETH</td>
+                                <td style={{ padding: "12px 16px", textAlign: "right", color: "#0A2540", fontWeight: 600, fontFamily: "monospace" }}><EthAmount amount={fmt(f.totalAmountEth)} size={12} /></td>
                                 <td style={{ padding: "12px 16px", textAlign: "right" }}><StatusChip status={f.status} /></td>
                               </tr>
                             ))}
@@ -638,7 +639,7 @@ export default function DashboardPage() {
                                 {agent.totalJobs}
                               </p>
                               <p style={{ fontSize: "12px", color: "#0A2540", fontWeight: 600, textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end", fontFamily: "monospace" }}>
-                                {fmt(agent.totalEarnedEth)}
+                                <EthAmount amount={fmt(agent.totalEarnedEth)} size={11} />
                               </p>
                               <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "6px" }}>
                                 <button
@@ -706,12 +707,12 @@ export default function DashboardPage() {
                     <>
                       {/* Summary */}
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px", marginBottom: "20px" }}>
-                        <StatCard label="Total earned" value={`${fmt(earnings.totalEarnedEth)} ETH`} sub="all time" />
+                        <StatCard label="Total earned" value={<EthAmount amount={fmt(earnings.totalEarnedEth)} size={17} />} sub="all time" />
                         <StatCard label="Executions" value={earnings.totalExecutions.toLocaleString()} sub="all time" />
                         <StatCard
                           label="Best agent"
                           value={[...earnings.perAgent].sort((a, b) => parseFloat(b.totalEarnedEth) - parseFloat(a.totalEarnedEth))[0]?.name ?? "—"}
-                          sub={`${fmt([...earnings.perAgent].sort((a, b) => parseFloat(b.totalEarnedEth) - parseFloat(a.totalEarnedEth))[0]?.totalEarnedEth ?? "0")} ETH`}
+                          sub={<EthAmount amount={fmt([...earnings.perAgent].sort((a, b) => parseFloat(b.totalEarnedEth) - parseFloat(a.totalEarnedEth))[0]?.totalEarnedEth ?? "0")} size={11} />}
                         />
                       </div>
 
@@ -751,7 +752,7 @@ export default function DashboardPage() {
                                   </p>
                                 </div>
                                 <div style={{ textAlign: "right" }}>
-                                  <p style={{ fontSize: "14px", fontWeight: 700, color: "#0A2540", fontFamily: "monospace" }}>{fmt(a.totalEarnedEth)} ETH</p>
+                                  <p style={{ fontSize: "14px", fontWeight: 700, color: "#0A2540", fontFamily: "monospace", display: "flex", alignItems: "center", justifyContent: "flex-end" }}><EthAmount amount={fmt(a.totalEarnedEth)} size={13} /></p>
                                   <p style={{ fontSize: "11px", color: "#94a3b8" }}>{pct.toFixed(0)}% of total</p>
                                 </div>
                               </div>
@@ -785,7 +786,7 @@ export default function DashboardPage() {
                                   <td style={{ padding: "12px 16px", color: "#64748b" }}>{p.executedAt ? timeAgo(p.executedAt) : "—"}</td>
                                   <td style={{ padding: "12px 16px", color: "#0A2540", fontWeight: 500 }}>{p.agentName}</td>
                                   <td style={{ padding: "12px 16px", color: "#94a3b8", fontFamily: "monospace", fontSize: "11px" }}>{p.flowJobId.slice(0, 16)}…</td>
-                                  <td style={{ padding: "12px 16px", textAlign: "right", color: "#10b981", fontWeight: 700, fontFamily: "monospace" }}>{fmt(p.amountEth)} ETH</td>
+                                  <td style={{ padding: "12px 16px", textAlign: "right", color: "#10b981", fontWeight: 700, fontFamily: "monospace" }}><EthAmount amount={fmt(p.amountEth)} size={12} /></td>
                                   <td style={{ padding: "12px 16px", textAlign: "right" }}>
                                     {p.txHash
                                       ? <a href={`${ARBISCAN}/tx/${p.txHash}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: "#2563EB", textDecoration: "none" }}>↗</a>
@@ -963,14 +964,14 @@ export default function DashboardPage() {
                   {/* Stat cards */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                     {[
-                      { label: "Total jobs", value: analyticsAgent.totalJobs.toString(), sub: "completed" },
-                      { label: "Total earned", value: `${fmt(analyticsAgent.totalEarnedEth)} ETH`, sub: "all time" },
+                      { label: "Total jobs",   value: analyticsAgent.totalJobs.toString(),       sub: "completed" },
+                      { label: "Total earned", value: <EthAmount amount={fmt(analyticsAgent.totalEarnedEth)} size={17} />, sub: "all time" },
                       { label: "Avg response", value: analyticsAgent.avgResponseTimeMs != null ? `${analyticsAgent.avgResponseTimeMs}ms` : "—", sub: "last 30 days" },
-                      { label: "Uptime", value: analyticsAgent.uptime != null ? `${analyticsAgent.uptime}%` : "—", sub: "last 30 days" },
+                      { label: "Uptime",       value: analyticsAgent.uptime != null ? `${analyticsAgent.uptime}%` : "—", sub: "last 30 days" },
                     ].map(({ label, value, sub }) => (
                       <div key={label} style={{ background: "#F8FAFC", border: "1px solid #E3E8EF", borderRadius: "10px", padding: "14px 16px" }}>
                         <p style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>{label}</p>
-                        <p style={{ fontSize: "22px", fontWeight: 700, color: "#0A2540", fontFamily: "monospace", lineHeight: 1 }}>{value}</p>
+                        <p style={{ fontSize: "22px", fontWeight: 700, color: "#0A2540", fontFamily: "monospace", lineHeight: 1, display: "flex", alignItems: "center" }}>{value}</p>
                         <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "4px" }}>{sub}</p>
                       </div>
                     ))}
@@ -1029,7 +1030,7 @@ export default function DashboardPage() {
                               <span style={{ textAlign: "right" }}>
                                 <span style={{ fontSize: "11px", fontWeight: 600, padding: "2px 7px", borderRadius: "5px", background: sc.bg, color: sc.text }}>{job.status}</span>
                               </span>
-                              <span style={{ fontSize: "12px", fontWeight: 600, color: "#10b981", textAlign: "right", fontFamily: "monospace" }}>{fmt(job.amountEth)} ETH</span>
+                              <span style={{ fontSize: "12px", fontWeight: 600, color: "#10b981", textAlign: "right", fontFamily: "monospace", display: "flex", alignItems: "center", justifyContent: "flex-end" }}><EthAmount amount={fmt(job.amountEth)} size={11} /></span>
                               <span style={{ fontSize: "11px", color: "#94a3b8", textAlign: "right" }}>{job.executedAt ? timeAgo(job.executedAt) : "—"}</span>
                             </div>
                           );
