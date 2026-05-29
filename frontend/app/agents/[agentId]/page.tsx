@@ -8,8 +8,6 @@ import { QuickExecute } from "@/components/QuickExecute";
 import { AgentCard } from "@/components/AgentCard";
 import { TechnicalDetails } from "@/components/TechnicalDetails";
 
-const ARBISCAN = "https://sepolia.arbiscan.io";
-const CONTRACT = process.env.NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS;
 
 const CATEGORY_META: Record<string, { color: string; bg: string; border: string }> = {
   DEFI:         { color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" },

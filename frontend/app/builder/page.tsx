@@ -3,7 +3,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ReactFlow, {
-  Node, Edge, addEdge, Connection,
+  Node, addEdge, Connection,
   useNodesState, useEdgesState,
   Background, Controls, MiniMap,
 } from "reactflow";
@@ -14,6 +14,7 @@ import { apiFetch, CATEGORY_LABELS } from "@/lib/utils";
 import { authFetch } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { ESCROW_ABI } from "@/lib/escrow-abi";
+import { AuthGate } from "@/components/AuthGate";
 import type { Agent } from "@/lib/types";
 
 const ESCROW = process.env.NEXT_PUBLIC_JOB_ESCROW_ADDRESS as `0x${string}`;
@@ -104,7 +105,7 @@ export default function BuilderPage() {
   const [error, setError] = useState("");
 
   const { writeContract, data: txHash, isPending } = useWriteContract();
-  const { isSuccess, data: receipt } = useWaitForTransactionReceipt({ hash: txHash });
+  const { isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
 
   useEffect(() => {
     apiFetch<{ agents: Agent[] }>("/api/agents?limit=50")
@@ -216,6 +217,7 @@ export default function BuilderPage() {
     : null;
 
   return (
+    <AuthGate description="Sign in to build and activate multi-agent flows on Arbitrum.">
     <div
       className="flex h-[calc(100vh-64px)]"
       style={{ background: "#0D1117" }}
@@ -593,5 +595,6 @@ export default function BuilderPage() {
         )}
       </div>
     </div>
+    </AuthGate>
   );
 }

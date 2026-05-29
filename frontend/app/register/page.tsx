@@ -9,6 +9,7 @@ import { REGISTRY_ABI } from "@/lib/registry-abi";
 import { apiFetch, CATEGORY_LABELS } from "@/lib/utils";
 import { authFetch, getNonce, buildSiweMessage, verifySignature } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
+import { AuthGate } from "@/components/AuthGate";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -171,6 +172,7 @@ export default function RegisterPage() {
     "w-full bg-white/5 border border-white/10 rounded-btn px-4 py-2.5 text-sm text-white placeholder-muted focus:outline-none focus:border-accent/50 transition-colors";
 
   return (
+    <AuthGate description="Sign in to register your agent on the Arbitrum network.">
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Progress */}
@@ -424,6 +426,7 @@ export default function RegisterPage() {
         )}
       </div>
     </div>
+    </AuthGate>
   );
 }
 

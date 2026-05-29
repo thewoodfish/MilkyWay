@@ -9,6 +9,7 @@ import { apiFetch, badgeEmoji, agentStatus, timeAgo, CATEGORY_LABELS } from "@/l
 import { authFetch } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { SignInButton } from "@/components/SignInButton";
+import { AuthGate } from "@/components/AuthGate";
 import { REGISTRY_ABI } from "@/lib/registry-abi";
 
 const REGISTRY = process.env.NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS as `0x${string}`;
@@ -142,6 +143,7 @@ export default function DashboardPage() {
   const totalStaked = (activeAgents.length * 0.01).toFixed(2);
 
   return (
+    <AuthGate description="Sign in to manage your agents, track earnings, and monitor performance.">
     <div className="min-h-screen bg-slate-50 py-12 px-4">
       <div className="max-w-5xl mx-auto">
 
@@ -483,5 +485,6 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
+    </AuthGate>
   );
 }
