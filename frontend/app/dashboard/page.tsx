@@ -294,7 +294,7 @@ export default function DashboardPage() {
     try {
       const r = await authFetch(`${API}/api/dashboard/flows`);
       const data = await r.json();
-      setFlows(data);
+      setFlows(Array.isArray(data) ? data : []);
     } catch { /* silent */ }
   }, [isSignedIn]);
 
@@ -308,8 +308,8 @@ export default function DashboardPage() {
     ])
       .then(([sum, fls, ags]) => {
         setSummary(sum);
-        setFlows(fls);
-        setAgents(ags);
+        setFlows(Array.isArray(fls) ? fls : []);
+        setAgents(Array.isArray(ags) ? ags : []);
         if ((ags as DashAgent[]).length > 0) setTab("agents");
       })
       .catch(() => {})
