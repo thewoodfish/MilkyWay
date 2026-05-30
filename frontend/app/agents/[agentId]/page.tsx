@@ -155,7 +155,7 @@ export default async function AgentProfilePage({
   const sm = STATUS_META[status];
   const cm = CATEGORY_META[agent.category] ?? BLUE;
   const bm = agent.badgeTier && agent.badgeTier !== "NONE" ? BADGE_META[agent.badgeTier] : null;
-  const showQuickExecute = agent.phase2Ready && agent.agentId != null && agent.aboutSchema != null;
+  const showQuickExecute = agent.agentId != null && agent.aboutSchema != null;
 
   // Stats from logs
   const successRate = logs.length > 0

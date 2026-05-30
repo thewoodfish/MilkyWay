@@ -185,32 +185,6 @@ const AgentNode = memo(function AgentNode({
             {agent.pricingModel === "FREE" ? "Free" : <EthAmount amount={agent.priceEth!} size={10} />}
           </span>
 
-          {agent.phase2Ready ? (
-            <span style={{
-              fontSize: "10px",
-              fontWeight: 600,
-              color: "#059669",
-              background: "#ECFDF5",
-              padding: "2px 8px",
-              borderRadius: "100px",
-              border: "1px solid #A7F3D0",
-            }}>
-              P2 ✓
-            </span>
-          ) : (
-            <span style={{
-              fontSize: "10px",
-              fontWeight: 600,
-              color: "#D97706",
-              background: "#FFFBEB",
-              padding: "2px 8px",
-              borderRadius: "100px",
-              border: "1px solid #FDE68A",
-            }}>
-              P1
-            </span>
-          )}
-
           {inCount !== null && (
             <span style={{ fontSize: "10px", color: "#94a3b8" }}>
               {inCount}↓ {outCount}↑
@@ -293,19 +267,6 @@ const AgentLibraryCard = memo(function AgentLibraryCard({
               {agent.name}
             </p>
             {onCanvas && <span style={{ fontSize: "10px", color: "#2563EB", flexShrink: 0 }}>✓</span>}
-            {agent.phase2Ready && (
-              <span style={{
-                fontSize: "9px",
-                fontWeight: 700,
-                color: "#059669",
-                background: "#ECFDF5",
-                padding: "1px 5px",
-                borderRadius: "4px",
-                flexShrink: 0,
-              }}>
-                P2
-              </span>
-            )}
           </div>
           <p style={{ color: "#94a3b8", fontSize: "11px", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {CATEGORY_LABELS[agent.category] ?? agent.category}
@@ -346,7 +307,6 @@ export default function BuilderPage() {
 
   const [allAgents, setAllAgents] = useState<Agent[]>([]);
   const [search, setSearch] = useState("");
-  const [p2Only, setP2Only] = useState(false);
   const [catFilter, setCatFilter] = useState("ALL");
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -459,7 +419,6 @@ export default function BuilderPage() {
   const categories = ["ALL", ...Array.from(new Set(allAgents.map((a) => a.category))).sort()];
 
   const filteredAgents = allAgents.filter((a) => {
-    if (p2Only && !a.phase2Ready) return false;
     if (catFilter !== "ALL" && a.category !== catFilter) return false;
     if (search && !a.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
@@ -468,8 +427,7 @@ export default function BuilderPage() {
   const about = selectedAgent?.aboutSchema as AboutSchema | null;
   const inputSchema = about?.input_schema ?? null;
   const outputSchema = about?.output_schema ?? null;
-  const allP2 = canvasAgents.length > 0 && canvasAgents.every((a) => a.phase2Ready);
-  const canActivate = isConnected && isSignedIn && !isPending && !activating && canvasAgents.length > 0 && allP2;
+  const canActivate = isConnected && isSignedIn && !isPending && !activating && canvasAgents.length > 0;
 
   // Shared label style for right panel sections
   const sectionLabel: React.CSSProperties = {
@@ -607,24 +565,6 @@ export default function BuilderPage() {
                 />
               </div>
 
-              {/* Phase 2 toggle */}
-              <button
-                onClick={() => setP2Only((v) => !v)}
-                style={{ display: "flex", alignItems: "center", gap: "8px", background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
-              >
-                <div style={{
-                  width: "30px", height: "17px", borderRadius: "100px",
-                  background: p2Only ? "#2563EB" : "#E3E8EF",
-                  position: "relative", flexShrink: 0, transition: "background 0.2s",
-                }}>
-                  <div style={{
-                    width: "11px", height: "11px", borderRadius: "50%", background: "#fff",
-                    position: "absolute", top: "3px", left: p2Only ? "16px" : "3px",
-                    transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                  }} />
-                </div>
-                <span style={{ fontSize: "11px", color: p2Only ? "#2563EB" : "#94a3b8" }}>Phase 2 only</span>
-              </button>
             </div>
 
             {/* Category pills */}
@@ -875,12 +815,7 @@ export default function BuilderPage() {
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 600, margin: "0 0 2px" }}>{selectedAgent.name}</p>
-                      <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
-                        <span style={{ fontSize: "10px", color: "#94a3b8" }}>{CATEGORY_LABELS[selectedAgent.category] ?? selectedAgent.category}</span>
-                        {selectedAgent.phase2Ready && (
-                          <span style={{ fontSize: "9px", fontWeight: 700, color: "#059669", background: "#ECFDF5", padding: "1px 5px", borderRadius: "4px" }}>P2</span>
-                        )}
-                      </div>
+                      <span style={{ fontSize: "10px", color: "#94a3b8" }}>{CATEGORY_LABELS[selectedAgent.category] ?? selectedAgent.category}</span>
                     </div>
                   </div>
                   {selectedAgent.description && (
@@ -1070,23 +1005,8 @@ export default function BuilderPage() {
                         <span style={{ fontSize: "11px", color: "#425466", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {a.name}
                         </span>
-                        {!a.phase2Ready && (
-                          <span style={{ fontSize: "11px", color: "#D97706", flexShrink: 0 }} title="Phase 1 only">⚠</span>
-                        )}
                       </div>
                     ))}
-
-                    {!allP2 && canvasAgents.length > 0 && (
-                      <div style={{
-                        marginTop: "10px", padding: "9px 11px", borderRadius: "8px",
-                        background: "#FFFBEB",
-                        border: "1px solid #FDE68A",
-                      }}>
-                        <p style={{ fontSize: "11px", color: "#D97706", margin: 0, lineHeight: 1.5 }}>
-                          All agents must be Phase 2 ready to activate.
-                        </p>
-                      </div>
-                    )}
                   </div>
                 )}
 

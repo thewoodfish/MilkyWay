@@ -66,7 +66,6 @@ interface DashAgent {
   failedChecks: number;
   priceEth: string;
   pricingModel: string;
-  phase2Ready: boolean;
   aboutSchema: unknown;
   registeredAt: string;
   txHash: string | null;
@@ -104,7 +103,6 @@ interface AgentAnalytics {
   badgeTier: string;
   logoUrl?: string | null;
   active: boolean;
-  phase2Ready: boolean;
   verifiedAt: string | null;
   registeredAt: string;
   priceEth: string;
