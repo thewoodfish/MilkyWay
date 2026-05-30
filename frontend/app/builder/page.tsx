@@ -777,17 +777,18 @@ export default function BuilderPage() {
                 display: "flex",
                 alignItems: "center",
                 flexShrink: 0,
-                minHeight: "56px",
+                height: "58px",
+                gap: "0",
               }}>
                 {/* Pipeline */}
                 <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "6px", padding: "0 20px", overflow: "hidden", minWidth: 0 }}>
                   {canvasAgents.map((a, i) => (
                     <span key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0, flexShrink: i < canvasAgents.length - 1 ? 1 : 0 }}>
-                      <span style={{ fontSize: "12px", fontWeight: 500, color: "rgba(255,255,255,0.85)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "120px" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 500, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "120px" }}>
                         {a.name}
                       </span>
                       {i < canvasAgents.length - 1 && (
-                        <span style={{ color: "rgba(255,255,255,0.25)", fontSize: "11px", flexShrink: 0 }}>→</span>
+                        <span style={{ color: "#475569", fontSize: "11px", flexShrink: 0 }}>→</span>
                       )}
                     </span>
                   ))}
@@ -795,21 +796,21 @@ export default function BuilderPage() {
 
                 {/* Cost */}
                 {preview && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "20px", padding: "0 20px", borderLeft: "1px solid rgba(255,255,255,0.08)", borderRight: "1px solid rgba(255,255,255,0.08)", flexShrink: 0 }}>
-                    <div style={{ textAlign: "center" }}>
-                      <p style={{ fontSize: "9px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 1px", fontWeight: 600 }}>Subtotal</p>
-                      <p style={{ fontSize: "12px", fontWeight: 600, color: "rgba(255,255,255,0.7)", margin: 0 }}>
-                        <EthAmount amount={preview.subtotal} size={11} style={{ color: "rgba(255,255,255,0.7)" }} />
+                  <div style={{ display: "flex", alignItems: "center", gap: "24px", padding: "0 24px", borderLeft: "1px solid #1e3a5f", borderRight: "1px solid #1e3a5f", flexShrink: 0, height: "100%" }}>
+                    <div>
+                      <p style={{ fontSize: "9px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 2px", fontWeight: 600 }}>Subtotal</p>
+                      <p style={{ fontSize: "12px", fontWeight: 600, color: "#94a3b8", margin: 0 }}>
+                        <EthAmount amount={preview.subtotal} size={11} style={{ color: "#94a3b8" }} />
                       </p>
                     </div>
-                    <div style={{ textAlign: "center" }}>
-                      <p style={{ fontSize: "9px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 1px", fontWeight: 600 }}>1% Fee</p>
-                      <p style={{ fontSize: "12px", fontWeight: 600, color: "rgba(255,255,255,0.7)", margin: 0 }}>
-                        <EthAmount amount={preview.protocolFee} size={11} style={{ color: "rgba(255,255,255,0.7)" }} />
+                    <div>
+                      <p style={{ fontSize: "9px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 2px", fontWeight: 600 }}>1% Fee</p>
+                      <p style={{ fontSize: "12px", fontWeight: 600, color: "#94a3b8", margin: 0 }}>
+                        <EthAmount amount={preview.protocolFee} size={11} style={{ color: "#94a3b8" }} />
                       </p>
                     </div>
-                    <div style={{ textAlign: "center" }}>
-                      <p style={{ fontSize: "9px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 1px", fontWeight: 600 }}>Total</p>
+                    <div>
+                      <p style={{ fontSize: "9px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 2px", fontWeight: 600 }}>Total</p>
                       <p style={{ fontSize: "13px", fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
                         <EthAmount amount={preview.total} size={12} style={{ color: "#fff", fontWeight: 800 }} />
                       </p>
@@ -818,28 +819,28 @@ export default function BuilderPage() {
                 )}
 
                 {/* Status + activate */}
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0 16px", flexShrink: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "0 16px", flexShrink: 0 }}>
                   {error && <p style={{ fontSize: "11px", color: "#fca5a5", margin: 0, maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{error}</p>}
-                  {!error && !isConnected && <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", margin: 0 }}>Connect wallet</p>}
-                  {!error && isConnected && !isSignedIn && <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", margin: 0 }}>Sign in to activate</p>}
+                  {!error && !isConnected && <p style={{ fontSize: "11px", color: "#64748b", margin: 0 }}>Connect wallet</p>}
+                  {!error && isConnected && !isSignedIn && <p style={{ fontSize: "11px", color: "#64748b", margin: 0 }}>Sign in to activate</p>}
                   <button
                     onClick={activateFlow}
                     disabled={!canActivate}
                     style={{
-                      padding: "9px 18px",
+                      padding: "9px 20px",
                       borderRadius: "9px",
-                      border: canActivate ? "none" : "1px solid rgba(255,255,255,0.1)",
+                      border: "none",
                       fontSize: "13px",
                       fontWeight: 700,
                       cursor: canActivate ? "pointer" : "not-allowed",
-                      background: canActivate ? "#fff" : "rgba(255,255,255,0.06)",
-                      color: canActivate ? "#0A2540" : "rgba(255,255,255,0.25)",
+                      background: canActivate ? "#fff" : "#1e3a5f",
+                      color: canActivate ? "#0A2540" : "#475569",
                       transition: "background 0.15s",
                       flexShrink: 0,
                       letterSpacing: "-0.01em",
                       whiteSpace: "nowrap",
                     }}
-                    onMouseEnter={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#e8f0fe"; }}
+                    onMouseEnter={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#dbeafe"; }}
                     onMouseLeave={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#fff"; }}
                   >
                     {isPending ? "Check wallet…" : activating ? "Activating…" : "⚡ Activate Agentic Flow"}
