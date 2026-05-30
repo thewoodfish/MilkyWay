@@ -439,6 +439,7 @@ export default function BuilderPage() {
         </div>
 
         {/* ── Three-panel layout ────────────────────────────────────── */}
+        <div style={{ display: "flex", flex: 1, flexDirection: "column", overflow: "hidden" }}>
         <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
 
           {/* ── CENTER: Canvas ─────────────────────────────────────── */}
@@ -447,7 +448,7 @@ export default function BuilderPage() {
             {/* ── Agent Library Slideout ─────────────────────────── */}
             <div style={{
               position: "absolute",
-              left: 0, top: 0, bottom: canvasAgents.length > 0 ? "60px" : 0,
+              left: 0, top: 0, bottom: 0,
               width: "320px",
               zIndex: 20,
               transform: libraryOpen ? "translateX(0)" : "translateX(calc(-100% + 36px))",
@@ -770,81 +771,6 @@ export default function BuilderPage() {
               />
             </ReactFlow>
 
-            {/* ── Bottom bar ── */}
-            {canvasAgents.length > 0 && (
-              <div style={{
-                background: "#0A2540",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                flexShrink: 0,
-                padding: "0 20px",
-                height: "60px",
-                gap: "16px",
-                position: "relative",
-                zIndex: 25,
-              }}>
-                {/* Pipeline breadcrumb */}
-                <div style={{ display: "flex", alignItems: "center", gap: "7px", overflow: "hidden", minWidth: 0, flex: 1 }}>
-                  {canvasAgents.map((a, i) => (
-                    <span key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "7px", minWidth: 0, flexShrink: i < canvasAgents.length - 1 ? 1 : 0 }}>
-                      <span style={{ fontSize: "13px", fontWeight: 500, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "140px" }}>
-                        {a.name}
-                      </span>
-                      {i < canvasAgents.length - 1 && (
-                        <span style={{ color: "#334155", fontSize: "13px", flexShrink: 0 }}>→</span>
-                      )}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Cost + activate */}
-                <div style={{ display: "flex", alignItems: "center", gap: "20px", flexShrink: 0 }}>
-                  {preview && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ fontSize: "12px", color: "#64748b" }}>
-                        <EthAmount amount={preview.subtotal} size={11} style={{ color: "#64748b" }} />
-                      </span>
-                      <span style={{ fontSize: "11px", color: "#334155" }}>+</span>
-                      <span style={{ fontSize: "12px", color: "#64748b" }}>
-                        <EthAmount amount={preview.protocolFee} size={11} style={{ color: "#64748b" }} /> fee
-                      </span>
-                      <span style={{ width: "1px", height: "16px", background: "#1e3a5f", flexShrink: 0, margin: "0 6px" }} />
-                      <span style={{ fontSize: "14px", fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>
-                        <EthAmount amount={preview.total} size={13} style={{ color: "#fff", fontWeight: 800 }} />
-                      </span>
-                    </div>
-                  )}
-
-                  {error && <p style={{ fontSize: "11px", color: "#fca5a5", margin: 0, maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{error}</p>}
-                  {!error && !isConnected && <p style={{ fontSize: "11px", color: "#475569", margin: 0 }}>Connect wallet</p>}
-                  {!error && isConnected && !isSignedIn && <p style={{ fontSize: "11px", color: "#475569", margin: 0 }}>Sign in to activate</p>}
-
-                  <button
-                    onClick={activateFlow}
-                    disabled={!canActivate}
-                    style={{
-                      padding: "9px 22px",
-                      borderRadius: "9px",
-                      border: "none",
-                      fontSize: "13px",
-                      fontWeight: 700,
-                      cursor: canActivate ? "pointer" : "not-allowed",
-                      background: canActivate ? "#fff" : "#1a2f4a",
-                      color: canActivate ? "#0A2540" : "#3d5a80",
-                      transition: "background 0.15s",
-                      flexShrink: 0,
-                      letterSpacing: "-0.01em",
-                      whiteSpace: "nowrap",
-                    }}
-                    onMouseEnter={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#dbeafe"; }}
-                    onMouseLeave={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#fff"; }}
-                  >
-                    {isPending ? "Check wallet…" : activating ? "Activating…" : "⚡ Activate Agentic Flow"}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* ── RIGHT: Config panel ───────────────────────────────── */}
@@ -1080,6 +1006,74 @@ export default function BuilderPage() {
             )}
           </div>
         </div>
+
+        {/* ── Bottom bar — outside overflow:hidden row, slideout cannot reach ── */}
+        {canvasAgents.length > 0 && (
+          <div style={{
+            background: "#0A2540",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexShrink: 0,
+            padding: "0 20px",
+            height: "60px",
+            gap: "16px",
+          }}>
+            {/* Pipeline breadcrumb */}
+            <div style={{ display: "flex", alignItems: "center", gap: "7px", overflow: "hidden", minWidth: 0, flex: 1 }}>
+              {canvasAgents.map((a, i) => (
+                <span key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "7px", minWidth: 0, flexShrink: i < canvasAgents.length - 1 ? 1 : 0 }}>
+                  <span style={{ fontSize: "13px", fontWeight: 500, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "160px" }}>
+                    {a.name}
+                  </span>
+                  {i < canvasAgents.length - 1 && (
+                    <span style={{ color: "#334155", fontSize: "13px", flexShrink: 0 }}>→</span>
+                  )}
+                </span>
+              ))}
+            </div>
+
+            {/* Cost + activate */}
+            <div style={{ display: "flex", alignItems: "center", gap: "20px", flexShrink: 0 }}>
+              {preview && (
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ fontSize: "12px", color: "#64748b" }}>
+                    <EthAmount amount={preview.subtotal} size={11} style={{ color: "#64748b" }} />
+                  </span>
+                  <span style={{ fontSize: "11px", color: "#334155" }}>+</span>
+                  <span style={{ fontSize: "12px", color: "#64748b" }}>
+                    <EthAmount amount={preview.protocolFee} size={11} style={{ color: "#64748b" }} /> fee
+                  </span>
+                  <span style={{ width: "1px", height: "16px", background: "#1e3a5f", flexShrink: 0, margin: "0 6px" }} />
+                  <span style={{ fontSize: "14px", fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>
+                    <EthAmount amount={preview.total} size={13} style={{ color: "#fff", fontWeight: 800 }} />
+                  </span>
+                </div>
+              )}
+              {error && <p style={{ fontSize: "11px", color: "#fca5a5", margin: 0, maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{error}</p>}
+              {!error && !isConnected && <p style={{ fontSize: "11px", color: "#475569", margin: 0 }}>Connect wallet</p>}
+              {!error && isConnected && !isSignedIn && <p style={{ fontSize: "11px", color: "#475569", margin: 0 }}>Sign in to activate</p>}
+              <button
+                onClick={activateFlow}
+                disabled={!canActivate}
+                style={{
+                  padding: "9px 22px", borderRadius: "9px", border: "none",
+                  fontSize: "13px", fontWeight: 700,
+                  cursor: canActivate ? "pointer" : "not-allowed",
+                  background: canActivate ? "#fff" : "#1a2f4a",
+                  color: canActivate ? "#0A2540" : "#3d5a80",
+                  transition: "background 0.15s", flexShrink: 0,
+                  letterSpacing: "-0.01em", whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#dbeafe"; }}
+                onMouseLeave={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#fff"; }}
+              >
+                {isPending ? "Check wallet…" : activating ? "Activating…" : "⚡ Activate Agentic Flow"}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
       </div>
     </AuthGate>
   );
