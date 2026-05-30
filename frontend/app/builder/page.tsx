@@ -261,24 +261,24 @@ const AgentLibraryCard = memo(function AgentLibraryCard({
       style={{
         padding: "10px 12px",
         borderRadius: "10px",
-        border: `1px solid ${onCanvas ? "#BFDBFE" : "#E3E8EF"}`,
+        border: `1px solid ${onCanvas ? "#93C5FD" : "#DBEAFE"}`,
         background: onCanvas ? "#EFF6FF" : "#fff",
         cursor: onCanvas ? "default" : "pointer",
         marginBottom: "6px",
         transition: "border-color 0.15s, background 0.15s, box-shadow 0.15s",
-        opacity: onCanvas ? 0.65 : 1,
-        boxShadow: "0 1px 3px rgba(10,37,64,0.04)",
+        opacity: onCanvas ? 0.6 : 1,
+        boxShadow: "0 1px 4px rgba(37,99,235,0.07)",
       }}
       onMouseEnter={(e) => {
         if (!onCanvas) {
-          (e.currentTarget as HTMLDivElement).style.borderColor = "#BFDBFE";
-          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 8px rgba(37,99,235,0.08)";
+          (e.currentTarget as HTMLDivElement).style.borderColor = "#60A5FA";
+          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 10px rgba(37,99,235,0.14)";
         }
       }}
       onMouseLeave={(e) => {
         if (!onCanvas) {
-          (e.currentTarget as HTMLDivElement).style.borderColor = "#E3E8EF";
-          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 3px rgba(10,37,64,0.04)";
+          (e.currentTarget as HTMLDivElement).style.borderColor = "#DBEAFE";
+          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 4px rgba(37,99,235,0.07)";
         }
       }}
     >
@@ -492,13 +492,13 @@ export default function BuilderPage() {
     fontWeight: 700,
     textTransform: "uppercase",
     letterSpacing: "0.09em",
-    color: "#94a3b8",
+    color: "#60A5FA",
     margin: "0 0 12px",
   };
 
   return (
     <AuthGate description="Sign in to build and activate multi-agent flows on Arbitrum.">
-      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)", background: "#f8faff" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)", background: "#EBF0FF" }}>
 
         {/* ── Top bar ──────────────────────────────────────────────── */}
         <div style={{
@@ -506,11 +506,11 @@ export default function BuilderPage() {
           alignItems: "center",
           padding: "0 20px",
           height: "50px",
-          borderBottom: "1px solid #E3E8EF",
-          background: "#fff",
+          borderBottom: "1px solid #BFDBFE",
+          background: "#EFF6FF",
           flexShrink: 0,
           gap: "14px",
-          boxShadow: "0 1px 0 rgba(10,37,64,0.04)",
+          boxShadow: "0 1px 4px rgba(37,99,235,0.06)",
         }}>
           <Link
             href="/dashboard"
@@ -521,7 +521,7 @@ export default function BuilderPage() {
             ← Dashboard
           </Link>
 
-          <div style={{ width: "1px", height: "14px", background: "#E3E8EF" }} />
+          <div style={{ width: "1px", height: "14px", background: "#BFDBFE" }} />
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#2563EB", boxShadow: "0 0 6px rgba(37,99,235,0.5)", display: "inline-block" }} />
@@ -586,11 +586,11 @@ export default function BuilderPage() {
             flexShrink: 0,
             display: "flex",
             flexDirection: "column",
-            borderRight: "1px solid #E3E8EF",
-            background: "#fff",
+            borderRight: "1px solid #BFDBFE",
+            background: "#EEF2FF",
           }}>
             {/* Header + search */}
-            <div style={{ padding: "14px 14px 12px", borderBottom: "1px solid #F1F5F9" }}>
+            <div style={{ padding: "14px 14px 12px", borderBottom: "1px solid #BFDBFE", background: "#fff" }}>
               <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 700, margin: "0 0 10px" }}>
                 Agent Library
               </p>
@@ -645,7 +645,8 @@ export default function BuilderPage() {
             {/* Category pills */}
             <div style={{
               padding: "10px 14px",
-              borderBottom: "1px solid #F1F5F9",
+              borderBottom: "1px solid #BFDBFE",
+              background: "#E8EFFD",
               display: "flex",
               gap: "5px",
               flexWrap: "wrap",
@@ -659,11 +660,11 @@ export default function BuilderPage() {
                     fontWeight: 600,
                     padding: "3px 9px",
                     borderRadius: "100px",
-                    border: `1px solid ${catFilter === cat ? "#BFDBFE" : "#E3E8EF"}`,
+                    border: `1px solid ${catFilter === cat ? "#93C5FD" : "#C7D7F5"}`,
                     cursor: "pointer",
                     transition: "all 0.15s",
-                    background: catFilter === cat ? "#EFF6FF" : "#F8FAFF",
-                    color: catFilter === cat ? "#2563EB" : "#94a3b8",
+                    background: catFilter === cat ? "#DBEAFE" : "#EEF2FF",
+                    color: catFilter === cat ? "#1D4ED8" : "#64748b",
                   }}
                 >
                   {cat === "ALL" ? "All" : (CATEGORY_LABELS[cat] ?? cat)}
@@ -672,7 +673,7 @@ export default function BuilderPage() {
             </div>
 
             {/* Agent list */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "10px" }}>
+            <div style={{ flex: 1, overflowY: "auto", padding: "10px", background: "#EEF2FF" }}>
               {filteredAgents.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "36px 12px" }}>
                   <p style={{ fontSize: "24px", margin: "0 0 6px" }}>⚗️</p>
@@ -691,7 +692,7 @@ export default function BuilderPage() {
             </div>
 
             {/* Footer count */}
-            <div style={{ padding: "8px 14px", borderTop: "1px solid #F1F5F9", fontSize: "10px", color: "#CBD5E1" }}>
+            <div style={{ padding: "8px 14px", borderTop: "1px solid #BFDBFE", background: "#E8EFFD", fontSize: "10px", color: "#93C5FD" }}>
               {filteredAgents.length} agent{filteredAgents.length !== 1 ? "s" : ""}
             </div>
           </div>
@@ -724,11 +725,11 @@ export default function BuilderPage() {
                     Click agents from the library to add them here
                   </p>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "center", fontSize: "11px" }}>
-                    <span style={{ color: "#64748b", padding: "4px 10px", borderRadius: "100px", border: "1px solid #E3E8EF", background: "#fff" }}>① Add agents</span>
-                    <span style={{ color: "#CBD5E1" }}>→</span>
-                    <span style={{ color: "#64748b", padding: "4px 10px", borderRadius: "100px", border: "1px solid #E3E8EF", background: "#fff" }}>② Connect them</span>
-                    <span style={{ color: "#CBD5E1" }}>→</span>
-                    <span style={{ color: "#64748b", padding: "4px 10px", borderRadius: "100px", border: "1px solid #E3E8EF", background: "#fff" }}>③ Activate</span>
+                    <span style={{ color: "#2563EB", padding: "5px 12px", borderRadius: "100px", border: "1px solid #BFDBFE", background: "#EFF6FF", fontWeight: 600, fontSize: "11px" }}>① Add agents</span>
+                    <span style={{ color: "#93C5FD" }}>→</span>
+                    <span style={{ color: "#2563EB", padding: "5px 12px", borderRadius: "100px", border: "1px solid #BFDBFE", background: "#EFF6FF", fontWeight: 600, fontSize: "11px" }}>② Connect them</span>
+                    <span style={{ color: "#93C5FD" }}>→</span>
+                    <span style={{ color: "#2563EB", padding: "5px 12px", borderRadius: "100px", border: "1px solid #BFDBFE", background: "#EFF6FF", fontWeight: 600, fontSize: "11px" }}>③ Activate</span>
                   </div>
                 </div>
               </div>
@@ -754,14 +755,14 @@ export default function BuilderPage() {
                 style: { stroke: "#2563EB", strokeWidth: 2 },
               }}
             >
-              <Background color="#E3E8EF" gap={22} size={1} variant={BackgroundVariant.Dots} />
+              <Background color="#93C5FD" gap={22} size={1} variant={BackgroundVariant.Dots} />
               <Controls
                 style={{
-                  background: "#fff",
-                  border: "1px solid #E3E8EF",
+                  background: "#EFF6FF",
+                  border: "1px solid #BFDBFE",
                   borderRadius: "10px",
                   overflow: "hidden",
-                  boxShadow: "0 2px 8px rgba(10,37,64,0.06)",
+                  boxShadow: "0 2px 8px rgba(37,99,235,0.1)",
                 }}
               />
             </ReactFlow>
@@ -770,13 +771,13 @@ export default function BuilderPage() {
             {canvasAgents.length > 0 && (
               <div style={{
                 padding: "12px 18px",
-                borderTop: "1px solid #E3E8EF",
-                background: "#fff",
+                borderTop: "1px solid #BFDBFE",
+                background: "#EFF6FF",
                 display: "flex",
                 alignItems: "center",
                 gap: "14px",
                 flexShrink: 0,
-                boxShadow: "0 -1px 0 rgba(10,37,64,0.04)",
+                boxShadow: "0 -2px 8px rgba(37,99,235,0.06)",
               }}>
                 {/* Pipeline breadcrumb */}
                 <div style={{
@@ -800,7 +801,7 @@ export default function BuilderPage() {
                         {a.name}
                       </span>
                       {i < canvasAgents.length - 1 && (
-                        <span style={{ color: "#BFDBFE", fontSize: "12px", flexShrink: 0 }}>→</span>
+                        <span style={{ color: "#60A5FA", fontSize: "12px", flexShrink: 0 }}>→</span>
                       )}
                     </span>
                   ))}
@@ -809,11 +810,11 @@ export default function BuilderPage() {
                 {/* Cost */}
                 {preview && (
                   <div style={{ display: "flex", alignItems: "center", gap: "14px", flexShrink: 0 }}>
-                    <span style={{ fontSize: "11px", color: "#94a3b8" }}>
-                      Subtotal: <span style={{ color: "#64748b" }}><EthAmount amount={preview.subtotal} size={10} /></span>
+                    <span style={{ fontSize: "11px", color: "#60A5FA" }}>
+                      Subtotal: <span style={{ color: "#2563EB" }}><EthAmount amount={preview.subtotal} size={10} /></span>
                     </span>
-                    <span style={{ fontSize: "11px", color: "#94a3b8" }}>
-                      1% fee: <span style={{ color: "#64748b" }}><EthAmount amount={preview.protocolFee} size={10} /></span>
+                    <span style={{ fontSize: "11px", color: "#60A5FA" }}>
+                      1% fee: <span style={{ color: "#2563EB" }}><EthAmount amount={preview.protocolFee} size={10} /></span>
                     </span>
                     <span style={{ fontSize: "14px", fontWeight: 800, color: "#2563EB", letterSpacing: "-0.01em" }}>
                       <EthAmount amount={preview.total} size={13} style={{ color: "#2563EB", fontWeight: 800 }} />
@@ -868,14 +869,14 @@ export default function BuilderPage() {
             flexShrink: 0,
             display: "flex",
             flexDirection: "column",
-            borderLeft: "1px solid #E3E8EF",
-            background: "#fff",
+            borderLeft: "1px solid #C7D7F5",
+            background: "#F0F4FB",
             overflowY: "auto",
           }}>
             {selectedAgent ? (
               /* ── Agent config ── */
               <>
-                <div style={{ padding: "14px", borderBottom: "1px solid #F1F5F9" }}>
+                <div style={{ padding: "14px", borderBottom: "1px solid #DBEAFE", background: "#fff", borderLeft: "3px solid #2563EB" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
                     <div style={{
                       width: "36px", height: "36px", borderRadius: "10px",
@@ -905,13 +906,13 @@ export default function BuilderPage() {
 
                 {/* Input fields */}
                 {inputSchema && Object.keys(inputSchema).length > 0 && (
-                  <div style={{ padding: "14px", borderBottom: "1px solid #F1F5F9" }}>
+                  <div style={{ padding: "14px", borderBottom: "1px solid #DBEAFE", background: "#fff", margin: "0 0 1px" }}>
                     <p style={sectionLabel}>Inputs</p>
                     {Object.entries(inputSchema).map(([field, def]) => (
                       <div key={field} style={{ marginBottom: "11px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "5px" }}>
                           <label style={{ fontSize: "11px", color: "#425466", fontWeight: 500 }}>{field}</label>
-                          <span style={{ fontSize: "9px", color: "#94a3b8", background: "#F8FAFF", padding: "1px 5px", borderRadius: "4px", border: "1px solid #E3E8EF" }}>
+                          <span style={{ fontSize: "9px", color: "#2563EB", background: "#EEF2FF", padding: "1px 5px", borderRadius: "4px", border: "1px solid #BFDBFE" }}>
                             {def.type}
                           </span>
                           {def.required && (
@@ -932,8 +933,8 @@ export default function BuilderPage() {
                           placeholder={def.description ?? `${field}…`}
                           style={{
                             width: "100%",
-                            background: "#F8FAFF",
-                            border: "1px solid #E3E8EF",
+                            background: "#EEF2FF",
+                            border: "1px solid #C7D7F5",
                             borderRadius: "8px",
                             padding: "7px 10px",
                             fontSize: "12px",
@@ -943,7 +944,7 @@ export default function BuilderPage() {
                             transition: "border-color 0.15s",
                           }}
                           onFocus={(e) => { e.target.style.borderColor = "#2563EB"; }}
-                          onBlur={(e) => { e.target.style.borderColor = "#E3E8EF"; }}
+                          onBlur={(e) => { e.target.style.borderColor = "#C7D7F5"; }}
                         />
                       </div>
                     ))}
@@ -952,13 +953,13 @@ export default function BuilderPage() {
 
                 {/* Output schema */}
                 {outputSchema && Object.keys(outputSchema).length > 0 && (
-                  <div style={{ padding: "14px", borderBottom: "1px solid #F1F5F9" }}>
+                  <div style={{ padding: "14px", borderBottom: "1px solid #DBEAFE", background: "#F8FAFF" }}>
                     <p style={sectionLabel}>Outputs</p>
                     {Object.entries(outputSchema).map(([field, def]) => (
                       <div key={field} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "7px" }}>
                         <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#10b981", flexShrink: 0 }} />
                         <span style={{ fontSize: "11px", color: "#64748b", flex: 1 }}>{field}</span>
-                        <span style={{ fontSize: "9px", color: "#94a3b8", background: "#F8FAFF", padding: "1px 5px", borderRadius: "4px", border: "1px solid #E3E8EF" }}>
+                        <span style={{ fontSize: "9px", color: "#2563EB", background: "#EEF2FF", padding: "1px 5px", borderRadius: "4px", border: "1px solid #BFDBFE" }}>
                           {def.type}
                         </span>
                       </div>
@@ -997,15 +998,15 @@ export default function BuilderPage() {
             ) : (
               /* ── Flow settings ── */
               <>
-                <div style={{ padding: "14px", borderBottom: "1px solid #F1F5F9" }}>
-                  <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 700, margin: "0 0 2px" }}>Configuration</p>
+                <div style={{ padding: "14px", borderBottom: "1px solid #BFDBFE", background: "#EFF6FF" }}>
+                  <p style={{ color: "#1D4ED8", fontSize: "13px", fontWeight: 700, margin: "0 0 2px" }}>Configuration</p>
                   <p style={{ color: "#94a3b8", fontSize: "11px", margin: 0 }}>
                     {canvasAgents.length === 0 ? "Add agents to get started" : "Click an agent to configure its inputs"}
                   </p>
                 </div>
 
                 {/* Trigger */}
-                <div style={{ padding: "14px", borderBottom: "1px solid #F1F5F9" }}>
+                <div style={{ padding: "14px", borderBottom: "1px solid #DBEAFE", background: "#fff" }}>
                   <p style={sectionLabel}>Trigger</p>
                   {([
                     { value: "IMMEDIATE", icon: "⚡", label: "Immediate", desc: "Runs right away" },
@@ -1022,8 +1023,8 @@ export default function BuilderPage() {
                         gap: "10px",
                         padding: "9px 11px",
                         borderRadius: "9px",
-                        border: `1px solid ${trigger === value ? "#BFDBFE" : "#E3E8EF"}`,
-                        background: trigger === value ? "#EFF6FF" : "#F8FAFF",
+                        border: `1px solid ${trigger === value ? "#93C5FD" : "#E2E8F0"}`,
+                        background: trigger === value ? "#DBEAFE" : "#F1F5F9",
                         cursor: "pointer",
                         textAlign: "left",
                         marginBottom: "6px",
@@ -1040,7 +1041,7 @@ export default function BuilderPage() {
                 </div>
 
                 {/* Deadline */}
-                <div style={{ padding: "14px", borderBottom: "1px solid #F1F5F9" }}>
+                <div style={{ padding: "14px", borderBottom: "1px solid #DBEAFE", background: "#F8FAFF" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
                     <p style={{ ...sectionLabel, margin: 0 }}>Deadline</p>
                     <span style={{ fontSize: "13px", fontWeight: 800, color: "#2563EB" }}>
@@ -1056,7 +1057,7 @@ export default function BuilderPage() {
                     onChange={(e) => setDeadlineSeconds(Number(e.target.value))}
                     style={{ width: "100%", accentColor: "#2563EB", cursor: "pointer" }}
                   />
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#CBD5E1", marginTop: "4px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#93C5FD", marginTop: "4px" }}>
                     <span>30s</span>
                     <span>12h</span>
                     <span>24h</span>
@@ -1065,12 +1066,12 @@ export default function BuilderPage() {
 
                 {/* Agent order */}
                 {canvasAgents.length > 0 && (
-                  <div style={{ padding: "14px" }}>
+                  <div style={{ padding: "14px", background: "#EEF2FF" }}>
                     <p style={sectionLabel}>
                       Flow — {canvasAgents.length} agent{canvasAgents.length !== 1 ? "s" : ""}
                     </p>
                     {canvasAgents.map((a, i) => (
-                      <div key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "9px", marginBottom: "9px" }}>
+                      <div key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "9px", marginBottom: "7px", background: "#fff", padding: "7px 10px", borderRadius: "8px", border: "1px solid #DBEAFE" }}>
                         <span style={{
                           width: "19px", height: "19px", borderRadius: "50%",
                           background: "#EFF6FF",
