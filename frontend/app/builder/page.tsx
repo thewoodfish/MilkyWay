@@ -60,14 +60,14 @@ const AgentNode = memo(function AgentNode({
   return (
     <div
       style={{
-        background: "linear-gradient(160deg,#111827 0%,#0f172a 100%)",
-        border: `1.5px solid ${selected ? "#3b82f6" : "rgba(59,130,246,0.12)"}`,
+        background: "#fff",
+        border: `1.5px solid ${selected ? "#2563EB" : "#E3E8EF"}`,
         borderRadius: "14px",
         minWidth: "230px",
         boxShadow: selected
-          ? "0 0 0 3px rgba(59,130,246,0.18),0 8px 32px rgba(0,0,0,0.55)"
-          : "0 4px 20px rgba(0,0,0,0.45)",
-        transition: "box-shadow 0.18s,border-color 0.18s",
+          ? "0 0 0 3px rgba(37,99,235,0.12), 0 4px 20px rgba(37,99,235,0.1)"
+          : "0 2px 12px rgba(10,37,64,0.08), 0 1px 4px rgba(10,37,64,0.04)",
+        transition: "box-shadow 0.18s, border-color 0.18s",
         overflow: "hidden",
       }}
     >
@@ -75,10 +75,10 @@ const AgentNode = memo(function AgentNode({
         type="target"
         position={Position.Left}
         style={{
-          background: "#3b82f6",
+          background: "#2563EB",
           width: 10,
           height: 10,
-          border: "2px solid #080d1a",
+          border: "2px solid #fff",
           left: -6,
         }}
       />
@@ -87,27 +87,27 @@ const AgentNode = memo(function AgentNode({
       <div
         style={{
           padding: "10px 12px 9px",
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
-          background: "rgba(59,130,246,0.05)",
+          borderBottom: "1px solid #F1F5F9",
+          background: "#F8FAFF",
           display: "flex",
           alignItems: "center",
           gap: "9px",
         }}
       >
-        {/* Step number */}
+        {/* Step badge */}
         <div
           style={{
             width: "20px",
             height: "20px",
             borderRadius: "50%",
-            background: "rgba(59,130,246,0.2)",
-            border: "1.5px solid rgba(59,130,246,0.4)",
+            background: "#EFF6FF",
+            border: "1.5px solid #BFDBFE",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: "10px",
             fontWeight: 800,
-            color: "#93c5fd",
+            color: "#2563EB",
             flexShrink: 0,
           }}
         >
@@ -120,13 +120,14 @@ const AgentNode = memo(function AgentNode({
             width: "30px",
             height: "30px",
             borderRadius: "8px",
-            background: "linear-gradient(135deg,rgba(59,130,246,0.28) 0%,rgba(139,92,246,0.28) 100%)",
+            background: "linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)",
+            border: "1px solid #DBEAFE",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: "13px",
             fontWeight: 700,
-            color: "#c4b5fd",
+            color: "#2563EB",
             flexShrink: 0,
           }}
         >
@@ -134,10 +135,10 @@ const AgentNode = memo(function AgentNode({
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ color: "#f1f5f9", fontSize: "12px", fontWeight: 600, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <p style={{ color: "#0A2540", fontSize: "12px", fontWeight: 600, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {agent.name}
           </p>
-          <p style={{ color: "#3b4a62", fontSize: "10px", margin: 0 }}>
+          <p style={{ color: "#94a3b8", fontSize: "10px", margin: 0 }}>
             {CATEGORY_LABELS[agent.category] ?? agent.category}
           </p>
         </div>
@@ -148,7 +149,7 @@ const AgentNode = memo(function AgentNode({
           style={{
             background: "transparent",
             border: "none",
-            color: "#3b4a62",
+            color: "#CBD5E1",
             cursor: "pointer",
             fontSize: "17px",
             lineHeight: 1,
@@ -157,7 +158,7 @@ const AgentNode = memo(function AgentNode({
             transition: "color 0.15s",
           }}
           onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#ef4444"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#3b4a62"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#CBD5E1"; }}
         >
           ×
         </button>
@@ -167,7 +168,7 @@ const AgentNode = memo(function AgentNode({
       <div style={{ padding: "10px 12px 11px" }}>
         {agent.description && (
           <p style={{
-            color: "#475569",
+            color: "#64748b",
             fontSize: "11px",
             lineHeight: 1.55,
             margin: "0 0 9px",
@@ -184,10 +185,10 @@ const AgentNode = memo(function AgentNode({
           <span style={{
             fontSize: "10px",
             color: "#64748b",
-            background: "rgba(255,255,255,0.03)",
+            background: "#F8FAFF",
             padding: "2px 8px",
             borderRadius: "100px",
-            border: "1px solid rgba(255,255,255,0.07)",
+            border: "1px solid #E3E8EF",
           }}>
             {agent.pricingModel === "FREE" ? "Free" : <EthAmount amount={agent.priceEth!} size={10} />}
           </span>
@@ -196,11 +197,11 @@ const AgentNode = memo(function AgentNode({
             <span style={{
               fontSize: "10px",
               fontWeight: 600,
-              color: "#34d399",
-              background: "rgba(52,211,153,0.08)",
+              color: "#059669",
+              background: "#ECFDF5",
               padding: "2px 8px",
               borderRadius: "100px",
-              border: "1px solid rgba(52,211,153,0.18)",
+              border: "1px solid #A7F3D0",
             }}>
               P2 ✓
             </span>
@@ -208,18 +209,18 @@ const AgentNode = memo(function AgentNode({
             <span style={{
               fontSize: "10px",
               fontWeight: 600,
-              color: "#fbbf24",
-              background: "rgba(251,191,36,0.08)",
+              color: "#D97706",
+              background: "#FFFBEB",
               padding: "2px 8px",
               borderRadius: "100px",
-              border: "1px solid rgba(251,191,36,0.18)",
+              border: "1px solid #FDE68A",
             }}>
               P1
             </span>
           )}
 
           {inCount !== null && (
-            <span style={{ fontSize: "10px", color: "#2d3748" }}>
+            <span style={{ fontSize: "10px", color: "#94a3b8" }}>
               {inCount}↓ {outCount}↑
             </span>
           )}
@@ -233,7 +234,7 @@ const AgentNode = memo(function AgentNode({
           background: "#10b981",
           width: 10,
           height: 10,
-          border: "2px solid #080d1a",
+          border: "2px solid #fff",
           right: -6,
         }}
       />
@@ -258,25 +259,26 @@ const AgentLibraryCard = memo(function AgentLibraryCard({
     <div
       onClick={() => !onCanvas && onAdd(agent)}
       style={{
-        padding: "11px 12px",
+        padding: "10px 12px",
         borderRadius: "10px",
-        border: `1px solid ${onCanvas ? "rgba(59,130,246,0.25)" : "rgba(255,255,255,0.05)"}`,
-        background: onCanvas ? "rgba(59,130,246,0.05)" : "rgba(255,255,255,0.02)",
+        border: `1px solid ${onCanvas ? "#BFDBFE" : "#E3E8EF"}`,
+        background: onCanvas ? "#EFF6FF" : "#fff",
         cursor: onCanvas ? "default" : "pointer",
         marginBottom: "6px",
-        transition: "border-color 0.15s, background 0.15s",
-        opacity: onCanvas ? 0.55 : 1,
+        transition: "border-color 0.15s, background 0.15s, box-shadow 0.15s",
+        opacity: onCanvas ? 0.65 : 1,
+        boxShadow: "0 1px 3px rgba(10,37,64,0.04)",
       }}
       onMouseEnter={(e) => {
         if (!onCanvas) {
-          (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(59,130,246,0.35)";
-          (e.currentTarget as HTMLDivElement).style.background = "rgba(59,130,246,0.04)";
+          (e.currentTarget as HTMLDivElement).style.borderColor = "#BFDBFE";
+          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 8px rgba(37,99,235,0.08)";
         }
       }}
       onMouseLeave={(e) => {
         if (!onCanvas) {
-          (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.05)";
-          (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.02)";
+          (e.currentTarget as HTMLDivElement).style.borderColor = "#E3E8EF";
+          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 3px rgba(10,37,64,0.04)";
         }
       }}
     >
@@ -286,13 +288,14 @@ const AgentLibraryCard = memo(function AgentLibraryCard({
           width: "30px",
           height: "30px",
           borderRadius: "8px",
-          background: "linear-gradient(135deg,rgba(59,130,246,0.22) 0%,rgba(139,92,246,0.22) 100%)",
+          background: "linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)",
+          border: "1px solid #DBEAFE",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           fontSize: "13px",
           fontWeight: 700,
-          color: "#a78bfa",
+          color: "#2563EB",
           flexShrink: 0,
           marginTop: "1px",
         }}>
@@ -300,31 +303,29 @@ const AgentLibraryCard = memo(function AgentLibraryCard({
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
-            <p style={{ color: "#e2e8f0", fontSize: "12px", fontWeight: 600, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "2px" }}>
+            <p style={{ color: "#0A2540", fontSize: "12px", fontWeight: 600, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {agent.name}
             </p>
-            {onCanvas && (
-              <span style={{ fontSize: "10px", color: "#3b82f6", flexShrink: 0 }}>✓</span>
-            )}
+            {onCanvas && <span style={{ fontSize: "10px", color: "#2563EB", flexShrink: 0 }}>✓</span>}
             {agent.phase2Ready && (
               <span style={{
                 fontSize: "9px",
                 fontWeight: 700,
-                color: "#34d399",
-                background: "rgba(52,211,153,0.1)",
+                color: "#059669",
+                background: "#ECFDF5",
                 padding: "1px 5px",
-                borderRadius: "100px",
+                borderRadius: "4px",
                 flexShrink: 0,
               }}>
                 P2
               </span>
             )}
           </div>
-          <p style={{ color: "#3b4a62", fontSize: "11px", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <p style={{ color: "#94a3b8", fontSize: "11px", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {CATEGORY_LABELS[agent.category] ?? agent.category}
             {" · "}
-            {agent.pricingModel === "FREE" ? "Free" : <EthAmount amount={agent.priceEth!} size={10} style={{ color: "#3b4a62" }} />}
+            {agent.pricingModel === "FREE" ? "Free" : <EthAmount amount={agent.priceEth!} size={10} style={{ color: "#94a3b8" }} />}
           </p>
         </div>
 
@@ -333,13 +334,13 @@ const AgentLibraryCard = memo(function AgentLibraryCard({
             width: "22px",
             height: "22px",
             borderRadius: "6px",
-            background: "rgba(59,130,246,0.1)",
-            border: "1px solid rgba(59,130,246,0.2)",
+            background: "#EFF6FF",
+            border: "1px solid #BFDBFE",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: "14px",
-            color: "#60a5fa",
+            color: "#2563EB",
             flexShrink: 0,
             marginTop: "2px",
           }}>
@@ -415,7 +416,7 @@ export default function BuilderPage() {
   const onConnect = useCallback(
     (conn: Connection) =>
       setEdges((eds) =>
-        addEdge({ ...conn, animated: true, style: { stroke: "#3b82f6", strokeWidth: 2 } }, eds)
+        addEdge({ ...conn, animated: true, style: { stroke: "#2563EB", strokeWidth: 2 } }, eds)
       ),
     [setEdges]
   );
@@ -485,9 +486,19 @@ export default function BuilderPage() {
   const allP2 = canvasAgents.length > 0 && canvasAgents.every((a) => a.phase2Ready);
   const canActivate = isConnected && isSignedIn && !isPending && !activating && canvasAgents.length > 0 && allP2;
 
+  // Shared label style for right panel sections
+  const sectionLabel: React.CSSProperties = {
+    fontSize: "10px",
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: "0.09em",
+    color: "#94a3b8",
+    margin: "0 0 12px",
+  };
+
   return (
     <AuthGate description="Sign in to build and activate multi-agent flows on Arbitrum.">
-      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)", background: "#080d1a" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)", background: "#f8faff" }}>
 
         {/* ── Top bar ──────────────────────────────────────────────── */}
         <div style={{
@@ -495,35 +506,36 @@ export default function BuilderPage() {
           alignItems: "center",
           padding: "0 20px",
           height: "50px",
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
-          background: "#0a0f1e",
+          borderBottom: "1px solid #E3E8EF",
+          background: "#fff",
           flexShrink: 0,
           gap: "14px",
+          boxShadow: "0 1px 0 rgba(10,37,64,0.04)",
         }}>
           <Link
             href="/dashboard"
-            style={{ color: "#3b4a62", textDecoration: "none", fontSize: "12px", display: "flex", alignItems: "center", gap: "5px", transition: "color 0.15s" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#64748b"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#3b4a62"; }}
+            style={{ color: "#94a3b8", textDecoration: "none", fontSize: "12px", display: "flex", alignItems: "center", gap: "5px", transition: "color 0.15s" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#425466"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#94a3b8"; }}
           >
             ← Dashboard
           </Link>
 
-          <div style={{ width: "1px", height: "14px", background: "rgba(255,255,255,0.06)" }} />
+          <div style={{ width: "1px", height: "14px", background: "#E3E8EF" }} />
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#3b82f6", boxShadow: "0 0 8px #3b82f6", display: "inline-block" }} />
-            <span style={{ color: "#e2e8f0", fontSize: "14px", fontWeight: 700, letterSpacing: "-0.01em" }}>Flow Builder</span>
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#2563EB", boxShadow: "0 0 6px rgba(37,99,235,0.5)", display: "inline-block" }} />
+            <span style={{ color: "#0A2540", fontSize: "14px", fontWeight: 700, letterSpacing: "-0.01em" }}>Flow Builder</span>
           </div>
 
           {canvasAgents.length > 0 && (
             <span style={{
               fontSize: "11px",
-              color: "#3b82f6",
-              background: "rgba(59,130,246,0.1)",
+              color: "#2563EB",
+              background: "#EFF6FF",
               padding: "3px 10px",
               borderRadius: "100px",
-              border: "1px solid rgba(59,130,246,0.2)",
+              border: "1px solid #BFDBFE",
             }}>
               {canvasAgents.length} agent{canvasAgents.length > 1 ? "s" : ""}
             </span>
@@ -543,21 +555,21 @@ export default function BuilderPage() {
               }}
               style={{
                 fontSize: "12px",
-                color: "#475569",
+                color: "#64748b",
                 background: "transparent",
-                border: "1px solid rgba(255,255,255,0.07)",
+                border: "1px solid #E3E8EF",
                 borderRadius: "8px",
                 padding: "5px 12px",
                 cursor: "pointer",
                 transition: "color 0.15s, border-color 0.15s",
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.color = "#94a3b8";
-                (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.14)";
+                (e.currentTarget as HTMLButtonElement).style.color = "#0A2540";
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "#CBD5E1";
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.color = "#475569";
-                (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.07)";
+                (e.currentTarget as HTMLButtonElement).style.color = "#64748b";
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "#E3E8EF";
               }}
             >
               Clear
@@ -574,17 +586,17 @@ export default function BuilderPage() {
             flexShrink: 0,
             display: "flex",
             flexDirection: "column",
-            borderRight: "1px solid rgba(255,255,255,0.05)",
-            background: "#0a0f1e",
+            borderRight: "1px solid #E3E8EF",
+            background: "#fff",
           }}>
-            {/* Search */}
-            <div style={{ padding: "14px 14px 12px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-              <p style={{ color: "#e2e8f0", fontSize: "12px", fontWeight: 700, margin: "0 0 10px", letterSpacing: "0.01em" }}>
+            {/* Header + search */}
+            <div style={{ padding: "14px 14px 12px", borderBottom: "1px solid #F1F5F9" }}>
+              <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 700, margin: "0 0 10px" }}>
                 Agent Library
               </p>
               <div style={{ position: "relative", marginBottom: "10px" }}>
                 <svg
-                  style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", width: "13px", height: "13px", color: "#3b4a62", pointerEvents: "none" }}
+                  style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", width: "13px", height: "13px", color: "#CBD5E1", pointerEvents: "none" }}
                   fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -595,18 +607,18 @@ export default function BuilderPage() {
                   placeholder="Search agents…"
                   style={{
                     width: "100%",
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.07)",
+                    background: "#F8FAFF",
+                    border: "1px solid #E3E8EF",
                     borderRadius: "9px",
                     padding: "7px 10px 7px 30px",
                     fontSize: "12px",
-                    color: "#e2e8f0",
+                    color: "#0A2540",
                     outline: "none",
                     boxSizing: "border-box",
                     transition: "border-color 0.15s",
                   }}
-                  onFocus={(e) => { e.target.style.borderColor = "rgba(59,130,246,0.45)"; }}
-                  onBlur={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.07)"; }}
+                  onFocus={(e) => { e.target.style.borderColor = "#2563EB"; }}
+                  onBlur={(e) => { e.target.style.borderColor = "#E3E8EF"; }}
                 />
               </div>
 
@@ -617,23 +629,23 @@ export default function BuilderPage() {
               >
                 <div style={{
                   width: "30px", height: "17px", borderRadius: "100px",
-                  background: p2Only ? "#3b82f6" : "rgba(255,255,255,0.07)",
+                  background: p2Only ? "#2563EB" : "#E3E8EF",
                   position: "relative", flexShrink: 0, transition: "background 0.2s",
                 }}>
                   <div style={{
                     width: "11px", height: "11px", borderRadius: "50%", background: "#fff",
                     position: "absolute", top: "3px", left: p2Only ? "16px" : "3px",
-                    transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
+                    transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
                   }} />
                 </div>
-                <span style={{ fontSize: "11px", color: p2Only ? "#93c5fd" : "#3b4a62" }}>Phase 2 only</span>
+                <span style={{ fontSize: "11px", color: p2Only ? "#2563EB" : "#94a3b8" }}>Phase 2 only</span>
               </button>
             </div>
 
             {/* Category pills */}
             <div style={{
               padding: "10px 14px",
-              borderBottom: "1px solid rgba(255,255,255,0.05)",
+              borderBottom: "1px solid #F1F5F9",
               display: "flex",
               gap: "5px",
               flexWrap: "wrap",
@@ -647,11 +659,11 @@ export default function BuilderPage() {
                     fontWeight: 600,
                     padding: "3px 9px",
                     borderRadius: "100px",
-                    border: "none",
+                    border: `1px solid ${catFilter === cat ? "#BFDBFE" : "#E3E8EF"}`,
                     cursor: "pointer",
                     transition: "all 0.15s",
-                    background: catFilter === cat ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.04)",
-                    color: catFilter === cat ? "#93c5fd" : "#3b4a62",
+                    background: catFilter === cat ? "#EFF6FF" : "#F8FAFF",
+                    color: catFilter === cat ? "#2563EB" : "#94a3b8",
                   }}
                 >
                   {cat === "ALL" ? "All" : (CATEGORY_LABELS[cat] ?? cat)}
@@ -659,12 +671,12 @@ export default function BuilderPage() {
               ))}
             </div>
 
-            {/* List */}
+            {/* Agent list */}
             <div style={{ flex: 1, overflowY: "auto", padding: "10px" }}>
               {filteredAgents.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "36px 12px", color: "#1e293b" }}>
+                <div style={{ textAlign: "center", padding: "36px 12px" }}>
                   <p style={{ fontSize: "24px", margin: "0 0 6px" }}>⚗️</p>
-                  <p style={{ fontSize: "11px", margin: 0 }}>No agents found</p>
+                  <p style={{ fontSize: "11px", color: "#94a3b8", margin: 0 }}>No agents found</p>
                 </div>
               ) : (
                 filteredAgents.map((agent) => (
@@ -678,8 +690,8 @@ export default function BuilderPage() {
               )}
             </div>
 
-            {/* Footer */}
-            <div style={{ padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.04)", fontSize: "10px", color: "#1e3a5f" }}>
+            {/* Footer count */}
+            <div style={{ padding: "8px 14px", borderTop: "1px solid #F1F5F9", fontSize: "10px", color: "#CBD5E1" }}>
               {filteredAgents.length} agent{filteredAgents.length !== 1 ? "s" : ""}
             </div>
           </div>
@@ -696,27 +708,27 @@ export default function BuilderPage() {
                 <div style={{ textAlign: "center" }}>
                   <div style={{
                     width: "68px", height: "68px", borderRadius: "18px",
-                    background: "rgba(59,130,246,0.07)",
-                    border: "1px solid rgba(59,130,246,0.12)",
+                    background: "#EFF6FF",
+                    border: "1px solid #BFDBFE",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     margin: "0 auto 18px",
                   }}>
-                    <svg width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="rgba(59,130,246,0.55)" strokeWidth={1.5}>
+                    <svg width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="#2563EB" strokeWidth={1.5} strokeOpacity={0.7}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z" />
                     </svg>
                   </div>
-                  <p style={{ color: "#c7d2e0", fontSize: "15px", fontWeight: 600, margin: "0 0 5px" }}>
+                  <p style={{ color: "#0A2540", fontSize: "15px", fontWeight: 600, margin: "0 0 5px" }}>
                     Start building your flow
                   </p>
-                  <p style={{ color: "#2d3748", fontSize: "12px", margin: "0 0 22px" }}>
+                  <p style={{ color: "#94a3b8", fontSize: "12px", margin: "0 0 22px" }}>
                     Click agents from the library to add them here
                   </p>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "center", color: "#1e293b", fontSize: "11px" }}>
-                    <span style={{ padding: "4px 10px", borderRadius: "100px", border: "1px solid rgba(255,255,255,0.04)" }}>① Add agents</span>
-                    <span style={{ color: "#1e3a5f" }}>→</span>
-                    <span style={{ padding: "4px 10px", borderRadius: "100px", border: "1px solid rgba(255,255,255,0.04)" }}>② Connect them</span>
-                    <span style={{ color: "#1e3a5f" }}>→</span>
-                    <span style={{ padding: "4px 10px", borderRadius: "100px", border: "1px solid rgba(255,255,255,0.04)" }}>③ Activate</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "center", fontSize: "11px" }}>
+                    <span style={{ color: "#64748b", padding: "4px 10px", borderRadius: "100px", border: "1px solid #E3E8EF", background: "#fff" }}>① Add agents</span>
+                    <span style={{ color: "#CBD5E1" }}>→</span>
+                    <span style={{ color: "#64748b", padding: "4px 10px", borderRadius: "100px", border: "1px solid #E3E8EF", background: "#fff" }}>② Connect them</span>
+                    <span style={{ color: "#CBD5E1" }}>→</span>
+                    <span style={{ color: "#64748b", padding: "4px 10px", borderRadius: "100px", border: "1px solid #E3E8EF", background: "#fff" }}>③ Activate</span>
                   </div>
                 </div>
               </div>
@@ -739,17 +751,17 @@ export default function BuilderPage() {
               style={{ background: "transparent", flex: 1 }}
               defaultEdgeOptions={{
                 animated: true,
-                style: { stroke: "#3b82f6", strokeWidth: 2 },
+                style: { stroke: "#2563EB", strokeWidth: 2 },
               }}
             >
-              <Background color="#111827" gap={22} size={1} variant={BackgroundVariant.Dots} />
+              <Background color="#E3E8EF" gap={22} size={1} variant={BackgroundVariant.Dots} />
               <Controls
                 style={{
-                  background: "#0f172a",
-                  border: "1px solid rgba(255,255,255,0.07)",
+                  background: "#fff",
+                  border: "1px solid #E3E8EF",
                   borderRadius: "10px",
                   overflow: "hidden",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+                  boxShadow: "0 2px 8px rgba(10,37,64,0.06)",
                 }}
               />
             </ReactFlow>
@@ -758,12 +770,13 @@ export default function BuilderPage() {
             {canvasAgents.length > 0 && (
               <div style={{
                 padding: "12px 18px",
-                borderTop: "1px solid rgba(255,255,255,0.05)",
-                background: "#0a0f1e",
+                borderTop: "1px solid #E3E8EF",
+                background: "#fff",
                 display: "flex",
                 alignItems: "center",
                 gap: "14px",
                 flexShrink: 0,
+                boxShadow: "0 -1px 0 rgba(10,37,64,0.04)",
               }}>
                 {/* Pipeline breadcrumb */}
                 <div style={{
@@ -778,7 +791,7 @@ export default function BuilderPage() {
                     <span key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "5px", minWidth: 0, flexShrink: i < canvasAgents.length - 1 ? 1 : 0 }}>
                       <span style={{
                         fontSize: "12px",
-                        color: "#64748b",
+                        color: "#425466",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -787,7 +800,7 @@ export default function BuilderPage() {
                         {a.name}
                       </span>
                       {i < canvasAgents.length - 1 && (
-                        <span style={{ color: "#1e3a5f", fontSize: "12px", flexShrink: 0 }}>→</span>
+                        <span style={{ color: "#BFDBFE", fontSize: "12px", flexShrink: 0 }}>→</span>
                       )}
                     </span>
                   ))}
@@ -796,14 +809,14 @@ export default function BuilderPage() {
                 {/* Cost */}
                 {preview && (
                   <div style={{ display: "flex", alignItems: "center", gap: "14px", flexShrink: 0 }}>
-                    <span style={{ fontSize: "11px", color: "#2d3748" }}>
-                      Subtotal: <span style={{ color: "#475569" }}><EthAmount amount={preview.subtotal} size={10} /></span>
+                    <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+                      Subtotal: <span style={{ color: "#64748b" }}><EthAmount amount={preview.subtotal} size={10} /></span>
                     </span>
-                    <span style={{ fontSize: "11px", color: "#2d3748" }}>
-                      1% fee: <span style={{ color: "#475569" }}><EthAmount amount={preview.protocolFee} size={10} /></span>
+                    <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+                      1% fee: <span style={{ color: "#64748b" }}><EthAmount amount={preview.protocolFee} size={10} /></span>
                     </span>
-                    <span style={{ fontSize: "14px", fontWeight: 800, color: "#3b82f6", letterSpacing: "-0.01em" }}>
-                      <EthAmount amount={preview.total} size={13} style={{ color: "#3b82f6", fontWeight: 800 }} />
+                    <span style={{ fontSize: "14px", fontWeight: 800, color: "#2563EB", letterSpacing: "-0.01em" }}>
+                      <EthAmount amount={preview.total} size={13} style={{ color: "#2563EB", fontWeight: 800 }} />
                     </span>
                   </div>
                 )}
@@ -815,12 +828,11 @@ export default function BuilderPage() {
                   </p>
                 )}
 
-                {/* Status hint */}
                 {!isConnected && (
-                  <p style={{ fontSize: "11px", color: "#2d3748", flexShrink: 0 }}>Connect wallet to activate</p>
+                  <p style={{ fontSize: "11px", color: "#94a3b8", flexShrink: 0 }}>Connect wallet to activate</p>
                 )}
                 {isConnected && !isSignedIn && (
-                  <p style={{ fontSize: "11px", color: "#2d3748", flexShrink: 0 }}>Sign in to activate</p>
+                  <p style={{ fontSize: "11px", color: "#94a3b8", flexShrink: 0 }}>Sign in to activate</p>
                 )}
 
                 {/* Activate */}
@@ -834,17 +846,15 @@ export default function BuilderPage() {
                     fontSize: "13px",
                     fontWeight: 700,
                     cursor: canActivate ? "pointer" : "not-allowed",
-                    background: canActivate
-                      ? "linear-gradient(135deg,#2563eb 0%,#4f46e5 100%)"
-                      : "rgba(255,255,255,0.05)",
-                    color: canActivate ? "#fff" : "#2d3748",
-                    transition: "opacity 0.15s, box-shadow 0.15s",
+                    background: canActivate ? "#2563EB" : "#E3E8EF",
+                    color: canActivate ? "#fff" : "#94a3b8",
+                    transition: "background 0.15s, box-shadow 0.15s",
                     flexShrink: 0,
-                    boxShadow: canActivate ? "0 0 18px rgba(59,130,246,0.28)" : "none",
+                    boxShadow: canActivate ? "0 2px 12px rgba(37,99,235,0.25)" : "none",
                     letterSpacing: "-0.01em",
                   }}
-                  onMouseEnter={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.opacity = "0.88"; }}
-                  onMouseLeave={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
+                  onMouseEnter={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#1d4ed8"; }}
+                  onMouseLeave={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#2563EB"; }}
                 >
                   {isPending ? "Check wallet…" : activating ? "Activating…" : "⚡ Activate Flow"}
                 </button>
@@ -858,36 +868,36 @@ export default function BuilderPage() {
             flexShrink: 0,
             display: "flex",
             flexDirection: "column",
-            borderLeft: "1px solid rgba(255,255,255,0.05)",
-            background: "#0a0f1e",
+            borderLeft: "1px solid #E3E8EF",
+            background: "#fff",
             overflowY: "auto",
           }}>
             {selectedAgent ? (
               /* ── Agent config ── */
               <>
-                {/* Agent header */}
-                <div style={{ padding: "14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <div style={{ padding: "14px", borderBottom: "1px solid #F1F5F9" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
                     <div style={{
                       width: "36px", height: "36px", borderRadius: "10px",
-                      background: "linear-gradient(135deg,rgba(59,130,246,0.25),rgba(139,92,246,0.25))",
+                      background: "linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)",
+                      border: "1px solid #DBEAFE",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "15px", fontWeight: 700, color: "#c4b5fd", flexShrink: 0,
+                      fontSize: "15px", fontWeight: 700, color: "#2563EB", flexShrink: 0,
                     }}>
                       {selectedAgent.name[0]}
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ color: "#f1f5f9", fontSize: "13px", fontWeight: 600, margin: "0 0 2px" }}>{selectedAgent.name}</p>
+                      <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 600, margin: "0 0 2px" }}>{selectedAgent.name}</p>
                       <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
-                        <span style={{ fontSize: "10px", color: "#3b4a62" }}>{CATEGORY_LABELS[selectedAgent.category] ?? selectedAgent.category}</span>
+                        <span style={{ fontSize: "10px", color: "#94a3b8" }}>{CATEGORY_LABELS[selectedAgent.category] ?? selectedAgent.category}</span>
                         {selectedAgent.phase2Ready && (
-                          <span style={{ fontSize: "9px", fontWeight: 700, color: "#34d399", background: "rgba(52,211,153,0.1)", padding: "1px 5px", borderRadius: "4px" }}>P2</span>
+                          <span style={{ fontSize: "9px", fontWeight: 700, color: "#059669", background: "#ECFDF5", padding: "1px 5px", borderRadius: "4px" }}>P2</span>
                         )}
                       </div>
                     </div>
                   </div>
                   {selectedAgent.description && (
-                    <p style={{ color: "#475569", fontSize: "11px", lineHeight: 1.6, margin: 0 }}>
+                    <p style={{ color: "#64748b", fontSize: "11px", lineHeight: 1.6, margin: 0 }}>
                       {selectedAgent.description}
                     </p>
                   )}
@@ -895,15 +905,13 @@ export default function BuilderPage() {
 
                 {/* Input fields */}
                 {inputSchema && Object.keys(inputSchema).length > 0 && (
-                  <div style={{ padding: "14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                    <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#2d3748", margin: "0 0 12px" }}>
-                      Inputs
-                    </p>
+                  <div style={{ padding: "14px", borderBottom: "1px solid #F1F5F9" }}>
+                    <p style={sectionLabel}>Inputs</p>
                     {Object.entries(inputSchema).map(([field, def]) => (
                       <div key={field} style={{ marginBottom: "11px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "5px" }}>
-                          <label style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 500 }}>{field}</label>
-                          <span style={{ fontSize: "9px", color: "#2d3748", background: "rgba(255,255,255,0.03)", padding: "1px 5px", borderRadius: "4px" }}>
+                          <label style={{ fontSize: "11px", color: "#425466", fontWeight: 500 }}>{field}</label>
+                          <span style={{ fontSize: "9px", color: "#94a3b8", background: "#F8FAFF", padding: "1px 5px", borderRadius: "4px", border: "1px solid #E3E8EF" }}>
                             {def.type}
                           </span>
                           {def.required && (
@@ -924,18 +932,18 @@ export default function BuilderPage() {
                           placeholder={def.description ?? `${field}…`}
                           style={{
                             width: "100%",
-                            background: "rgba(255,255,255,0.03)",
-                            border: "1px solid rgba(255,255,255,0.07)",
+                            background: "#F8FAFF",
+                            border: "1px solid #E3E8EF",
                             borderRadius: "8px",
                             padding: "7px 10px",
                             fontSize: "12px",
-                            color: "#e2e8f0",
+                            color: "#0A2540",
                             outline: "none",
                             boxSizing: "border-box",
                             transition: "border-color 0.15s",
                           }}
-                          onFocus={(e) => { e.target.style.borderColor = "rgba(59,130,246,0.45)"; }}
-                          onBlur={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.07)"; }}
+                          onFocus={(e) => { e.target.style.borderColor = "#2563EB"; }}
+                          onBlur={(e) => { e.target.style.borderColor = "#E3E8EF"; }}
                         />
                       </div>
                     ))}
@@ -944,15 +952,13 @@ export default function BuilderPage() {
 
                 {/* Output schema */}
                 {outputSchema && Object.keys(outputSchema).length > 0 && (
-                  <div style={{ padding: "14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                    <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#2d3748", margin: "0 0 10px" }}>
-                      Outputs
-                    </p>
+                  <div style={{ padding: "14px", borderBottom: "1px solid #F1F5F9" }}>
+                    <p style={sectionLabel}>Outputs</p>
                     {Object.entries(outputSchema).map(([field, def]) => (
                       <div key={field} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "7px" }}>
                         <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#10b981", flexShrink: 0 }} />
-                        <span style={{ fontSize: "11px", color: "#475569", flex: 1 }}>{field}</span>
-                        <span style={{ fontSize: "9px", color: "#1e293b", background: "rgba(255,255,255,0.03)", padding: "1px 5px", borderRadius: "4px" }}>
+                        <span style={{ fontSize: "11px", color: "#64748b", flex: 1 }}>{field}</span>
+                        <span style={{ fontSize: "9px", color: "#94a3b8", background: "#F8FAFF", padding: "1px 5px", borderRadius: "4px", border: "1px solid #E3E8EF" }}>
                           {def.type}
                         </span>
                       </div>
@@ -960,7 +966,6 @@ export default function BuilderPage() {
                   </div>
                 )}
 
-                {/* Remove button */}
                 <div style={{ padding: "14px" }}>
                   <button
                     onClick={() => removeFromCanvas(selectedAgent.agentId)}
@@ -968,8 +973,8 @@ export default function BuilderPage() {
                       width: "100%",
                       padding: "8px",
                       borderRadius: "8px",
-                      border: "1px solid rgba(239,68,68,0.18)",
-                      background: "transparent",
+                      border: "1px solid #FECACA",
+                      background: "#FEF2F2",
                       color: "#ef4444",
                       fontSize: "12px",
                       fontWeight: 500,
@@ -977,12 +982,12 @@ export default function BuilderPage() {
                       transition: "border-color 0.15s, background 0.15s",
                     }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(239,68,68,0.4)";
-                      (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.04)";
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = "#FCA5A5";
+                      (e.currentTarget as HTMLButtonElement).style.background = "#FEE2E2";
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(239,68,68,0.18)";
-                      (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = "#FECACA";
+                      (e.currentTarget as HTMLButtonElement).style.background = "#FEF2F2";
                     }}
                   >
                     Remove from canvas
@@ -992,18 +997,16 @@ export default function BuilderPage() {
             ) : (
               /* ── Flow settings ── */
               <>
-                <div style={{ padding: "14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                  <p style={{ color: "#e2e8f0", fontSize: "13px", fontWeight: 700, margin: "0 0 2px" }}>Configuration</p>
-                  <p style={{ color: "#2d3748", fontSize: "11px", margin: 0 }}>
+                <div style={{ padding: "14px", borderBottom: "1px solid #F1F5F9" }}>
+                  <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 700, margin: "0 0 2px" }}>Configuration</p>
+                  <p style={{ color: "#94a3b8", fontSize: "11px", margin: 0 }}>
                     {canvasAgents.length === 0 ? "Add agents to get started" : "Click an agent to configure its inputs"}
                   </p>
                 </div>
 
                 {/* Trigger */}
-                <div style={{ padding: "14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                  <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#2d3748", margin: "0 0 10px" }}>
-                    Trigger
-                  </p>
+                <div style={{ padding: "14px", borderBottom: "1px solid #F1F5F9" }}>
+                  <p style={sectionLabel}>Trigger</p>
                   {([
                     { value: "IMMEDIATE", icon: "⚡", label: "Immediate", desc: "Runs right away" },
                     { value: "SCHEDULED", icon: "🕐", label: "Scheduled", desc: "Run at a set time" },
@@ -1019,8 +1022,8 @@ export default function BuilderPage() {
                         gap: "10px",
                         padding: "9px 11px",
                         borderRadius: "9px",
-                        border: `1px solid ${trigger === value ? "rgba(59,130,246,0.35)" : "rgba(255,255,255,0.05)"}`,
-                        background: trigger === value ? "rgba(59,130,246,0.07)" : "transparent",
+                        border: `1px solid ${trigger === value ? "#BFDBFE" : "#E3E8EF"}`,
+                        background: trigger === value ? "#EFF6FF" : "#F8FAFF",
                         cursor: "pointer",
                         textAlign: "left",
                         marginBottom: "6px",
@@ -1029,20 +1032,18 @@ export default function BuilderPage() {
                     >
                       <span style={{ fontSize: "16px" }}>{icon}</span>
                       <div>
-                        <p style={{ color: trigger === value ? "#93c5fd" : "#64748b", fontSize: "12px", fontWeight: 600, margin: 0 }}>{label}</p>
-                        <p style={{ color: "#1e293b", fontSize: "10px", margin: 0 }}>{desc}</p>
+                        <p style={{ color: trigger === value ? "#2563EB" : "#425466", fontSize: "12px", fontWeight: 600, margin: 0 }}>{label}</p>
+                        <p style={{ color: "#94a3b8", fontSize: "10px", margin: 0 }}>{desc}</p>
                       </div>
                     </button>
                   ))}
                 </div>
 
                 {/* Deadline */}
-                <div style={{ padding: "14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <div style={{ padding: "14px", borderBottom: "1px solid #F1F5F9" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-                    <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#2d3748", margin: 0 }}>
-                      Deadline
-                    </p>
-                    <span style={{ fontSize: "13px", fontWeight: 800, color: "#3b82f6" }}>
+                    <p style={{ ...sectionLabel, margin: 0 }}>Deadline</p>
+                    <span style={{ fontSize: "13px", fontWeight: 800, color: "#2563EB" }}>
                       {formatDeadline(deadlineSeconds)}
                     </span>
                   </div>
@@ -1053,9 +1054,9 @@ export default function BuilderPage() {
                     step={30}
                     value={deadlineSeconds}
                     onChange={(e) => setDeadlineSeconds(Number(e.target.value))}
-                    style={{ width: "100%", accentColor: "#3b82f6", cursor: "pointer" }}
+                    style={{ width: "100%", accentColor: "#2563EB", cursor: "pointer" }}
                   />
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#1e293b", marginTop: "4px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#CBD5E1", marginTop: "4px" }}>
                     <span>30s</span>
                     <span>12h</span>
                     <span>24h</span>
@@ -1065,25 +1066,25 @@ export default function BuilderPage() {
                 {/* Agent order */}
                 {canvasAgents.length > 0 && (
                   <div style={{ padding: "14px" }}>
-                    <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#2d3748", margin: "0 0 12px" }}>
+                    <p style={sectionLabel}>
                       Flow — {canvasAgents.length} agent{canvasAgents.length !== 1 ? "s" : ""}
                     </p>
                     {canvasAgents.map((a, i) => (
                       <div key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "9px", marginBottom: "9px" }}>
                         <span style={{
                           width: "19px", height: "19px", borderRadius: "50%",
-                          background: "rgba(59,130,246,0.12)",
-                          border: "1.5px solid rgba(59,130,246,0.25)",
+                          background: "#EFF6FF",
+                          border: "1.5px solid #BFDBFE",
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: "9px", fontWeight: 800, color: "#93c5fd", flexShrink: 0,
+                          fontSize: "9px", fontWeight: 800, color: "#2563EB", flexShrink: 0,
                         }}>
                           {i + 1}
                         </span>
-                        <span style={{ fontSize: "11px", color: "#64748b", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <span style={{ fontSize: "11px", color: "#425466", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {a.name}
                         </span>
                         {!a.phase2Ready && (
-                          <span style={{ fontSize: "11px", color: "#fbbf24", flexShrink: 0 }} title="Phase 1 only — cannot activate">⚠</span>
+                          <span style={{ fontSize: "11px", color: "#D97706", flexShrink: 0 }} title="Phase 1 only">⚠</span>
                         )}
                       </div>
                     ))}
@@ -1091,14 +1092,22 @@ export default function BuilderPage() {
                     {!allP2 && canvasAgents.length > 0 && (
                       <div style={{
                         marginTop: "10px", padding: "9px 11px", borderRadius: "8px",
-                        background: "rgba(245,158,11,0.05)",
-                        border: "1px solid rgba(245,158,11,0.14)",
+                        background: "#FFFBEB",
+                        border: "1px solid #FDE68A",
                       }}>
-                        <p style={{ fontSize: "11px", color: "#fbbf24", margin: 0, lineHeight: 1.5 }}>
+                        <p style={{ fontSize: "11px", color: "#D97706", margin: 0, lineHeight: 1.5 }}>
                           All agents must be Phase 2 ready to activate.
                         </p>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {canvasAgents.length === 0 && (
+                  <div style={{ padding: "24px 14px", textAlign: "center" }}>
+                    <p style={{ fontSize: "12px", color: "#CBD5E1", lineHeight: 1.6, margin: 0 }}>
+                      Add agents from the library to configure your flow.
+                    </p>
                   </div>
                 )}
               </>
