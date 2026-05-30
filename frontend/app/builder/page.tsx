@@ -773,95 +773,84 @@ export default function BuilderPage() {
             {/* ── Bottom bar ── */}
             {canvasAgents.length > 0 && (
               <div style={{
-                padding: "12px 18px",
-                borderTop: "1px solid #BFDBFE",
-                background: "#EFF6FF",
+                padding: "0",
+                borderTop: "1px solid #E3E8EF",
+                background: "#fff",
                 display: "flex",
-                alignItems: "center",
-                gap: "14px",
+                alignItems: "stretch",
                 flexShrink: 0,
-                boxShadow: "0 -2px 8px rgba(37,99,235,0.06)",
+                boxShadow: "0 -2px 12px rgba(10,37,64,0.06)",
               }}>
-                {/* Pipeline breadcrumb */}
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "5px",
-                  flex: 1,
-                  overflow: "hidden",
-                  minWidth: 0,
-                }}>
-                  {canvasAgents.map((a, i) => (
-                    <span key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "5px", minWidth: 0, flexShrink: i < canvasAgents.length - 1 ? 1 : 0 }}>
-                      <span style={{
-                        fontSize: "12px",
-                        color: "#425466",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        maxWidth: "110px",
-                      }}>
-                        {a.name}
+                {/* Left: pipeline + cost */}
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "10px 18px", gap: "6px", minWidth: 0, borderRight: "1px solid #E3E8EF" }}>
+                  {/* Pipeline */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "5px", overflow: "hidden", minWidth: 0 }}>
+                    {canvasAgents.map((a, i) => (
+                      <span key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "5px", minWidth: 0, flexShrink: i < canvasAgents.length - 1 ? 1 : 0 }}>
+                        <span style={{ fontSize: "12px", fontWeight: 500, color: "#0A2540", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "120px" }}>
+                          {a.name}
+                        </span>
+                        {i < canvasAgents.length - 1 && (
+                          <span style={{ color: "#CBD5E1", fontSize: "11px", flexShrink: 0 }}>→</span>
+                        )}
                       </span>
-                      {i < canvasAgents.length - 1 && (
-                        <span style={{ color: "#60A5FA", fontSize: "12px", flexShrink: 0 }}>→</span>
-                      )}
-                    </span>
-                  ))}
+                    ))}
+                  </div>
+                  {/* Cost row */}
+                  {preview && (
+                    <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                      <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+                        Subtotal <span style={{ color: "#425466", fontWeight: 500 }}><EthAmount amount={preview.subtotal} size={10} style={{ color: "#425466" }} /></span>
+                      </span>
+                      <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: "#E3E8EF", flexShrink: 0, display: "inline-block" }} />
+                      <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+                        1% fee <span style={{ color: "#425466", fontWeight: 500 }}><EthAmount amount={preview.protocolFee} size={10} style={{ color: "#425466" }} /></span>
+                      </span>
+                      <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: "#E3E8EF", flexShrink: 0, display: "inline-block" }} />
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "#0A2540", letterSpacing: "-0.01em" }}>
+                        <EthAmount amount={preview.total} size={12} style={{ color: "#0A2540", fontWeight: 700 }} />
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Cost */}
-                {preview && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "14px", flexShrink: 0 }}>
-                    <span style={{ fontSize: "11px", color: "#60A5FA" }}>
-                      Subtotal: <span style={{ color: "#2563EB" }}><EthAmount amount={preview.subtotal} size={10} /></span>
-                    </span>
-                    <span style={{ fontSize: "11px", color: "#60A5FA" }}>
-                      1% fee: <span style={{ color: "#2563EB" }}><EthAmount amount={preview.protocolFee} size={10} /></span>
-                    </span>
-                    <span style={{ fontSize: "14px", fontWeight: 800, color: "#2563EB", letterSpacing: "-0.01em" }}>
-                      <EthAmount amount={preview.total} size={13} style={{ color: "#2563EB", fontWeight: 800 }} />
-                    </span>
-                  </div>
-                )}
-
-                {/* Error */}
-                {error && (
-                  <p style={{ fontSize: "11px", color: "#ef4444", flexShrink: 0, maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {error}
-                  </p>
-                )}
-
-                {!isConnected && (
-                  <p style={{ fontSize: "11px", color: "#94a3b8", flexShrink: 0 }}>Connect wallet to activate</p>
-                )}
-                {isConnected && !isSignedIn && (
-                  <p style={{ fontSize: "11px", color: "#94a3b8", flexShrink: 0 }}>Sign in to activate</p>
-                )}
-
-                {/* Activate */}
-                <button
-                  onClick={activateFlow}
-                  disabled={!canActivate}
-                  style={{
-                    padding: "9px 18px",
-                    borderRadius: "10px",
-                    border: "none",
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    cursor: canActivate ? "pointer" : "not-allowed",
-                    background: canActivate ? "#2563EB" : "#E3E8EF",
-                    color: canActivate ? "#fff" : "#94a3b8",
-                    transition: "background 0.15s, box-shadow 0.15s",
-                    flexShrink: 0,
-                    boxShadow: canActivate ? "0 2px 12px rgba(37,99,235,0.25)" : "none",
-                    letterSpacing: "-0.01em",
-                  }}
-                  onMouseEnter={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#1d4ed8"; }}
-                  onMouseLeave={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#2563EB"; }}
-                >
-                  {isPending ? "Check wallet…" : activating ? "Activating…" : "⚡ Activate Agentic Flow"}
-                </button>
+                {/* Right: status + activate */}
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 16px", flexShrink: 0 }}>
+                  {error && (
+                    <p style={{ fontSize: "11px", color: "#ef4444", margin: 0, maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {error}
+                    </p>
+                  )}
+                  {!error && !isConnected && (
+                    <p style={{ fontSize: "11px", color: "#94a3b8", margin: 0 }}>Connect wallet to activate</p>
+                  )}
+                  {!error && isConnected && !isSignedIn && (
+                    <p style={{ fontSize: "11px", color: "#94a3b8", margin: 0 }}>Sign in to activate</p>
+                  )}
+                  <button
+                    onClick={activateFlow}
+                    disabled={!canActivate}
+                    style={{
+                      padding: "9px 20px",
+                      borderRadius: "10px",
+                      border: "none",
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      cursor: canActivate ? "pointer" : "not-allowed",
+                      background: canActivate ? "#0A2540" : "#E3E8EF",
+                      color: canActivate ? "#fff" : "#94a3b8",
+                      transition: "background 0.15s, box-shadow 0.15s",
+                      flexShrink: 0,
+                      boxShadow: canActivate ? "0 2px 10px rgba(10,37,64,0.2)" : "none",
+                      letterSpacing: "-0.01em",
+                      whiteSpace: "nowrap",
+                    }}
+                    onMouseEnter={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#1a3a5c"; }}
+                    onMouseLeave={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#0A2540"; }}
+                  >
+                    {isPending ? "Check wallet…" : activating ? "Activating…" : "⚡ Activate Agentic Flow"}
+                  </button>
+                </div>
               </div>
             )}
           </div>
