@@ -431,10 +431,20 @@ export default function DashboardPage() {
                 {address ? shortAddr(address) : "—"}
               </p>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <Link href="/builder" style={{ fontSize: "13px", fontWeight: 600, color: "#fff", textDecoration: "none", padding: "8px 14px", background: "#2563EB", border: "1px solid #1d4ed8", borderRadius: "8px" }}>
+                <Link
+                  href="/builder"
+                  style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", textDecoration: "none", padding: "8px 14px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "8px", transition: "background 0.15s" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#DBEAFE"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "#EFF6FF"; }}
+                >
                   ⚡ Open Builder
                 </Link>
-                <Link href="/register" style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", textDecoration: "none", padding: "8px 14px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "8px" }}>
+                <Link
+                  href="/register"
+                  style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", textDecoration: "none", padding: "8px 14px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "8px", transition: "background 0.15s" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#DBEAFE"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "#EFF6FF"; }}
+                >
                   + Register Agent
                 </Link>
               </div>
