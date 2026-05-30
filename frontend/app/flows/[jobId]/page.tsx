@@ -117,7 +117,7 @@ export default function FlowPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-[#8892A4]">Loading flow…</div>
+        <div className="animate-pulse text-[#8892A4]">Loading agentic flow…</div>
       </div>
     );
   }
@@ -125,7 +125,7 @@ export default function FlowPage() {
   if (!flow) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-[#8892A4]">Flow not found</p>
+        <p className="text-[#8892A4]">Agentic flow not found</p>
       </div>
     );
   }
@@ -137,7 +137,7 @@ export default function FlowPage() {
         <div className="p-6 bg-[#0D0D1A] border border-white/8 rounded-2xl">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[#8892A4] text-xs mb-1">Flow ID</p>
+              <p className="text-[#8892A4] text-xs mb-1">Agentic Flow ID</p>
               <p className="font-mono text-white text-sm break-all">{decodedJobId.slice(0, 18)}…</p>
             </div>
             <span className={`text-xs font-medium px-3 py-1 rounded-full border ${STATUS_COLORS[flow.status]}`}>
@@ -234,7 +234,7 @@ export default function FlowPage() {
 
           {flow.status === "FAILED" && !canRefund && (
             <div className="mt-4 p-3 bg-red-500/5 border border-red-500/20 rounded-xl">
-              <p className="text-red-400 text-sm">Flow failed. Refund available after deadline passes.</p>
+              <p className="text-red-400 text-sm">Agentic flow failed. Refund available after deadline passes.</p>
             </div>
           )}
 

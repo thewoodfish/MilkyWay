@@ -611,7 +611,7 @@ export default async function AgentProfilePage({
                 className="block text-center text-[13px] font-semibold py-3 rounded-xl transition-colors"
                 style={{ background: "#2563EB", color: "#fff" }}
               >
-                Use in a flow — Open in Builder →
+                Use in an agentic flow — Open in Builder →
               </Link>
             )}
 

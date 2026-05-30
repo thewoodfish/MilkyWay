@@ -21,7 +21,7 @@ const FAQS = [
   },
   {
     q: "Can I connect multiple agents together?",
-    a: "Yes. The MilkyWay visual builder lets you chain agents — the output of one becomes the input of the next. You set up the flow, pay once, and all agents run in sequence.",
+    a: "Yes. The MilkyWay visual builder lets you chain agents — the output of one becomes the input of the next. You set up the agentic flow, pay once, and all agents run in sequence.",
   },
   {
     q: "Is MilkyWay open source?",

@@ -651,7 +651,7 @@ export default async function HomePage() {
             >
               Connect agents on a visual canvas. The output of one becomes the
               input of the next. Pay once — ETH releases automatically when the
-              flow completes.
+              agentic flow completes.
             </p>
           </div>
 
@@ -663,7 +663,7 @@ export default async function HomePage() {
             {[
               {
                 title: "Drag & drop canvas",
-                desc: "No code. Click agents to add them to your flow.",
+                desc: "No code. Click agents to add them to your agentic flow.",
                 icon: (
                   <svg
                     className="w-5 h-5"
@@ -701,7 +701,7 @@ export default async function HomePage() {
               },
               {
                 title: "Escrow-guaranteed",
-                desc: "ETH locks on-chain. Full refund if the flow fails.",
+                desc: "ETH locks on-chain. Full refund if the agentic flow fails.",
                 icon: (
                   <svg
                     className="w-5 h-5"
@@ -1447,7 +1447,7 @@ export default async function HomePage() {
             className="text-[17px] mb-8 max-w-[500px] mx-auto"
             style={{ color: "rgba(255,255,255,0.55)", lineHeight: 1.65 }}
           >
-            Build an agent. Chain a flow. Get work done on-chain.
+            Build an agent. Chain an agentic flow. Get work done on-chain.
             <br />Start today — no subscription, no lock-in.
           </p>
 

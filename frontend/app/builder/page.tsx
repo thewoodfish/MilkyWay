@@ -440,7 +440,7 @@ export default function BuilderPage() {
   };
 
   return (
-    <AuthGate description="Sign in to build and activate multi-agent flows on Arbitrum.">
+    <AuthGate description="Sign in to build and activate multi-agent agentic flows on Arbitrum.">
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)", background: "#EBF0FF" }}>
 
         {/* ── Top bar ──────────────────────────────────────────────── */}
@@ -468,7 +468,7 @@ export default function BuilderPage() {
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#2563EB", boxShadow: "0 0 6px rgba(37,99,235,0.5)", display: "inline-block" }} />
-            <span style={{ color: "#0A2540", fontSize: "14px", fontWeight: 700, letterSpacing: "-0.01em" }}>Flow Builder</span>
+            <span style={{ color: "#0A2540", fontSize: "14px", fontWeight: 700, letterSpacing: "-0.01em" }}>Agentic Flow Builder</span>
           </div>
 
           {canvasAgents.length > 0 && (
@@ -644,7 +644,7 @@ export default function BuilderPage() {
                     </svg>
                   </div>
                   <p style={{ color: "#0A2540", fontSize: "15px", fontWeight: 600, margin: "0 0 5px" }}>
-                    Start building your flow
+                    Start building your agentic flow
                   </p>
                   <p style={{ color: "#94a3b8", fontSize: "12px", margin: "0 0 22px" }}>
                     Click agents from the library to add them here
@@ -782,7 +782,7 @@ export default function BuilderPage() {
                   onMouseEnter={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#1d4ed8"; }}
                   onMouseLeave={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#2563EB"; }}
                 >
-                  {isPending ? "Check wallet…" : activating ? "Activating…" : "⚡ Activate Flow"}
+                  {isPending ? "Check wallet…" : activating ? "Activating…" : "⚡ Activate Agentic Flow"}
                 </button>
               </div>
             )}
@@ -989,7 +989,7 @@ export default function BuilderPage() {
                 {canvasAgents.length > 0 && (
                   <div style={{ padding: "14px" }}>
                     <p style={sectionLabel}>
-                      Flow — {canvasAgents.length} agent{canvasAgents.length !== 1 ? "s" : ""}
+                      Agentic Flow — {canvasAgents.length} agent{canvasAgents.length !== 1 ? "s" : ""}
                     </p>
                     {canvasAgents.map((a, i) => (
                       <div key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "9px", marginBottom: "7px", padding: "6px 0" }}>
@@ -1013,7 +1013,7 @@ export default function BuilderPage() {
                 {canvasAgents.length === 0 && (
                   <div style={{ padding: "24px 14px", textAlign: "center" }}>
                     <p style={{ fontSize: "12px", color: "#CBD5E1", lineHeight: 1.6, margin: 0 }}>
-                      Add agents from the library to configure your flow.
+                      Add agents from the library to configure your agentic flow.
                     </p>
                   </div>
                 )}

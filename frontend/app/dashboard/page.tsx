@@ -454,7 +454,7 @@ export default function DashboardPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px", marginBottom: "28px" }}>
               {summary.agentsTotal > 0 && <StatCard label="Total earned" value={<EthAmount amount={fmt(summary.totalEarnedEth)} size={17} />} sub="all time" />}
               {(summary.totalJobsRun > 0 || summary.activeFlows > 0) && <StatCard label="Jobs run" value={summary.totalJobsRun.toLocaleString()} sub="all time" />}
-              {(summary.totalJobsRun > 0 || summary.activeFlows > 0) && <StatCard label="Active flows" value={summary.activeFlows.toString()} sub="right now" />}
+              {(summary.totalJobsRun > 0 || summary.activeFlows > 0) && <StatCard label="Active agentic flows" value={summary.activeFlows.toString()} sub="right now" />}
               {summary.agentsTotal > 0 && <StatCard label="Agents" value={`${summary.agentsLive} live`} sub={`${summary.agentsTotal} total`} />}
             </div>
           )}
@@ -462,7 +462,7 @@ export default function DashboardPage() {
           {/* Tabs */}
           <div style={{ display: "flex", borderBottom: "1px solid #E3E8EF", marginBottom: "28px" }}>
             {(["flows", "agents", "earnings"] as Tab[]).map((t) => {
-              const labels: Record<Tab, string> = { flows: "My Flows", agents: "My Agents", earnings: "Earnings" };
+              const labels: Record<Tab, string> = { flows: "My Agentic Flows", agents: "My Agents", earnings: "Earnings" };
               const active = tab === t;
               return (
                 <button
@@ -548,8 +548,8 @@ export default function DashboardPage() {
                     {historyFlows.length === 0 ? (
                       <EmptyState
                         icon={<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#2563EB" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
-                        title="No flows yet"
-                        body="Build a multi-agent flow to automate on-chain tasks."
+                        title="No agentic flows yet"
+                        body="Build a multi-agent agentic flow to automate on-chain tasks."
                         cta="Open the Builder"
                         href="/builder"
                       />
@@ -587,7 +587,7 @@ export default function DashboardPage() {
 
                     <div style={{ marginTop: "20px", textAlign: "center" }}>
                       <Link href="/builder" style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", textDecoration: "none" }}>
-                        + Build a new flow →
+                        + Build a new agentic flow →
                       </Link>
                     </div>
                   </div>
@@ -861,7 +861,7 @@ export default function DashboardPage() {
             <ul style={{ paddingLeft: "16px", marginTop: "8px" }}>
               <li>Remove the agent from the marketplace</li>
               <li>Return your <strong style={{ color: "#0A2540" }}>0.01 ETH</strong> stake to your wallet</li>
-              <li>Cancel any scheduled flows using this agent</li>
+              <li>Cancel any scheduled agentic flows using this agent</li>
             </ul>
             <p style={{ marginTop: "10px", color: "#ef4444" }}>This cannot be undone.</p>
           </div>
