@@ -4,10 +4,11 @@ import { authenticateJWT, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
-// GET /api/earnings/:address
+// GET /api/earnings/:address?period=7d|30d|all
 router.get("/:address", authenticateJWT, async (req: AuthRequest, res: Response) => {
   try {
     const { address } = req.params;
+    const period = (req.query.period as string) || "30d";
 
     if (req.user!.address.toLowerCase() !== address.toLowerCase()) {
       return res.status(403).json({ error: "Unauthorized" });
@@ -30,8 +31,17 @@ router.get("/:address", authenticateJWT, async (req: AuthRequest, res: Response)
       });
     }
 
+    const sinceDate =
+      period === "7d"  ? new Date(Date.now() - 7  * 86_400_000) :
+      period === "30d" ? new Date(Date.now() - 30 * 86_400_000) :
+      undefined;
+
     const completedJobs = await prisma.flowAgent.findMany({
-      where: { agentId: { in: agentIds }, status: "COMPLETED" },
+      where: {
+        agentId: { in: agentIds },
+        status: "COMPLETED",
+        ...(sinceDate ? { executedAt: { gte: sinceDate } } : {}),
+      },
       include: {
         flow: {
           select: { jobId: true, status: true, escrowTxHash: true, completedAt: true },

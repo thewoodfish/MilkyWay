@@ -330,14 +330,15 @@ export default function DashboardPage() {
     };
   }, [flows, fetchFlows]);
 
-  // Lazy load earnings when tab switches
+  // Fetch/re-fetch earnings when tab opens or period changes
   useEffect(() => {
-    if (tab !== "earnings" || !address || !isSignedIn || earnings) return;
-    authFetch(`${API}/api/earnings/${address}`)
+    if (tab !== "earnings" || !address || !isSignedIn) return;
+    setEarnings(null); // clear previous data while loading
+    authFetch(`${API}/api/earnings/${address}?period=${earningsPeriod}`)
       .then((r) => r.json())
       .then(setEarnings)
       .catch(() => {});
-  }, [tab, address, isSignedIn, earnings]);
+  }, [tab, address, isSignedIn, earningsPeriod]);
 
   // Handle deactivation tx confirmation
   useEffect(() => {
@@ -403,9 +404,10 @@ export default function DashboardPage() {
 
   function buildChartData() {
     if (!earnings) return [];
-    return Array.from({ length: 30 }, (_, i) => {
+    const days = earningsPeriod === "7d" ? 7 : 30;
+    return Array.from({ length: days }, (_, i) => {
       const d = new Date();
-      d.setDate(d.getDate() - (29 - i));
+      d.setDate(d.getDate() - (days - 1 - i));
       const dateStr = d.toISOString().slice(0, 10);
       const eth = earnings.recentPayments
         .filter((p) => p.executedAt?.slice(0, 10) === dateStr)
@@ -730,7 +732,9 @@ export default function DashboardPage() {
 
                       {/* Bar chart */}
                       <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", padding: "20px", marginBottom: "20px" }}>
-                        <p style={{ fontSize: "12px", fontWeight: 600, color: "#64748b", marginBottom: "16px" }}>Daily earnings — last 30 days</p>
+                        <p style={{ fontSize: "12px", fontWeight: 600, color: "#64748b", marginBottom: "16px" }}>
+                          Daily earnings — {earningsPeriod === "7d" ? "last 7 days" : earningsPeriod === "30d" ? "last 30 days" : "all time"}
+                        </p>
                         <ResponsiveContainer width="100%" height={160}>
                           <BarChart data={buildChartData()} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
                             <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} interval={6} />
