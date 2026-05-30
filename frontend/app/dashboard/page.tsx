@@ -737,7 +737,7 @@ export default function DashboardPage() {
                         </p>
                         <ResponsiveContainer width="100%" height={160}>
                           <BarChart data={buildChartData()} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
-                            <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} interval={6} />
+                            <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} interval={earningsPeriod === "7d" ? 0 : 6} />
                             <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} />
                             <Tooltip
                               formatter={(v: unknown) => [`${fmt(String(v))} ETH`, "Earned"]}
