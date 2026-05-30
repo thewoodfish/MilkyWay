@@ -776,65 +776,60 @@ export default function BuilderPage() {
                 background: "#0A2540",
                 display: "flex",
                 alignItems: "center",
+                justifyContent: "space-between",
                 flexShrink: 0,
-                height: "58px",
-                gap: "0",
+                padding: "0 20px",
+                height: "60px",
+                gap: "16px",
               }}>
-                {/* Pipeline */}
-                <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "6px", padding: "0 20px", overflow: "hidden", minWidth: 0 }}>
+                {/* Pipeline breadcrumb */}
+                <div style={{ display: "flex", alignItems: "center", gap: "7px", overflow: "hidden", minWidth: 0, flex: 1 }}>
                   {canvasAgents.map((a, i) => (
-                    <span key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0, flexShrink: i < canvasAgents.length - 1 ? 1 : 0 }}>
-                      <span style={{ fontSize: "12px", fontWeight: 500, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "120px" }}>
+                    <span key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "7px", minWidth: 0, flexShrink: i < canvasAgents.length - 1 ? 1 : 0 }}>
+                      <span style={{ fontSize: "13px", fontWeight: 500, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "140px" }}>
                         {a.name}
                       </span>
                       {i < canvasAgents.length - 1 && (
-                        <span style={{ color: "#475569", fontSize: "11px", flexShrink: 0 }}>→</span>
+                        <span style={{ color: "#334155", fontSize: "13px", flexShrink: 0 }}>→</span>
                       )}
                     </span>
                   ))}
                 </div>
 
-                {/* Cost */}
-                {preview && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "24px", padding: "0 24px", borderLeft: "1px solid #1e3a5f", borderRight: "1px solid #1e3a5f", flexShrink: 0, height: "100%" }}>
-                    <div>
-                      <p style={{ fontSize: "9px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 2px", fontWeight: 600 }}>Subtotal</p>
-                      <p style={{ fontSize: "12px", fontWeight: 600, color: "#94a3b8", margin: 0 }}>
-                        <EthAmount amount={preview.subtotal} size={11} style={{ color: "#94a3b8" }} />
-                      </p>
+                {/* Cost + activate */}
+                <div style={{ display: "flex", alignItems: "center", gap: "20px", flexShrink: 0 }}>
+                  {preview && (
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{ fontSize: "12px", color: "#64748b" }}>
+                        <EthAmount amount={preview.subtotal} size={11} style={{ color: "#64748b" }} />
+                      </span>
+                      <span style={{ fontSize: "11px", color: "#334155" }}>+</span>
+                      <span style={{ fontSize: "12px", color: "#64748b" }}>
+                        <EthAmount amount={preview.protocolFee} size={11} style={{ color: "#64748b" }} /> fee
+                      </span>
+                      <span style={{ width: "1px", height: "16px", background: "#1e3a5f", flexShrink: 0, margin: "0 6px" }} />
+                      <span style={{ fontSize: "14px", fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>
+                        <EthAmount amount={preview.total} size={13} style={{ color: "#fff", fontWeight: 800 }} />
+                      </span>
                     </div>
-                    <div>
-                      <p style={{ fontSize: "9px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 2px", fontWeight: 600 }}>1% Fee</p>
-                      <p style={{ fontSize: "12px", fontWeight: 600, color: "#94a3b8", margin: 0 }}>
-                        <EthAmount amount={preview.protocolFee} size={11} style={{ color: "#94a3b8" }} />
-                      </p>
-                    </div>
-                    <div>
-                      <p style={{ fontSize: "9px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 2px", fontWeight: 600 }}>Total</p>
-                      <p style={{ fontSize: "13px", fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
-                        <EthAmount amount={preview.total} size={12} style={{ color: "#fff", fontWeight: 800 }} />
-                      </p>
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Status + activate */}
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "0 16px", flexShrink: 0 }}>
                   {error && <p style={{ fontSize: "11px", color: "#fca5a5", margin: 0, maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{error}</p>}
-                  {!error && !isConnected && <p style={{ fontSize: "11px", color: "#64748b", margin: 0 }}>Connect wallet</p>}
-                  {!error && isConnected && !isSignedIn && <p style={{ fontSize: "11px", color: "#64748b", margin: 0 }}>Sign in to activate</p>}
+                  {!error && !isConnected && <p style={{ fontSize: "11px", color: "#475569", margin: 0 }}>Connect wallet</p>}
+                  {!error && isConnected && !isSignedIn && <p style={{ fontSize: "11px", color: "#475569", margin: 0 }}>Sign in to activate</p>}
+
                   <button
                     onClick={activateFlow}
                     disabled={!canActivate}
                     style={{
-                      padding: "9px 20px",
+                      padding: "9px 22px",
                       borderRadius: "9px",
                       border: "none",
                       fontSize: "13px",
                       fontWeight: 700,
                       cursor: canActivate ? "pointer" : "not-allowed",
-                      background: canActivate ? "#fff" : "#1e3a5f",
-                      color: canActivate ? "#0A2540" : "#475569",
+                      background: canActivate ? "#fff" : "#1a2f4a",
+                      color: canActivate ? "#0A2540" : "#3d5a80",
                       transition: "background 0.15s",
                       flexShrink: 0,
                       letterSpacing: "-0.01em",
