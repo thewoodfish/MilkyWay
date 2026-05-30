@@ -115,23 +115,15 @@ const AgentNode = memo(function AgentNode({
         </div>
 
         {/* Avatar */}
-        <div
-          style={{
-            width: "30px",
-            height: "30px",
-            borderRadius: "8px",
-            background: "linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)",
-            border: "1px solid #DBEAFE",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "13px",
-            fontWeight: 700,
-            color: "#2563EB",
-            flexShrink: 0,
-          }}
-        >
-          {agent.name[0]}
+        <div style={{ width: "30px", height: "30px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, border: "1px solid #DBEAFE" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${agent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
+            alt={agent.name}
+            width={30}
+            height={30}
+            style={{ display: "block", width: "100%", height: "100%" }}
+          />
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -284,22 +276,15 @@ const AgentLibraryCard = memo(function AgentLibraryCard({
     >
       <div style={{ display: "flex", alignItems: "flex-start", gap: "9px" }}>
         {/* Avatar */}
-        <div style={{
-          width: "30px",
-          height: "30px",
-          borderRadius: "8px",
-          background: "linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)",
-          border: "1px solid #DBEAFE",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "13px",
-          fontWeight: 700,
-          color: "#2563EB",
-          flexShrink: 0,
-          marginTop: "1px",
-        }}>
-          {agent.name[0]}
+        <div style={{ width: "32px", height: "32px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, marginTop: "1px", border: "1px solid #DBEAFE" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${agent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
+            alt={agent.name}
+            width={32}
+            height={32}
+            style={{ display: "block", width: "100%", height: "100%" }}
+          />
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -878,14 +863,15 @@ export default function BuilderPage() {
               <>
                 <div style={{ padding: "14px", borderBottom: "1px solid #DBEAFE", background: "#fff", borderLeft: "3px solid #2563EB" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-                    <div style={{
-                      width: "36px", height: "36px", borderRadius: "10px",
-                      background: "linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)",
-                      border: "1px solid #DBEAFE",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "15px", fontWeight: 700, color: "#2563EB", flexShrink: 0,
-                    }}>
-                      {selectedAgent.name[0]}
+                    <div style={{ width: "36px", height: "36px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, border: "1px solid #DBEAFE" }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${selectedAgent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
+                        alt={selectedAgent.name}
+                        width={36}
+                        height={36}
+                        style={{ display: "block", width: "100%", height: "100%" }}
+                      />
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 600, margin: "0 0 2px" }}>{selectedAgent.name}</p>

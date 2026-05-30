@@ -26,7 +26,8 @@ export function AgentAvatar({
   size = 64,
   showTooltip = true,
 }: AgentAvatarProps) {
-  const src = logoUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=milkyway-${agentId}`;
+  const src = logoUrl ||
+    `https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`;
   const ring = RING[badgeTier];
   const radius = Math.round(size * 0.18);
   const offset = 3;
