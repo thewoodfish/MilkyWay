@@ -430,9 +430,14 @@ export default function DashboardPage() {
               <p style={{ fontFamily: "monospace", fontSize: "16px", fontWeight: 700, color: "#0A2540" }}>
                 {address ? shortAddr(address) : "—"}
               </p>
-              <Link href="/register" style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", textDecoration: "none", padding: "8px 14px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "8px" }}>
-                + Register Agent
-              </Link>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <Link href="/builder" style={{ fontSize: "13px", fontWeight: 600, color: "#fff", textDecoration: "none", padding: "8px 14px", background: "#2563EB", border: "1px solid #1d4ed8", borderRadius: "8px" }}>
+                  ⚡ Open Builder
+                </Link>
+                <Link href="/register" style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", textDecoration: "none", padding: "8px 14px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "8px" }}>
+                  + Register Agent
+                </Link>
+              </div>
             </div>
           </div>
 
