@@ -1,43 +1,32 @@
 "use client";
 
-import {
-  RainbowKitProvider,
-  connectorsForWallets,
-} from "@rainbow-me/rainbowkit";
-import {
-  injectedWallet,
-  metaMaskWallet,
-  coinbaseWallet,
-  walletConnectWallet,
-} from "@rainbow-me/rainbowkit/wallets";
+import { RainbowKitProvider, getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { arbitrumSepolia } from "wagmi/chains";
+import { injected } from "wagmi/connectors";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
 import "@rainbow-me/rainbowkit/styles.css";
 
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "";
+const rawProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "";
+// WalletConnect Cloud project IDs are 32 hex characters.
+// Any other value (placeholder, empty) falls back to injected-wallet-only mode,
+// which avoids WalletConnect SDK initialisation and the "not authorized" SSR error.
+const isValidProjectId = /^[0-9a-f]{32}$/i.test(rawProjectId);
 
-// Only include WalletConnect when a real project ID is configured.
-// Without it, wagmi auto-reconnect triggers WalletConnect Cloud and errors on every page load.
-const wallets = [
-  injectedWallet,
-  metaMaskWallet,
-  coinbaseWallet,
-  ...(projectId ? [walletConnectWallet] : []),
-];
-
-const connectors = connectorsForWallets(
-  [{ groupName: "Wallets", wallets }],
-  { appName: "MilkyWay", projectId: projectId || "00000000000000000000000000000000" }
-);
-
-const config = createConfig({
-  chains: [arbitrumSepolia],
-  transports: { [arbitrumSepolia.id]: http() },
-  connectors,
-  ssr: true,
-});
+const config = isValidProjectId
+  ? getDefaultConfig({
+      appName: "MilkyWay",
+      projectId: rawProjectId,
+      chains: [arbitrumSepolia],
+      ssr: true,
+    })
+  : createConfig({
+      chains: [arbitrumSepolia],
+      transports: { [arbitrumSepolia.id]: http() },
+      connectors: [injected()],
+      ssr: true,
+    });
 
 const queryClient = new QueryClient();
 
