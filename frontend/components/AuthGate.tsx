@@ -21,12 +21,14 @@ export function AuthGate({ children, description }: Props) {
   const [error, setError]       = useState("");
   const attemptedFor = useRef<string | null>(null);
 
-  // Auto-trigger SIWE only after hydration completes (avoids false prompts on reload)
+  // Auto-trigger SIWE after hydration. Delay 700ms so the RainbowKit connect
+  // modal finishes closing before MetaMask opens — otherwise the popup is buried.
   useEffect(() => {
     if (isHydrating) return;
     if (isConnected && address && !isSignedIn && !signing && attemptedFor.current !== address) {
       attemptedFor.current = address;
-      handleSignIn();
+      const t = setTimeout(handleSignIn, 700);
+      return () => clearTimeout(t);
     }
   }, [isConnected, address, isSignedIn, isHydrating]);
 
@@ -128,6 +130,21 @@ export function AuthGate({ children, description }: Props) {
           <div className="flex flex-col items-center gap-3">
             <ConnectButton label="Connect Wallet" chainStatus="none" showBalance={false} />
             <p className="text-[11px]" style={{ color: "#94a3b8" }}>No gas required to sign in</p>
+          </div>
+        )}
+
+        {isConnected && !signing && !error && (
+          <div className="flex flex-col items-center gap-3">
+            <button
+              onClick={handleSignIn}
+              className="text-[14px] font-semibold px-8 py-3 rounded-xl transition-colors"
+              style={{ background: "#2563EB", color: "#fff" }}
+            >
+              Sign in with wallet →
+            </button>
+            <p className="text-[11px]" style={{ color: "#94a3b8" }}>
+              Signing now… check your wallet for a prompt
+            </p>
           </div>
         )}
 
