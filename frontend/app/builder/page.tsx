@@ -35,6 +35,9 @@ function formatDeadline(s: number): string {
 type AboutSchema = {
   input_schema?: Record<string, { type: string; required?: boolean; description?: string }>;
   output_schema?: Record<string, { type: string; description?: string }>;
+  capabilities?: string[];
+  pricing?: { model: string; amount: string; currency: string };
+  max_deadline_seconds?: number;
 };
 
 // ── Agent canvas node ──────────────────────────────────────────────────────
@@ -210,93 +213,6 @@ const AgentNode = memo(function AgentNode({
 
 const nodeTypes = { agentNode: AgentNode };
 
-// ── Agent library card ─────────────────────────────────────────────────────
-
-const AgentLibraryCard = memo(function AgentLibraryCard({
-  agent,
-  onCanvas,
-  onAdd,
-}: {
-  agent: Agent;
-  onCanvas: boolean;
-  onAdd: (a: Agent) => void;
-}) {
-  return (
-    <div
-      onClick={() => !onCanvas && onAdd(agent)}
-      style={{
-        padding: "10px 12px",
-        borderRadius: "10px",
-        border: `1px solid ${onCanvas ? "#93C5FD" : "#DBEAFE"}`,
-        background: onCanvas ? "#EFF6FF" : "#fff",
-        cursor: onCanvas ? "default" : "pointer",
-        marginBottom: "6px",
-        transition: "border-color 0.15s, background 0.15s, box-shadow 0.15s",
-        opacity: onCanvas ? 0.6 : 1,
-        boxShadow: "0 1px 4px rgba(37,99,235,0.07)",
-      }}
-      onMouseEnter={(e) => {
-        if (!onCanvas) {
-          (e.currentTarget as HTMLDivElement).style.borderColor = "#60A5FA";
-          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 10px rgba(37,99,235,0.14)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!onCanvas) {
-          (e.currentTarget as HTMLDivElement).style.borderColor = "#DBEAFE";
-          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 4px rgba(37,99,235,0.07)";
-        }
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "flex-start", gap: "9px" }}>
-        {/* Avatar */}
-        <div style={{ width: "32px", height: "32px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, marginTop: "1px", border: "1px solid #DBEAFE" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${agent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
-            alt={agent.name}
-            width={32}
-            height={32}
-            style={{ display: "block", width: "100%", height: "100%" }}
-          />
-        </div>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "2px" }}>
-            <p style={{ color: "#0A2540", fontSize: "12px", fontWeight: 600, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {agent.name}
-            </p>
-            {onCanvas && <span style={{ fontSize: "10px", color: "#2563EB", flexShrink: 0 }}>✓</span>}
-          </div>
-          <p style={{ color: "#94a3b8", fontSize: "11px", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {CATEGORY_LABELS[agent.category] ?? agent.category}
-            {" · "}
-            {agent.pricingModel === "FREE" ? "Free" : <EthAmount amount={agent.priceEth!} size={10} style={{ color: "#94a3b8" }} />}
-          </p>
-        </div>
-
-        {!onCanvas && (
-          <div style={{
-            width: "22px",
-            height: "22px",
-            borderRadius: "6px",
-            background: "#EFF6FF",
-            border: "1px solid #BFDBFE",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "14px",
-            color: "#2563EB",
-            flexShrink: 0,
-            marginTop: "2px",
-          }}>
-            +
-          </div>
-        )}
-      </div>
-    </div>
-  );
-});
 
 // ── Builder page ───────────────────────────────────────────────────────────
 
@@ -314,6 +230,8 @@ export default function BuilderPage() {
   const [canvasAgents, setCanvasAgents] = useState<Agent[]>([]);
 
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [libraryOpen, setLibraryOpen] = useState(true);
+  const [libraryAgent, setLibraryAgent] = useState<Agent | null>(null);
   const [staticInputs, setStaticInputs] = useState<Record<string, Record<string, string>>>({});
   const [trigger, setTrigger] = useState<"IMMEDIATE" | "SCHEDULED" | "CONDITION">("IMMEDIATE");
   const [deadlineSeconds, setDeadlineSeconds] = useState(300);
@@ -449,11 +367,11 @@ export default function BuilderPage() {
           alignItems: "center",
           padding: "0 20px",
           height: "50px",
-          borderBottom: "1px solid #BFDBFE",
-          background: "#EFF6FF",
+          borderBottom: "1px solid #E3E8EF",
+          background: "#fff",
           flexShrink: 0,
           gap: "14px",
-          boxShadow: "0 1px 4px rgba(37,99,235,0.06)",
+          boxShadow: "0 1px 4px rgba(10,37,64,0.04)",
         }}>
           <Link
             href="/dashboard"
@@ -464,7 +382,7 @@ export default function BuilderPage() {
             ← Dashboard
           </Link>
 
-          <div style={{ width: "1px", height: "14px", background: "#BFDBFE" }} />
+          <div style={{ width: "1px", height: "14px", background: "#E3E8EF" }} />
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#2563EB", boxShadow: "0 0 6px rgba(37,99,235,0.5)", display: "inline-block" }} />
@@ -523,107 +441,267 @@ export default function BuilderPage() {
         {/* ── Three-panel layout ────────────────────────────────────── */}
         <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
 
-          {/* ── LEFT: Agent Library ───────────────────────────────── */}
-          <div style={{
-            width: "272px",
-            flexShrink: 0,
-            display: "flex",
-            flexDirection: "column",
-            borderRight: "1px solid #BFDBFE",
-            background: "#fff",
-          }}>
-            {/* Header + search */}
-            <div style={{ padding: "14px 14px 12px", borderBottom: "1px solid #BFDBFE", background: "#fff" }}>
-              <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 700, margin: "0 0 10px" }}>
-                Agent Library
-              </p>
-              <div style={{ position: "relative", marginBottom: "10px" }}>
-                <svg
-                  style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", width: "13px", height: "13px", color: "#CBD5E1", pointerEvents: "none" }}
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search agents…"
-                  style={{
-                    width: "100%",
-                    background: "#F8FAFF",
-                    border: "1px solid #E3E8EF",
-                    borderRadius: "9px",
-                    padding: "7px 10px 7px 30px",
-                    fontSize: "12px",
-                    color: "#0A2540",
-                    outline: "none",
-                    boxSizing: "border-box",
-                    transition: "border-color 0.15s",
-                  }}
-                  onFocus={(e) => { e.target.style.borderColor = "#2563EB"; }}
-                  onBlur={(e) => { e.target.style.borderColor = "#E3E8EF"; }}
-                />
-              </div>
-
-            </div>
-
-            {/* Category pills */}
-            <div style={{
-              padding: "10px 14px",
-              borderBottom: "1px solid #BFDBFE",
-              background: "#E8EFFD",
-              display: "flex",
-              gap: "5px",
-              flexWrap: "wrap",
-            }}>
-              {categories.slice(0, 6).map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setCatFilter(cat)}
-                  style={{
-                    fontSize: "10px",
-                    fontWeight: 600,
-                    padding: "3px 9px",
-                    borderRadius: "100px",
-                    border: `1px solid ${catFilter === cat ? "#93C5FD" : "#C7D7F5"}`,
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                    background: catFilter === cat ? "#DBEAFE" : "#EEF2FF",
-                    color: catFilter === cat ? "#1D4ED8" : "#64748b",
-                  }}
-                >
-                  {cat === "ALL" ? "All" : (CATEGORY_LABELS[cat] ?? cat)}
-                </button>
-              ))}
-            </div>
-
-            {/* Agent list */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "10px", background: "#fff" }}>
-              {filteredAgents.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "36px 12px" }}>
-                  <p style={{ fontSize: "24px", margin: "0 0 6px" }}>⚗️</p>
-                  <p style={{ fontSize: "11px", color: "#94a3b8", margin: 0 }}>No agents found</p>
-                </div>
-              ) : (
-                filteredAgents.map((agent) => (
-                  <AgentLibraryCard
-                    key={agent.agentId}
-                    agent={agent}
-                    onCanvas={canvasAgents.some((a) => a.agentId === agent.agentId)}
-                    onAdd={addToCanvas}
-                  />
-                ))
-              )}
-            </div>
-
-            {/* Footer count */}
-            <div style={{ padding: "8px 14px", borderTop: "1px solid #BFDBFE", background: "#E8EFFD", fontSize: "10px", color: "#93C5FD" }}>
-              {filteredAgents.length} agent{filteredAgents.length !== 1 ? "s" : ""}
-            </div>
-          </div>
-
           {/* ── CENTER: Canvas ─────────────────────────────────────── */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+
+            {/* ── Agent Library Slideout ─────────────────────────── */}
+            <div style={{
+              position: "absolute",
+              left: 0, top: 0, bottom: 0,
+              width: "320px",
+              zIndex: 20,
+              transform: libraryOpen ? "translateX(0)" : "translateX(calc(-100% + 36px))",
+              transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              display: "flex",
+              pointerEvents: "auto",
+            }}>
+              {/* ── Panel ── */}
+              <div style={{
+                width: "284px",
+                background: "#fff",
+                display: "flex",
+                flexDirection: "column",
+                boxShadow: "4px 0 28px rgba(10,37,64,0.1)",
+                flexShrink: 0,
+                overflow: "hidden",
+              }}>
+                {libraryAgent ? (
+                  /* ── DETAIL VIEW ── */
+                  <>
+                    {/* Back header */}
+                    <div style={{ padding: "12px 14px", borderBottom: "1px solid #E3E8EF", display: "flex", alignItems: "center", flexShrink: 0 }}>
+                      <button
+                        onClick={() => setLibraryAgent(null)}
+                        style={{ display: "flex", alignItems: "center", gap: "5px", color: "#2563EB", fontSize: "12px", fontWeight: 500, background: "transparent", border: "none", cursor: "pointer", padding: 0, transition: "opacity 0.15s" }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.65"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
+                      >
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                        Library
+                      </button>
+                    </div>
+
+                    {/* Scrollable detail */}
+                    <div style={{ flex: 1, overflowY: "auto" }}>
+                      {/* Hero */}
+                      <div style={{ padding: "22px 16px 16px", textAlign: "center", borderBottom: "1px solid #E3E8EF" }}>
+                        <div style={{ width: "72px", height: "72px", borderRadius: "20px", overflow: "hidden", margin: "0 auto 14px", border: "2px solid #DBEAFE", boxShadow: "0 6px 20px rgba(37,99,235,0.15)" }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${libraryAgent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
+                            alt={libraryAgent.name} width={72} height={72}
+                            style={{ display: "block", width: "100%", height: "100%" }}
+                          />
+                        </div>
+                        <p style={{ color: "#0A2540", fontSize: "16px", fontWeight: 700, margin: "0 0 10px", letterSpacing: "-0.01em", lineHeight: 1.2 }}>
+                          {libraryAgent.name}
+                        </p>
+                        <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap" }}>
+                          <span style={{ fontSize: "11px", fontWeight: 600, padding: "3px 10px", borderRadius: "100px", background: "#EEF2FF", color: "#2563EB", border: "1px solid #BFDBFE" }}>
+                            {CATEGORY_LABELS[libraryAgent.category] ?? libraryAgent.category}
+                          </span>
+                          <span style={{ fontSize: "11px", fontWeight: 600, padding: "3px 10px", borderRadius: "100px", background: libraryAgent.pricingModel === "FREE" ? "#F0FDF4" : "#FFFBEB", color: libraryAgent.pricingModel === "FREE" ? "#10b981" : "#D97706", border: `1px solid ${libraryAgent.pricingModel === "FREE" ? "#BBF7D0" : "#FDE68A"}` }}>
+                            {libraryAgent.pricingModel === "FREE" ? "Free" : `${libraryAgent.priceEth} ETH / job`}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      {libraryAgent.description && (
+                        <div style={{ padding: "14px 16px", borderBottom: "1px solid #E3E8EF" }}>
+                          <p style={{ color: "#425466", fontSize: "12px", lineHeight: 1.7, margin: 0 }}>{libraryAgent.description}</p>
+                        </div>
+                      )}
+
+                      {/* Stats + capabilities */}
+                      {(() => {
+                        const la = libraryAgent.aboutSchema as AboutSchema | null;
+                        if (!la) return null;
+                        const caps = la.capabilities ?? [];
+                        return (
+                          <div style={{ padding: "12px 16px", borderBottom: "1px solid #E3E8EF", display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                            {la.max_deadline_seconds && (
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", color: "#425466", fontWeight: 500, background: "#F8FAFF", border: "1px solid #E3E8EF", padding: "4px 10px", borderRadius: "8px" }}>
+                                <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path strokeLinecap="round" d="M12 6v6l4 2"/></svg>
+                                ~{la.max_deadline_seconds}s
+                              </span>
+                            )}
+                            {caps.map((cap) => (
+                              <span key={cap} style={{ fontSize: "11px", fontWeight: 500, color: "#2563EB", background: "#EFF6FF", border: "1px solid #BFDBFE", padding: "4px 10px", borderRadius: "8px" }}>
+                                {cap}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
+
+                      {/* Inputs */}
+                      {(() => {
+                        const ins = (libraryAgent.aboutSchema as AboutSchema | null)?.input_schema;
+                        if (!ins || Object.keys(ins).length === 0) return null;
+                        return (
+                          <div style={{ padding: "14px 16px", borderBottom: "1px solid #E3E8EF" }}>
+                            <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#60A5FA", margin: "0 0 10px" }}>Inputs</p>
+                            {Object.entries(ins).map(([field, def]) => (
+                              <div key={field} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "7px", padding: "7px 10px", background: "#F8FAFF", borderRadius: "8px", border: "1px solid #E3E8EF" }}>
+                                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: def.required ? "#ef4444" : "#CBD5E1", flexShrink: 0 }} />
+                                <span style={{ fontSize: "11px", color: "#0A2540", fontWeight: 500, flex: 1 }}>{field}</span>
+                                <span style={{ fontSize: "9px", color: "#2563EB", background: "#EEF2FF", padding: "2px 6px", borderRadius: "4px", border: "1px solid #BFDBFE", fontWeight: 600 }}>{def.type}</span>
+                                {def.required && <span style={{ fontSize: "9px", color: "#ef4444", fontWeight: 700 }}>req</span>}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+
+                      {/* Outputs */}
+                      {(() => {
+                        const outs = (libraryAgent.aboutSchema as AboutSchema | null)?.output_schema;
+                        if (!outs || Object.keys(outs).length === 0) return null;
+                        return (
+                          <div style={{ padding: "14px 16px", borderBottom: "1px solid #E3E8EF" }}>
+                            <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#10b981", margin: "0 0 10px" }}>Outputs</p>
+                            {Object.entries(outs).map(([field, def]) => (
+                              <div key={field} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "7px", padding: "7px 10px", background: "#F0FDF4", borderRadius: "8px", border: "1px solid #BBF7D0" }}>
+                                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981", flexShrink: 0 }} />
+                                <span style={{ fontSize: "11px", color: "#0A2540", fontWeight: 500, flex: 1 }}>{field}</span>
+                                <span style={{ fontSize: "9px", color: "#10b981", background: "#DCFCE7", padding: "2px 6px", borderRadius: "4px", border: "1px solid #BBF7D0", fontWeight: 600 }}>{def.type}</span>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    {/* CTA */}
+                    <div style={{ padding: "14px 16px", borderTop: "1px solid #E3E8EF", flexShrink: 0 }}>
+                      {canvasAgents.some((a) => a.agentId === libraryAgent.agentId) ? (
+                        <div style={{ width: "100%", padding: "10px", borderRadius: "10px", background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#10b981", fontSize: "13px", fontWeight: 600, textAlign: "center" }}>
+                          ✓ Added to Canvas
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => addToCanvas(libraryAgent)}
+                          style={{ width: "100%", padding: "11px", borderRadius: "10px", background: "#2563EB", border: "none", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", boxShadow: "0 2px 12px rgba(37,99,235,0.3)", transition: "background 0.15s" }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#1d4ed8"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#2563EB"; }}
+                        >
+                          + Add to Canvas
+                        </button>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  /* ── LIST VIEW ── */
+                  <>
+                    {/* Header */}
+                    <div style={{ padding: "14px 14px 12px", borderBottom: "1px solid #E3E8EF", flexShrink: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                        <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 700, margin: 0 }}>Agent Library</p>
+                        <span style={{ fontSize: "10px", color: "#94a3b8", background: "#F8FAFF", border: "1px solid #E3E8EF", padding: "2px 8px", borderRadius: "100px" }}>
+                          {filteredAgents.length}
+                        </span>
+                      </div>
+                      <div style={{ position: "relative" }}>
+                        <svg style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", width: "13px", height: "13px", pointerEvents: "none", opacity: 0.4 }} fill="none" viewBox="0 0 24 24" stroke="#0A2540" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                          placeholder="Search agents…"
+                          style={{ width: "100%", background: "#F8FAFF", border: "1px solid #E3E8EF", borderRadius: "9px", padding: "7px 10px 7px 30px", fontSize: "12px", color: "#0A2540", outline: "none", boxSizing: "border-box", transition: "border-color 0.15s" }}
+                          onFocus={(e) => { e.target.style.borderColor = "#2563EB"; }}
+                          onBlur={(e) => { e.target.style.borderColor = "#E3E8EF"; }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Category pills */}
+                    <div style={{ padding: "8px 12px", borderBottom: "1px solid #E3E8EF", display: "flex", gap: "5px", flexWrap: "wrap", flexShrink: 0, background: "#FAFBFF" }}>
+                      {categories.slice(0, 7).map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => setCatFilter(cat)}
+                          style={{ fontSize: "10px", fontWeight: 600, padding: "3px 9px", borderRadius: "100px", border: `1px solid ${catFilter === cat ? "#93C5FD" : "#E3E8EF"}`, cursor: "pointer", transition: "all 0.15s", background: catFilter === cat ? "#DBEAFE" : "#fff", color: catFilter === cat ? "#1D4ED8" : "#64748b" }}
+                        >
+                          {cat === "ALL" ? "All" : (CATEGORY_LABELS[cat] ?? cat)}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Agent list */}
+                    <div style={{ flex: 1, overflowY: "auto", padding: "8px" }}>
+                      {filteredAgents.length === 0 ? (
+                        <div style={{ textAlign: "center", padding: "36px 12px" }}>
+                          <p style={{ fontSize: "24px", margin: "0 0 6px" }}>⚗️</p>
+                          <p style={{ fontSize: "11px", color: "#94a3b8", margin: 0 }}>No agents found</p>
+                        </div>
+                      ) : filteredAgents.map((agent) => {
+                        const onCanvas = canvasAgents.some((a) => a.agentId === agent.agentId);
+                        return (
+                          <div
+                            key={agent.agentId}
+                            onClick={() => setLibraryAgent(agent)}
+                            style={{ padding: "10px 11px", borderRadius: "10px", border: `1px solid ${onCanvas ? "#BBF7D0" : "#E3E8EF"}`, background: onCanvas ? "#F0FDF4" : "#fff", cursor: "pointer", marginBottom: "6px", transition: "border-color 0.15s, box-shadow 0.15s", boxShadow: "0 1px 3px rgba(10,37,64,0.04)" }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = onCanvas ? "#86EFAC" : "#93C5FD"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 10px rgba(37,99,235,0.1)"; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = onCanvas ? "#BBF7D0" : "#E3E8EF"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 3px rgba(10,37,64,0.04)"; }}
+                          >
+                            <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                              <div style={{ width: "40px", height: "40px", borderRadius: "11px", overflow: "hidden", flexShrink: 0, border: "1px solid #DBEAFE" }}>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${agent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
+                                  alt={agent.name} width={40} height={40}
+                                  style={{ display: "block", width: "100%", height: "100%" }}
+                                />
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{ color: "#0A2540", fontSize: "12px", fontWeight: 600, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {agent.name}
+                                </p>
+                                <p style={{ color: "#94a3b8", fontSize: "10px", margin: "0 0 3px" }}>
+                                  {CATEGORY_LABELS[agent.category] ?? agent.category}
+                                  {" · "}
+                                  {agent.pricingModel === "FREE" ? "Free" : `${agent.priceEth} ETH`}
+                                </p>
+                                {agent.description && (
+                                  <p style={{ color: "#64748b", fontSize: "10px", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{agent.description}</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); if (!onCanvas) addToCanvas(agent); }}
+                                style={{ width: "26px", height: "26px", borderRadius: "7px", background: onCanvas ? "#DCFCE7" : "#EFF6FF", border: `1px solid ${onCanvas ? "#86EFAC" : "#BFDBFE"}`, color: onCanvas ? "#10b981" : "#2563EB", fontSize: onCanvas ? "11px" : "15px", cursor: onCanvas ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: 700, lineHeight: 1 }}
+                              >
+                                {onCanvas ? "✓" : "+"}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* ── Toggle tab ── */}
+              <button
+                onClick={() => { setLibraryOpen((o) => !o); if (libraryOpen) setLibraryAgent(null); }}
+                style={{ width: "36px", background: "#fff", border: "none", borderLeft: "1px solid #E3E8EF", borderRadius: "0 10px 10px 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: "3px 0 10px rgba(10,37,64,0.07)", padding: 0, flexShrink: 0, transition: "background 0.15s" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#F8FAFF"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#fff"; }}
+              >
+                {libraryOpen ? (
+                  <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#64748b" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                ) : (
+                  <>
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#2563EB" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", fontSize: "9px", fontWeight: 700, color: "#2563EB", letterSpacing: "0.1em", textTransform: "uppercase" }}>Agents</span>
+                  </>
+                )}
+              </button>
+            </div>
+
             {/* Empty state */}
             {canvasAgents.length === 0 && (
               <div style={{
