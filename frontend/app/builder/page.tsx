@@ -447,7 +447,7 @@ export default function BuilderPage() {
             {/* ── Agent Library Slideout ─────────────────────────── */}
             <div style={{
               position: "absolute",
-              left: 0, top: 0, bottom: 0,
+              left: 0, top: 0, bottom: canvasAgents.length > 0 ? "60px" : 0,
               width: "320px",
               zIndex: 20,
               transform: libraryOpen ? "translateX(0)" : "translateX(calc(-100% + 36px))",
@@ -781,6 +781,8 @@ export default function BuilderPage() {
                 padding: "0 20px",
                 height: "60px",
                 gap: "16px",
+                position: "relative",
+                zIndex: 25,
               }}>
                 {/* Pipeline breadcrumb */}
                 <div style={{ display: "flex", alignItems: "center", gap: "7px", overflow: "hidden", minWidth: 0, flex: 1 }}>
