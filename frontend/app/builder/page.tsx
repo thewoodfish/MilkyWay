@@ -1,11 +1,14 @@
 "use client";
 
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, memo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ReactFlow, {
   Node, addEdge, Connection,
   useNodesState, useEdgesState,
-  Background, Controls, MiniMap,
+  Background, Controls,
+  Handle, Position,
+  BackgroundVariant,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { parseEther } from "viem";
@@ -21,86 +24,355 @@ import type { Agent } from "@/lib/types";
 const ESCROW = process.env.NEXT_PUBLIC_JOB_ESCROW_ADDRESS as `0x${string}`;
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
-// ── Agent node component ───────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
 
-function AgentNode({ data }: { data: { agent: Agent; orderIndex: number } }) {
-  const { agent } = data;
+function formatDeadline(s: number): string {
+  if (s < 60) return `${s}s`;
+  if (s < 3600) return `${Math.round(s / 60)}m`;
+  return `${Math.round(s / 3600)}h`;
+}
+
+type AboutSchema = {
+  input_schema?: Record<string, { type: string; required?: boolean; description?: string }>;
+  output_schema?: Record<string, { type: string; description?: string }>;
+};
+
+// ── Agent canvas node ──────────────────────────────────────────────────────
+
+interface NodeData {
+  agent: Agent;
+  orderIndex: number;
+  onRemove: (id: number) => void;
+}
+
+const AgentNode = memo(function AgentNode({
+  data,
+  selected,
+}: {
+  data: NodeData;
+  selected: boolean;
+}) {
+  const { agent, orderIndex, onRemove } = data;
+  const about = agent.aboutSchema as AboutSchema | null;
+  const inCount = about?.input_schema ? Object.keys(about.input_schema).length : null;
+  const outCount = about?.output_schema ? Object.keys(about.output_schema).length : null;
+
   return (
     <div
-      className="rounded-xl p-4 min-w-[220px]"
       style={{
-        background: "#161b22",
-        border: "1px solid #30363d",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(37,99,235,0.06)",
+        background: "linear-gradient(160deg,#111827 0%,#0f172a 100%)",
+        border: `1.5px solid ${selected ? "#3b82f6" : "rgba(59,130,246,0.12)"}`,
+        borderRadius: "14px",
+        minWidth: "230px",
+        boxShadow: selected
+          ? "0 0 0 3px rgba(59,130,246,0.18),0 8px 32px rgba(0,0,0,0.55)"
+          : "0 4px 20px rgba(0,0,0,0.45)",
+        transition: "box-shadow 0.18s,border-color 0.18s",
+        overflow: "hidden",
       }}
     >
-      <div className="flex items-center gap-3 mb-3">
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{
+          background: "#3b82f6",
+          width: 10,
+          height: 10,
+          border: "2px solid #080d1a",
+          left: -6,
+        }}
+      />
+
+      {/* Header */}
+      <div
+        style={{
+          padding: "10px 12px 9px",
+          borderBottom: "1px solid rgba(255,255,255,0.05)",
+          background: "rgba(59,130,246,0.05)",
+          display: "flex",
+          alignItems: "center",
+          gap: "9px",
+        }}
+      >
+        {/* Step number */}
         <div
-          className="w-9 h-9 rounded-lg flex items-center justify-center text-[13px] font-bold flex-shrink-0"
-          style={{ background: "rgba(37,99,235,0.2)", color: "#79c0ff" }}
+          style={{
+            width: "20px",
+            height: "20px",
+            borderRadius: "50%",
+            background: "rgba(59,130,246,0.2)",
+            border: "1.5px solid rgba(59,130,246,0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "10px",
+            fontWeight: 800,
+            color: "#93c5fd",
+            flexShrink: 0,
+          }}
+        >
+          {orderIndex + 1}
+        </div>
+
+        {/* Avatar */}
+        <div
+          style={{
+            width: "30px",
+            height: "30px",
+            borderRadius: "8px",
+            background: "linear-gradient(135deg,rgba(59,130,246,0.28) 0%,rgba(139,92,246,0.28) 100%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "13px",
+            fontWeight: 700,
+            color: "#c4b5fd",
+            flexShrink: 0,
+          }}
         >
           {agent.name[0]}
         </div>
-        <div className="min-w-0">
-          <p className="text-white text-[13px] font-semibold truncate">{agent.name}</p>
-          <p className="text-[11px]" style={{ color: "#484f58" }}>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ color: "#f1f5f9", fontSize: "12px", fontWeight: 600, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {agent.name}
+          </p>
+          <p style={{ color: "#3b4a62", fontSize: "10px", margin: 0 }}>
             {CATEGORY_LABELS[agent.category] ?? agent.category}
           </p>
         </div>
+
+        <button
+          onClick={(e) => { e.stopPropagation(); onRemove(agent.agentId); }}
+          title="Remove"
+          style={{
+            background: "transparent",
+            border: "none",
+            color: "#3b4a62",
+            cursor: "pointer",
+            fontSize: "17px",
+            lineHeight: 1,
+            padding: "0 2px",
+            flexShrink: 0,
+            transition: "color 0.15s",
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#ef4444"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#3b4a62"; }}
+        >
+          ×
+        </button>
       </div>
-      <p className="text-[11px] mb-3 leading-relaxed line-clamp-2" style={{ color: "#6e7681" }}>
-        {agent.description}
-      </p>
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] font-mono-custom" style={{ color: "#484f58" }}>
-          {agent.pricingModel === "FREE" ? "Free" : <EthAmount amount={agent.priceEth!} size={11} />}
-        </span>
-        {agent.phase2Ready && (
-          <span
-            className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-            style={{
-              background: "rgba(37,99,235,0.15)",
-              color: "#60a5fa",
-              border: "1px solid rgba(37,99,235,0.25)",
-            }}
-          >
-            Phase 2
+
+      {/* Body */}
+      <div style={{ padding: "10px 12px 11px" }}>
+        {agent.description && (
+          <p style={{
+            color: "#475569",
+            fontSize: "11px",
+            lineHeight: 1.55,
+            margin: "0 0 9px",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}>
+            {agent.description}
+          </p>
+        )}
+
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+          <span style={{
+            fontSize: "10px",
+            color: "#64748b",
+            background: "rgba(255,255,255,0.03)",
+            padding: "2px 8px",
+            borderRadius: "100px",
+            border: "1px solid rgba(255,255,255,0.07)",
+          }}>
+            {agent.pricingModel === "FREE" ? "Free" : <EthAmount amount={agent.priceEth!} size={10} />}
           </span>
+
+          {agent.phase2Ready ? (
+            <span style={{
+              fontSize: "10px",
+              fontWeight: 600,
+              color: "#34d399",
+              background: "rgba(52,211,153,0.08)",
+              padding: "2px 8px",
+              borderRadius: "100px",
+              border: "1px solid rgba(52,211,153,0.18)",
+            }}>
+              P2 ✓
+            </span>
+          ) : (
+            <span style={{
+              fontSize: "10px",
+              fontWeight: 600,
+              color: "#fbbf24",
+              background: "rgba(251,191,36,0.08)",
+              padding: "2px 8px",
+              borderRadius: "100px",
+              border: "1px solid rgba(251,191,36,0.18)",
+            }}>
+              P1
+            </span>
+          )}
+
+          {inCount !== null && (
+            <span style={{ fontSize: "10px", color: "#2d3748" }}>
+              {inCount}↓ {outCount}↑
+            </span>
+          )}
+        </div>
+      </div>
+
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{
+          background: "#10b981",
+          width: 10,
+          height: 10,
+          border: "2px solid #080d1a",
+          right: -6,
+        }}
+      />
+    </div>
+  );
+});
+
+const nodeTypes = { agentNode: AgentNode };
+
+// ── Agent library card ─────────────────────────────────────────────────────
+
+const AgentLibraryCard = memo(function AgentLibraryCard({
+  agent,
+  onCanvas,
+  onAdd,
+}: {
+  agent: Agent;
+  onCanvas: boolean;
+  onAdd: (a: Agent) => void;
+}) {
+  return (
+    <div
+      onClick={() => !onCanvas && onAdd(agent)}
+      style={{
+        padding: "11px 12px",
+        borderRadius: "10px",
+        border: `1px solid ${onCanvas ? "rgba(59,130,246,0.25)" : "rgba(255,255,255,0.05)"}`,
+        background: onCanvas ? "rgba(59,130,246,0.05)" : "rgba(255,255,255,0.02)",
+        cursor: onCanvas ? "default" : "pointer",
+        marginBottom: "6px",
+        transition: "border-color 0.15s, background 0.15s",
+        opacity: onCanvas ? 0.55 : 1,
+      }}
+      onMouseEnter={(e) => {
+        if (!onCanvas) {
+          (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(59,130,246,0.35)";
+          (e.currentTarget as HTMLDivElement).style.background = "rgba(59,130,246,0.04)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!onCanvas) {
+          (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.05)";
+          (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.02)";
+        }
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "flex-start", gap: "9px" }}>
+        {/* Avatar */}
+        <div style={{
+          width: "30px",
+          height: "30px",
+          borderRadius: "8px",
+          background: "linear-gradient(135deg,rgba(59,130,246,0.22) 0%,rgba(139,92,246,0.22) 100%)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "13px",
+          fontWeight: 700,
+          color: "#a78bfa",
+          flexShrink: 0,
+          marginTop: "1px",
+        }}>
+          {agent.name[0]}
+        </div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
+            <p style={{ color: "#e2e8f0", fontSize: "12px", fontWeight: 600, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {agent.name}
+            </p>
+            {onCanvas && (
+              <span style={{ fontSize: "10px", color: "#3b82f6", flexShrink: 0 }}>✓</span>
+            )}
+            {agent.phase2Ready && (
+              <span style={{
+                fontSize: "9px",
+                fontWeight: 700,
+                color: "#34d399",
+                background: "rgba(52,211,153,0.1)",
+                padding: "1px 5px",
+                borderRadius: "100px",
+                flexShrink: 0,
+              }}>
+                P2
+              </span>
+            )}
+          </div>
+          <p style={{ color: "#3b4a62", fontSize: "11px", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {CATEGORY_LABELS[agent.category] ?? agent.category}
+            {" · "}
+            {agent.pricingModel === "FREE" ? "Free" : <EthAmount amount={agent.priceEth!} size={10} style={{ color: "#3b4a62" }} />}
+          </p>
+        </div>
+
+        {!onCanvas && (
+          <div style={{
+            width: "22px",
+            height: "22px",
+            borderRadius: "6px",
+            background: "rgba(59,130,246,0.1)",
+            border: "1px solid rgba(59,130,246,0.2)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "14px",
+            color: "#60a5fa",
+            flexShrink: 0,
+            marginTop: "2px",
+          }}>
+            +
+          </div>
         )}
       </div>
     </div>
   );
-}
+});
 
-const nodeTypes = { agentNode: AgentNode };
-
-// ── Builder page ───────────────────────────────────────────────────────
+// ── Builder page ───────────────────────────────────────────────────────────
 
 export default function BuilderPage() {
   const router = useRouter();
   const { isConnected } = useAccount();
   const { isSignedIn } = useAuth();
 
-  // Agent library
   const [allAgents, setAllAgents] = useState<Agent[]>([]);
   const [search, setSearch] = useState("");
   const [p2Only, setP2Only] = useState(false);
+  const [catFilter, setCatFilter] = useState("ALL");
 
-  // Canvas state
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [canvasAgents, setCanvasAgents] = useState<Agent[]>([]);
 
-  // Config panel
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [staticInputs, setStaticInputs] = useState<Record<string, Record<string, string>>>({});
   const [trigger, setTrigger] = useState<"IMMEDIATE" | "SCHEDULED" | "CONDITION">("IMMEDIATE");
   const [deadlineSeconds, setDeadlineSeconds] = useState(300);
 
-  // Preview
   const [preview, setPreview] = useState<{ subtotal: string; protocolFee: string; total: string } | null>(null);
-
-  // Flow creation
   const [flowInternalId, setFlowInternalId] = useState("");
   const [activating, setActivating] = useState(false);
   const [error, setError] = useState("");
@@ -109,12 +381,11 @@ export default function BuilderPage() {
   const { isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
 
   useEffect(() => {
-    apiFetch<{ agents: Agent[] }>("/api/agents?limit=50")
-      .then((d) => setAllAgents(d.agents))
+    apiFetch<{ agents: Agent[] }>("/api/agents?limit=100")
+      .then((d) => setAllAgents(Array.isArray(d.agents) ? d.agents : []))
       .catch(() => {});
   }, []);
 
-  // Refresh preview when canvas changes
   useEffect(() => {
     if (!canvasAgents.length) { setPreview(null); return; }
     apiFetch<{ subtotal: string; protocolFee: string; total: string }>("/api/flows/preview", {
@@ -123,7 +394,6 @@ export default function BuilderPage() {
     }).then(setPreview).catch(() => {});
   }, [canvasAgents]);
 
-  // After escrow tx confirms, call /confirm
   useEffect(() => {
     if (!isSuccess || !txHash || !flowInternalId) return;
     authFetch(`${API}/api/flows/confirm`, {
@@ -131,19 +401,21 @@ export default function BuilderPage() {
       body: JSON.stringify({ internalId: flowInternalId, escrowTxHash: txHash }),
     })
       .then((r) => r.json())
-      .then((data) => {
-        router.push(`/flows/${encodeURIComponent(data.jobId)}`);
-      })
+      .then((data) => router.push(`/flows/${encodeURIComponent(data.jobId)}`))
       .catch((e) => setError((e as Error).message));
   }, [isSuccess, txHash, flowInternalId]);
+
+  const removeFromCanvas = useCallback((agentId: number) => {
+    setNodes((ns) => ns.filter((n) => n.id !== `agent-${agentId}`));
+    setEdges((es) => es.filter((e) => e.source !== `agent-${agentId}` && e.target !== `agent-${agentId}`));
+    setCanvasAgents((prev) => prev.filter((a) => a.agentId !== agentId));
+    setSelectedAgent((prev) => (prev?.agentId === agentId ? null : prev));
+  }, [setNodes, setEdges]);
 
   const onConnect = useCallback(
     (conn: Connection) =>
       setEdges((eds) =>
-        addEdge(
-          { ...conn, animated: true, style: { stroke: "#2563EB", strokeWidth: 2 } },
-          eds
-        )
+        addEdge({ ...conn, animated: true, style: { stroke: "#3b82f6", strokeWidth: 2 } }, eds)
       ),
     [setEdges]
   );
@@ -154,18 +426,11 @@ export default function BuilderPage() {
     const newNode: Node = {
       id: `agent-${agent.agentId}`,
       type: "agentNode",
-      position: { x: 100 + idx * 260, y: 150 },
-      data: { agent, orderIndex: idx },
+      position: { x: 80 + idx * 290, y: 140 },
+      data: { agent, orderIndex: idx, onRemove: removeFromCanvas },
     };
     setNodes((ns) => [...ns, newNode]);
     setCanvasAgents((prev) => [...prev, agent]);
-  }
-
-  function removeFromCanvas(agentId: number) {
-    setNodes((ns) => ns.filter((n) => n.id !== `agent-${agentId}`));
-    setEdges((es) => es.filter((e) => e.source !== `agent-${agentId}` && e.target !== `agent-${agentId}`));
-    setCanvasAgents((prev) => prev.filter((a) => a.agentId !== agentId));
-    if (selectedAgent?.agentId === agentId) setSelectedAgent(null);
   }
 
   async function activateFlow() {
@@ -179,7 +444,6 @@ export default function BuilderPage() {
         staticInputs: staticInputs[String(a.agentId)] ?? {},
         inputMapping: {},
       }));
-
       const res = await authFetch(`${API}/api/flows/create`, {
         method: "POST",
         body: JSON.stringify({ agents: agentsPayload, trigger, deadlineSeconds }),
@@ -188,7 +452,6 @@ export default function BuilderPage() {
       if (!res.ok) throw new Error(data.error ?? "Failed to create flow");
 
       setFlowInternalId(data.internalId);
-
       writeContract({
         address: ESCROW,
         abi: ESCROW_ABI,
@@ -207,395 +470,642 @@ export default function BuilderPage() {
     }
   }
 
+  const categories = ["ALL", ...Array.from(new Set(allAgents.map((a) => a.category))).sort()];
+
   const filteredAgents = allAgents.filter((a) => {
     if (p2Only && !a.phase2Ready) return false;
+    if (catFilter !== "ALL" && a.category !== catFilter) return false;
     if (search && !a.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
-  const inputSchema = selectedAgent?.aboutSchema
-    ? (selectedAgent.aboutSchema as { input_schema?: Record<string, { type: string; required?: boolean; description?: string }> }).input_schema
-    : null;
+  const about = selectedAgent?.aboutSchema as AboutSchema | null;
+  const inputSchema = about?.input_schema ?? null;
+  const outputSchema = about?.output_schema ?? null;
+  const allP2 = canvasAgents.length > 0 && canvasAgents.every((a) => a.phase2Ready);
+  const canActivate = isConnected && isSignedIn && !isPending && !activating && canvasAgents.length > 0 && allP2;
 
   return (
     <AuthGate description="Sign in to build and activate multi-agent flows on Arbitrum.">
-    <div
-      className="flex h-[calc(100vh-64px)]"
-      style={{ background: "#0D1117" }}
-    >
-      {/* LEFT — Agent Library */}
-      <div
-        className="w-72 flex-shrink-0 flex flex-col overflow-hidden"
-        style={{ borderRight: "1px solid #21262d" }}
-      >
-        <div className="p-4" style={{ borderBottom: "1px solid #21262d" }}>
-          <h2 className="font-display font-bold text-white text-[14px] mb-3">
-            Agent Library
-          </h2>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search agents…"
-            className="w-full rounded-lg px-3 py-2 text-[13px] text-white placeholder-[#484f58] outline-none mb-2"
-            style={{
-              background: "#161b22",
-              border: "1px solid #21262d",
-            }}
-            onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
-            onBlur={(e) => (e.target.style.borderColor = "#21262d")}
-          />
-          <label className="flex items-center gap-2 text-[12px] cursor-pointer" style={{ color: "#484f58" }}>
-            <input
-              type="checkbox"
-              checked={p2Only}
-              onChange={(e) => setP2Only(e.target.checked)}
-              className="accent-blue-600"
-            />
-            Phase 2 Ready only
-          </label>
-        </div>
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
-          {filteredAgents.map((agent) => {
-            const onCanvas = canvasAgents.some((a) => a.agentId === agent.agentId);
-            return (
-              <div
-                key={agent.agentId}
-                onClick={() => !onCanvas && addToCanvas(agent)}
-                className="p-3 rounded-xl transition-all cursor-pointer"
-                style={{
-                  background: onCanvas ? "rgba(37,99,235,0.06)" : "rgba(255,255,255,0.02)",
-                  border: `1px solid ${onCanvas ? "rgba(37,99,235,0.3)" : "#21262d"}`,
-                  opacity: onCanvas ? 0.5 : 1,
-                  cursor: onCanvas ? "default" : "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (!onCanvas)
-                    (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(37,99,235,0.4)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!onCanvas)
-                    (e.currentTarget as HTMLDivElement).style.borderColor = "#21262d";
-                }}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-white text-[12px] font-medium truncate">{agent.name}</p>
-                  {agent.phase2Ready && (
-                    <span
-                      className="text-[10px] font-semibold ml-1 px-1.5 py-0.5 rounded-full flex-shrink-0"
-                      style={{ background: "rgba(37,99,235,0.15)", color: "#60a5fa" }}
-                    >
-                      P2
-                    </span>
-                  )}
-                </div>
-                <p className="text-[11px]" style={{ color: "#484f58" }}>
-                  {agent.pricingModel === "FREE" ? "Free" : <EthAmount amount={agent.priceEth!} size={11} />}
-                </p>
-              </div>
-            );
-          })}
-          {filteredAgents.length === 0 && (
-            <p className="text-[12px] text-center py-8" style={{ color: "#484f58" }}>
-              No agents found
-            </p>
+      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)", background: "#080d1a" }}>
+
+        {/* ── Top bar ──────────────────────────────────────────────── */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          padding: "0 20px",
+          height: "50px",
+          borderBottom: "1px solid rgba(255,255,255,0.05)",
+          background: "#0a0f1e",
+          flexShrink: 0,
+          gap: "14px",
+        }}>
+          <Link
+            href="/dashboard"
+            style={{ color: "#3b4a62", textDecoration: "none", fontSize: "12px", display: "flex", alignItems: "center", gap: "5px", transition: "color 0.15s" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#64748b"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#3b4a62"; }}
+          >
+            ← Dashboard
+          </Link>
+
+          <div style={{ width: "1px", height: "14px", background: "rgba(255,255,255,0.06)" }} />
+
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#3b82f6", boxShadow: "0 0 8px #3b82f6", display: "inline-block" }} />
+            <span style={{ color: "#e2e8f0", fontSize: "14px", fontWeight: 700, letterSpacing: "-0.01em" }}>Flow Builder</span>
+          </div>
+
+          {canvasAgents.length > 0 && (
+            <span style={{
+              fontSize: "11px",
+              color: "#3b82f6",
+              background: "rgba(59,130,246,0.1)",
+              padding: "3px 10px",
+              borderRadius: "100px",
+              border: "1px solid rgba(59,130,246,0.2)",
+            }}>
+              {canvasAgents.length} agent{canvasAgents.length > 1 ? "s" : ""}
+            </span>
+          )}
+
+          <div style={{ flex: 1 }} />
+
+          {canvasAgents.length > 0 && (
+            <button
+              onClick={() => {
+                setNodes([]);
+                setEdges([]);
+                setCanvasAgents([]);
+                setSelectedAgent(null);
+                setPreview(null);
+                setError("");
+              }}
+              style={{
+                fontSize: "12px",
+                color: "#475569",
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.07)",
+                borderRadius: "8px",
+                padding: "5px 12px",
+                cursor: "pointer",
+                transition: "color 0.15s, border-color 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.color = "#94a3b8";
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.14)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.color = "#475569";
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.07)";
+              }}
+            >
+              Clear
+            </button>
           )}
         </div>
-      </div>
 
-      {/* CENTER — Canvas */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex-1 relative">
-          {canvasAgents.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-              <div className="text-center">
-                <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                  style={{
-                    background: "rgba(37,99,235,0.1)",
-                    border: "1px solid rgba(37,99,235,0.2)",
-                  }}
+        {/* ── Three-panel layout ────────────────────────────────────── */}
+        <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+
+          {/* ── LEFT: Agent Library ───────────────────────────────── */}
+          <div style={{
+            width: "272px",
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column",
+            borderRight: "1px solid rgba(255,255,255,0.05)",
+            background: "#0a0f1e",
+          }}>
+            {/* Search */}
+            <div style={{ padding: "14px 14px 12px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <p style={{ color: "#e2e8f0", fontSize: "12px", fontWeight: 700, margin: "0 0 10px", letterSpacing: "0.01em" }}>
+                Agent Library
+              </p>
+              <div style={{ position: "relative", marginBottom: "10px" }}>
+                <svg
+                  style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", width: "13px", height: "13px", color: "#3b4a62", pointerEvents: "none" }}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
                 >
-                  <svg
-                    className="w-7 h-7"
-                    style={{ color: "#2563EB" }}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-white font-semibold text-[15px] mb-1">
-                  Add agents to your flow
-                </p>
-                <p className="text-[13px]" style={{ color: "#484f58" }}>
-                  Click agents from the library on the left
-                </p>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search agents…"
+                  style={{
+                    width: "100%",
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.07)",
+                    borderRadius: "9px",
+                    padding: "7px 10px 7px 30px",
+                    fontSize: "12px",
+                    color: "#e2e8f0",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    transition: "border-color 0.15s",
+                  }}
+                  onFocus={(e) => { e.target.style.borderColor = "rgba(59,130,246,0.45)"; }}
+                  onBlur={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.07)"; }}
+                />
               </div>
-            </div>
-          )}
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onNodeClick={(_, node) => {
-              const agent = canvasAgents.find((a) => `agent-${a.agentId}` === node.id);
-              if (agent) setSelectedAgent(agent);
-            }}
-            nodeTypes={nodeTypes}
-            fitView
-            style={{ background: "#0D1117" }}
-          >
-            <Background color="#21262d" gap={28} size={1} />
-            <Controls />
-            <MiniMap
-              nodeColor="#2563eb"
-              style={{ background: "#161b22", border: "1px solid #21262d" }}
-            />
-          </ReactFlow>
-        </div>
 
-        {/* Bottom bar */}
-        {canvasAgents.length > 0 && (
-          <div
-            className="px-6 py-4 flex items-center justify-between"
-            style={{ borderTop: "1px solid #21262d", background: "#161b22" }}
-          >
-            <div className="flex items-center gap-6">
-              {preview && (
-                <>
-                  <span className="text-[12px]" style={{ color: "#484f58" }}>
-                    Subtotal:{" "}
-                    <span className="text-white font-mono-custom"><EthAmount amount={preview.subtotal} size={11} style={{ color: "#fff" }} /></span>
-                  </span>
-                  <span className="text-[12px]" style={{ color: "#484f58" }}>
-                    Fee (1%):{" "}
-                    <span className="text-white font-mono-custom"><EthAmount amount={preview.protocolFee} size={11} style={{ color: "#fff" }} /></span>
-                  </span>
-                  <span className="text-[13px] font-semibold" style={{ color: "#60a5fa" }}>
-                    Total:{" "}
-                    <span className="font-mono-custom"><EthAmount amount={preview.total} size={12} style={{ color: "#60a5fa" }} /></span>
-                  </span>
-                </>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              {error && (
-                <p className="text-[12px]" style={{ color: "#f85149" }}>
-                  {error}
-                </p>
-              )}
-              {!isConnected && (
-                <p className="text-[12px]" style={{ color: "#484f58" }}>
-                  Connect wallet to activate
-                </p>
-              )}
-              {isConnected && !isSignedIn && (
-                <p className="text-[12px]" style={{ color: "#484f58" }}>
-                  Sign in to activate
-                </p>
-              )}
+              {/* Phase 2 toggle */}
               <button
-                onClick={activateFlow}
-                disabled={
-                  !isConnected ||
-                  !isSignedIn ||
-                  isPending ||
-                  activating ||
-                  !canvasAgents.every((a) => a.phase2Ready)
-                }
-                className="text-white text-[13px] font-semibold px-5 py-2 rounded-lg transition-colors disabled:opacity-40"
-                style={{ background: "#2563EB" }}
-                onMouseEnter={(e) =>
-                  ((e.target as HTMLButtonElement).style.background = "#1d4ed8")
-                }
-                onMouseLeave={(e) =>
-                  ((e.target as HTMLButtonElement).style.background = "#2563EB")
-                }
+                onClick={() => setP2Only((v) => !v)}
+                style={{ display: "flex", alignItems: "center", gap: "8px", background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
               >
-                {isPending ? "Check Wallet…" : activating ? "Activating…" : "Activate Flow →"}
+                <div style={{
+                  width: "30px", height: "17px", borderRadius: "100px",
+                  background: p2Only ? "#3b82f6" : "rgba(255,255,255,0.07)",
+                  position: "relative", flexShrink: 0, transition: "background 0.2s",
+                }}>
+                  <div style={{
+                    width: "11px", height: "11px", borderRadius: "50%", background: "#fff",
+                    position: "absolute", top: "3px", left: p2Only ? "16px" : "3px",
+                    transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
+                  }} />
+                </div>
+                <span style={{ fontSize: "11px", color: p2Only ? "#93c5fd" : "#3b4a62" }}>Phase 2 only</span>
               </button>
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* RIGHT — Config panel */}
-      <div
-        className="w-72 flex-shrink-0 flex flex-col overflow-y-auto"
-        style={{ borderLeft: "1px solid #21262d" }}
-      >
-        <div className="p-4" style={{ borderBottom: "1px solid #21262d" }}>
-          <h2 className="font-display font-bold text-white text-[14px]">Configuration</h2>
-        </div>
-
-        {selectedAgent ? (
-          <div className="p-4 space-y-4">
-            <div>
-              <p className="text-white font-semibold text-[13px]">{selectedAgent.name}</p>
-              <p className="text-[12px] mt-1 leading-relaxed" style={{ color: "#6e7681" }}>
-                {selectedAgent.description}
-              </p>
-            </div>
-            {inputSchema && (
-              <div>
-                <p
-                  className="text-[11px] font-semibold uppercase tracking-widest mb-3"
-                  style={{ color: "#484f58" }}
+            {/* Category pills */}
+            <div style={{
+              padding: "10px 14px",
+              borderBottom: "1px solid rgba(255,255,255,0.05)",
+              display: "flex",
+              gap: "5px",
+              flexWrap: "wrap",
+            }}>
+              {categories.slice(0, 6).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCatFilter(cat)}
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 600,
+                    padding: "3px 9px",
+                    borderRadius: "100px",
+                    border: "none",
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                    background: catFilter === cat ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.04)",
+                    color: catFilter === cat ? "#93c5fd" : "#3b4a62",
+                  }}
                 >
-                  Inputs
-                </p>
-                {Object.entries(inputSchema).map(([field, def]) => (
-                  <div key={field} className="mb-3">
-                    <label className="text-[12px] text-white block mb-1.5">
-                      {field}{" "}
-                      {def.required && <span style={{ color: "#f85149" }}>*</span>}
-                    </label>
-                    <input
-                      value={staticInputs[String(selectedAgent.agentId)]?.[field] ?? ""}
-                      onChange={(e) =>
-                        setStaticInputs((prev) => ({
-                          ...prev,
-                          [String(selectedAgent.agentId)]: {
-                            ...(prev[String(selectedAgent.agentId)] ?? {}),
-                            [field]: e.target.value,
-                          },
-                        }))
-                      }
-                      placeholder={def.description ?? def.type}
-                      className="w-full rounded-lg px-3 py-1.5 text-[12px] text-white outline-none"
-                      style={{
-                        background: "#161b22",
-                        border: "1px solid #21262d",
-                      }}
-                      onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
-                      onBlur={(e) => (e.target.style.borderColor = "#21262d")}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-            <button
-              onClick={() => removeFromCanvas(selectedAgent.agentId)}
-              className="w-full text-[12px] py-2 rounded-lg transition-colors"
-              style={{
-                color: "#f85149",
-                border: "1px solid rgba(248,81,73,0.2)",
-                background: "transparent",
-              }}
-              onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(248,81,73,0.4)")
-              }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(248,81,73,0.2)")
-              }
-            >
-              Remove from canvas
-            </button>
-          </div>
-        ) : (
-          <div className="p-4 space-y-5">
-            <p className="text-[12px]" style={{ color: "#484f58" }}>
-              Click an agent on the canvas to configure its inputs.
-            </p>
-            <div>
-              <p
-                className="text-[11px] font-semibold uppercase tracking-widest mb-3"
-                style={{ color: "#484f58" }}
-              >
-                Trigger
-              </p>
-              {(["IMMEDIATE", "SCHEDULED", "CONDITION"] as const).map((t) => (
-                <label
-                  key={t}
-                  className="flex items-center gap-2 text-[12px] text-white mb-2.5 cursor-pointer"
-                >
-                  <input
-                    type="radio"
-                    value={t}
-                    checked={trigger === t}
-                    onChange={() => setTrigger(t)}
-                    className="accent-blue-600"
-                  />
-                  {t.charAt(0) + t.slice(1).toLowerCase()}
-                </label>
+                  {cat === "ALL" ? "All" : (CATEGORY_LABELS[cat] ?? cat)}
+                </button>
               ))}
             </div>
-            <div>
-              <p
-                className="text-[11px] font-semibold uppercase tracking-widest mb-3"
-                style={{ color: "#484f58" }}
-              >
-                Deadline:{" "}
-                <span className="font-mono-custom normal-case" style={{ color: "#60a5fa" }}>
-                  {deadlineSeconds}s
-                </span>
-              </p>
-              <input
-                type="range"
-                min={30}
-                max={86400}
-                step={30}
-                value={deadlineSeconds}
-                onChange={(e) => setDeadlineSeconds(Number(e.target.value))}
-                className="w-full accent-blue-600"
-              />
-              <div
-                className="flex justify-between text-[11px] mt-1"
-                style={{ color: "#484f58" }}
-              >
-                <span>30s</span>
-                <span>24h</span>
-              </div>
+
+            {/* List */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "10px" }}>
+              {filteredAgents.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "36px 12px", color: "#1e293b" }}>
+                  <p style={{ fontSize: "24px", margin: "0 0 6px" }}>⚗️</p>
+                  <p style={{ fontSize: "11px", margin: 0 }}>No agents found</p>
+                </div>
+              ) : (
+                filteredAgents.map((agent) => (
+                  <AgentLibraryCard
+                    key={agent.agentId}
+                    agent={agent}
+                    onCanvas={canvasAgents.some((a) => a.agentId === agent.agentId)}
+                    onAdd={addToCanvas}
+                  />
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            <div style={{ padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.04)", fontSize: "10px", color: "#1e3a5f" }}>
+              {filteredAgents.length} agent{filteredAgents.length !== 1 ? "s" : ""}
             </div>
           </div>
-        )}
 
-        {/* Canvas agent list */}
-        {canvasAgents.length > 0 && (
-          <div className="p-4" style={{ borderTop: "1px solid #21262d" }}>
-            <p
-              className="text-[11px] font-semibold uppercase tracking-widest mb-3"
-              style={{ color: "#484f58" }}
-            >
-              Flow ({canvasAgents.length} agents)
-            </p>
-            {canvasAgents.map((a, i) => (
-              <div key={a.agentId} className="flex items-center gap-2 mb-2">
-                <span
-                  className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold flex-shrink-0"
-                  style={{ background: "rgba(37,99,235,0.15)", color: "#60a5fa" }}
-                >
-                  {i + 1}
-                </span>
-                <span className="text-[12px] text-white flex-1 truncate">{a.name}</span>
-                {!a.phase2Ready && (
-                  <span
-                    className="text-[10px]"
-                    style={{ color: "#d29922" }}
-                    title="Not Phase 2 Ready"
-                  >
-                    !
-                  </span>
-                )}
+          {/* ── CENTER: Canvas ─────────────────────────────────────── */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+            {/* Empty state */}
+            {canvasAgents.length === 0 && (
+              <div style={{
+                position: "absolute", inset: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                zIndex: 10, pointerEvents: "none",
+              }}>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{
+                    width: "68px", height: "68px", borderRadius: "18px",
+                    background: "rgba(59,130,246,0.07)",
+                    border: "1px solid rgba(59,130,246,0.12)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    margin: "0 auto 18px",
+                  }}>
+                    <svg width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="rgba(59,130,246,0.55)" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                  </div>
+                  <p style={{ color: "#c7d2e0", fontSize: "15px", fontWeight: 600, margin: "0 0 5px" }}>
+                    Start building your flow
+                  </p>
+                  <p style={{ color: "#2d3748", fontSize: "12px", margin: "0 0 22px" }}>
+                    Click agents from the library to add them here
+                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "center", color: "#1e293b", fontSize: "11px" }}>
+                    <span style={{ padding: "4px 10px", borderRadius: "100px", border: "1px solid rgba(255,255,255,0.04)" }}>① Add agents</span>
+                    <span style={{ color: "#1e3a5f" }}>→</span>
+                    <span style={{ padding: "4px 10px", borderRadius: "100px", border: "1px solid rgba(255,255,255,0.04)" }}>② Connect them</span>
+                    <span style={{ color: "#1e3a5f" }}>→</span>
+                    <span style={{ padding: "4px 10px", borderRadius: "100px", border: "1px solid rgba(255,255,255,0.04)" }}>③ Activate</span>
+                  </div>
+                </div>
               </div>
-            ))}
-            {!canvasAgents.every((a) => a.phase2Ready) && (
-              <p className="text-[11px] mt-3" style={{ color: "#d29922" }}>
-                All agents must be Phase 2 Ready to activate
-              </p>
+            )}
+
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onNodeClick={(_, node) => {
+                const a = canvasAgents.find((a) => `agent-${a.agentId}` === node.id);
+                if (a) setSelectedAgent(a);
+              }}
+              onPaneClick={() => setSelectedAgent(null)}
+              nodeTypes={nodeTypes}
+              fitView
+              fitViewOptions={{ padding: 0.35 }}
+              style={{ background: "transparent", flex: 1 }}
+              defaultEdgeOptions={{
+                animated: true,
+                style: { stroke: "#3b82f6", strokeWidth: 2 },
+              }}
+            >
+              <Background color="#111827" gap={22} size={1} variant={BackgroundVariant.Dots} />
+              <Controls
+                style={{
+                  background: "#0f172a",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  borderRadius: "10px",
+                  overflow: "hidden",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+                }}
+              />
+            </ReactFlow>
+
+            {/* ── Bottom bar ── */}
+            {canvasAgents.length > 0 && (
+              <div style={{
+                padding: "12px 18px",
+                borderTop: "1px solid rgba(255,255,255,0.05)",
+                background: "#0a0f1e",
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                flexShrink: 0,
+              }}>
+                {/* Pipeline breadcrumb */}
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  flex: 1,
+                  overflow: "hidden",
+                  minWidth: 0,
+                }}>
+                  {canvasAgents.map((a, i) => (
+                    <span key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "5px", minWidth: 0, flexShrink: i < canvasAgents.length - 1 ? 1 : 0 }}>
+                      <span style={{
+                        fontSize: "12px",
+                        color: "#64748b",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: "110px",
+                      }}>
+                        {a.name}
+                      </span>
+                      {i < canvasAgents.length - 1 && (
+                        <span style={{ color: "#1e3a5f", fontSize: "12px", flexShrink: 0 }}>→</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Cost */}
+                {preview && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px", flexShrink: 0 }}>
+                    <span style={{ fontSize: "11px", color: "#2d3748" }}>
+                      Subtotal: <span style={{ color: "#475569" }}><EthAmount amount={preview.subtotal} size={10} /></span>
+                    </span>
+                    <span style={{ fontSize: "11px", color: "#2d3748" }}>
+                      1% fee: <span style={{ color: "#475569" }}><EthAmount amount={preview.protocolFee} size={10} /></span>
+                    </span>
+                    <span style={{ fontSize: "14px", fontWeight: 800, color: "#3b82f6", letterSpacing: "-0.01em" }}>
+                      <EthAmount amount={preview.total} size={13} style={{ color: "#3b82f6", fontWeight: 800 }} />
+                    </span>
+                  </div>
+                )}
+
+                {/* Error */}
+                {error && (
+                  <p style={{ fontSize: "11px", color: "#ef4444", flexShrink: 0, maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {error}
+                  </p>
+                )}
+
+                {/* Status hint */}
+                {!isConnected && (
+                  <p style={{ fontSize: "11px", color: "#2d3748", flexShrink: 0 }}>Connect wallet to activate</p>
+                )}
+                {isConnected && !isSignedIn && (
+                  <p style={{ fontSize: "11px", color: "#2d3748", flexShrink: 0 }}>Sign in to activate</p>
+                )}
+
+                {/* Activate */}
+                <button
+                  onClick={activateFlow}
+                  disabled={!canActivate}
+                  style={{
+                    padding: "9px 18px",
+                    borderRadius: "10px",
+                    border: "none",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    cursor: canActivate ? "pointer" : "not-allowed",
+                    background: canActivate
+                      ? "linear-gradient(135deg,#2563eb 0%,#4f46e5 100%)"
+                      : "rgba(255,255,255,0.05)",
+                    color: canActivate ? "#fff" : "#2d3748",
+                    transition: "opacity 0.15s, box-shadow 0.15s",
+                    flexShrink: 0,
+                    boxShadow: canActivate ? "0 0 18px rgba(59,130,246,0.28)" : "none",
+                    letterSpacing: "-0.01em",
+                  }}
+                  onMouseEnter={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.opacity = "0.88"; }}
+                  onMouseLeave={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
+                >
+                  {isPending ? "Check wallet…" : activating ? "Activating…" : "⚡ Activate Flow"}
+                </button>
+              </div>
             )}
           </div>
-        )}
+
+          {/* ── RIGHT: Config panel ───────────────────────────────── */}
+          <div style={{
+            width: "272px",
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column",
+            borderLeft: "1px solid rgba(255,255,255,0.05)",
+            background: "#0a0f1e",
+            overflowY: "auto",
+          }}>
+            {selectedAgent ? (
+              /* ── Agent config ── */
+              <>
+                {/* Agent header */}
+                <div style={{ padding: "14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+                    <div style={{
+                      width: "36px", height: "36px", borderRadius: "10px",
+                      background: "linear-gradient(135deg,rgba(59,130,246,0.25),rgba(139,92,246,0.25))",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "15px", fontWeight: 700, color: "#c4b5fd", flexShrink: 0,
+                    }}>
+                      {selectedAgent.name[0]}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ color: "#f1f5f9", fontSize: "13px", fontWeight: 600, margin: "0 0 2px" }}>{selectedAgent.name}</p>
+                      <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+                        <span style={{ fontSize: "10px", color: "#3b4a62" }}>{CATEGORY_LABELS[selectedAgent.category] ?? selectedAgent.category}</span>
+                        {selectedAgent.phase2Ready && (
+                          <span style={{ fontSize: "9px", fontWeight: 700, color: "#34d399", background: "rgba(52,211,153,0.1)", padding: "1px 5px", borderRadius: "4px" }}>P2</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {selectedAgent.description && (
+                    <p style={{ color: "#475569", fontSize: "11px", lineHeight: 1.6, margin: 0 }}>
+                      {selectedAgent.description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Input fields */}
+                {inputSchema && Object.keys(inputSchema).length > 0 && (
+                  <div style={{ padding: "14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                    <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#2d3748", margin: "0 0 12px" }}>
+                      Inputs
+                    </p>
+                    {Object.entries(inputSchema).map(([field, def]) => (
+                      <div key={field} style={{ marginBottom: "11px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "5px" }}>
+                          <label style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 500 }}>{field}</label>
+                          <span style={{ fontSize: "9px", color: "#2d3748", background: "rgba(255,255,255,0.03)", padding: "1px 5px", borderRadius: "4px" }}>
+                            {def.type}
+                          </span>
+                          {def.required && (
+                            <span style={{ fontSize: "9px", color: "#ef4444", fontWeight: 600 }}>required</span>
+                          )}
+                        </div>
+                        <input
+                          value={staticInputs[String(selectedAgent.agentId)]?.[field] ?? ""}
+                          onChange={(e) =>
+                            setStaticInputs((prev) => ({
+                              ...prev,
+                              [String(selectedAgent.agentId)]: {
+                                ...(prev[String(selectedAgent.agentId)] ?? {}),
+                                [field]: e.target.value,
+                              },
+                            }))
+                          }
+                          placeholder={def.description ?? `${field}…`}
+                          style={{
+                            width: "100%",
+                            background: "rgba(255,255,255,0.03)",
+                            border: "1px solid rgba(255,255,255,0.07)",
+                            borderRadius: "8px",
+                            padding: "7px 10px",
+                            fontSize: "12px",
+                            color: "#e2e8f0",
+                            outline: "none",
+                            boxSizing: "border-box",
+                            transition: "border-color 0.15s",
+                          }}
+                          onFocus={(e) => { e.target.style.borderColor = "rgba(59,130,246,0.45)"; }}
+                          onBlur={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.07)"; }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Output schema */}
+                {outputSchema && Object.keys(outputSchema).length > 0 && (
+                  <div style={{ padding: "14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                    <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#2d3748", margin: "0 0 10px" }}>
+                      Outputs
+                    </p>
+                    {Object.entries(outputSchema).map(([field, def]) => (
+                      <div key={field} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "7px" }}>
+                        <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#10b981", flexShrink: 0 }} />
+                        <span style={{ fontSize: "11px", color: "#475569", flex: 1 }}>{field}</span>
+                        <span style={{ fontSize: "9px", color: "#1e293b", background: "rgba(255,255,255,0.03)", padding: "1px 5px", borderRadius: "4px" }}>
+                          {def.type}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Remove button */}
+                <div style={{ padding: "14px" }}>
+                  <button
+                    onClick={() => removeFromCanvas(selectedAgent.agentId)}
+                    style={{
+                      width: "100%",
+                      padding: "8px",
+                      borderRadius: "8px",
+                      border: "1px solid rgba(239,68,68,0.18)",
+                      background: "transparent",
+                      color: "#ef4444",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      transition: "border-color 0.15s, background 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(239,68,68,0.4)";
+                      (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.04)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(239,68,68,0.18)";
+                      (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                    }}
+                  >
+                    Remove from canvas
+                  </button>
+                </div>
+              </>
+            ) : (
+              /* ── Flow settings ── */
+              <>
+                <div style={{ padding: "14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <p style={{ color: "#e2e8f0", fontSize: "13px", fontWeight: 700, margin: "0 0 2px" }}>Configuration</p>
+                  <p style={{ color: "#2d3748", fontSize: "11px", margin: 0 }}>
+                    {canvasAgents.length === 0 ? "Add agents to get started" : "Click an agent to configure its inputs"}
+                  </p>
+                </div>
+
+                {/* Trigger */}
+                <div style={{ padding: "14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#2d3748", margin: "0 0 10px" }}>
+                    Trigger
+                  </p>
+                  {([
+                    { value: "IMMEDIATE", icon: "⚡", label: "Immediate", desc: "Runs right away" },
+                    { value: "SCHEDULED", icon: "🕐", label: "Scheduled", desc: "Run at a set time" },
+                    { value: "CONDITION", icon: "🔮", label: "Condition", desc: "Triggered externally" },
+                  ] as const).map(({ value, icon, label, desc }) => (
+                    <button
+                      key={value}
+                      onClick={() => setTrigger(value)}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "9px 11px",
+                        borderRadius: "9px",
+                        border: `1px solid ${trigger === value ? "rgba(59,130,246,0.35)" : "rgba(255,255,255,0.05)"}`,
+                        background: trigger === value ? "rgba(59,130,246,0.07)" : "transparent",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        marginBottom: "6px",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      <span style={{ fontSize: "16px" }}>{icon}</span>
+                      <div>
+                        <p style={{ color: trigger === value ? "#93c5fd" : "#64748b", fontSize: "12px", fontWeight: 600, margin: 0 }}>{label}</p>
+                        <p style={{ color: "#1e293b", fontSize: "10px", margin: 0 }}>{desc}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Deadline */}
+                <div style={{ padding: "14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                    <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#2d3748", margin: 0 }}>
+                      Deadline
+                    </p>
+                    <span style={{ fontSize: "13px", fontWeight: 800, color: "#3b82f6" }}>
+                      {formatDeadline(deadlineSeconds)}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={30}
+                    max={86400}
+                    step={30}
+                    value={deadlineSeconds}
+                    onChange={(e) => setDeadlineSeconds(Number(e.target.value))}
+                    style={{ width: "100%", accentColor: "#3b82f6", cursor: "pointer" }}
+                  />
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#1e293b", marginTop: "4px" }}>
+                    <span>30s</span>
+                    <span>12h</span>
+                    <span>24h</span>
+                  </div>
+                </div>
+
+                {/* Agent order */}
+                {canvasAgents.length > 0 && (
+                  <div style={{ padding: "14px" }}>
+                    <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#2d3748", margin: "0 0 12px" }}>
+                      Flow — {canvasAgents.length} agent{canvasAgents.length !== 1 ? "s" : ""}
+                    </p>
+                    {canvasAgents.map((a, i) => (
+                      <div key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "9px", marginBottom: "9px" }}>
+                        <span style={{
+                          width: "19px", height: "19px", borderRadius: "50%",
+                          background: "rgba(59,130,246,0.12)",
+                          border: "1.5px solid rgba(59,130,246,0.25)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: "9px", fontWeight: 800, color: "#93c5fd", flexShrink: 0,
+                        }}>
+                          {i + 1}
+                        </span>
+                        <span style={{ fontSize: "11px", color: "#64748b", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {a.name}
+                        </span>
+                        {!a.phase2Ready && (
+                          <span style={{ fontSize: "11px", color: "#fbbf24", flexShrink: 0 }} title="Phase 1 only — cannot activate">⚠</span>
+                        )}
+                      </div>
+                    ))}
+
+                    {!allP2 && canvasAgents.length > 0 && (
+                      <div style={{
+                        marginTop: "10px", padding: "9px 11px", borderRadius: "8px",
+                        background: "rgba(245,158,11,0.05)",
+                        border: "1px solid rgba(245,158,11,0.14)",
+                      }}>
+                        <p style={{ fontSize: "11px", color: "#fbbf24", margin: 0, lineHeight: 1.5 }}>
+                          All agents must be Phase 2 ready to activate.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
     </AuthGate>
   );
 }
