@@ -530,7 +530,7 @@ export default function BuilderPage() {
             display: "flex",
             flexDirection: "column",
             borderRight: "1px solid #BFDBFE",
-            background: "#EEF2FF",
+            background: "#fff",
           }}>
             {/* Header + search */}
             <div style={{ padding: "14px 14px 12px", borderBottom: "1px solid #BFDBFE", background: "#fff" }}>
@@ -598,7 +598,7 @@ export default function BuilderPage() {
             </div>
 
             {/* Agent list */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "10px", background: "#EEF2FF" }}>
+            <div style={{ flex: 1, overflowY: "auto", padding: "10px", background: "#fff" }}>
               {filteredAgents.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "36px 12px" }}>
                   <p style={{ fontSize: "24px", margin: "0 0 6px" }}>⚗️</p>
@@ -794,14 +794,14 @@ export default function BuilderPage() {
             flexShrink: 0,
             display: "flex",
             flexDirection: "column",
-            borderLeft: "1px solid #C7D7F5",
-            background: "#F0F4FB",
+            borderLeft: "1px solid #BFDBFE",
+            background: "#fff",
             overflowY: "auto",
           }}>
             {selectedAgent ? (
               /* ── Agent config ── */
               <>
-                <div style={{ padding: "14px", borderBottom: "1px solid #DBEAFE", background: "#fff", borderLeft: "3px solid #2563EB" }}>
+                <div style={{ padding: "14px", borderBottom: "1px solid #E3E8EF", borderLeft: "3px solid #2563EB" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
                     <div style={{ width: "36px", height: "36px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, border: "1px solid #DBEAFE" }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -827,7 +827,7 @@ export default function BuilderPage() {
 
                 {/* Input fields */}
                 {inputSchema && Object.keys(inputSchema).length > 0 && (
-                  <div style={{ padding: "14px", borderBottom: "1px solid #DBEAFE", background: "#fff", margin: "0 0 1px" }}>
+                  <div style={{ padding: "14px", borderBottom: "1px solid #E3E8EF" }}>
                     <p style={sectionLabel}>Inputs</p>
                     {Object.entries(inputSchema).map(([field, def]) => (
                       <div key={field} style={{ marginBottom: "11px" }}>
@@ -874,7 +874,7 @@ export default function BuilderPage() {
 
                 {/* Output schema */}
                 {outputSchema && Object.keys(outputSchema).length > 0 && (
-                  <div style={{ padding: "14px", borderBottom: "1px solid #DBEAFE", background: "#F8FAFF" }}>
+                  <div style={{ padding: "14px", borderBottom: "1px solid #E3E8EF" }}>
                     <p style={sectionLabel}>Outputs</p>
                     {Object.entries(outputSchema).map(([field, def]) => (
                       <div key={field} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "7px" }}>
@@ -919,7 +919,7 @@ export default function BuilderPage() {
             ) : (
               /* ── Flow settings ── */
               <>
-                <div style={{ padding: "14px", borderBottom: "1px solid #BFDBFE", background: "#EFF6FF" }}>
+                <div style={{ padding: "14px", borderBottom: "1px solid #E3E8EF" }}>
                   <p style={{ color: "#1D4ED8", fontSize: "13px", fontWeight: 700, margin: "0 0 2px" }}>Configuration</p>
                   <p style={{ color: "#94a3b8", fontSize: "11px", margin: 0 }}>
                     {canvasAgents.length === 0 ? "Add agents to get started" : "Click an agent to configure its inputs"}
@@ -927,7 +927,7 @@ export default function BuilderPage() {
                 </div>
 
                 {/* Trigger */}
-                <div style={{ padding: "14px", borderBottom: "1px solid #DBEAFE", background: "#fff" }}>
+                <div style={{ padding: "14px", borderBottom: "1px solid #E3E8EF" }}>
                   <p style={sectionLabel}>Trigger</p>
                   {([
                     { value: "IMMEDIATE", icon: "⚡", label: "Immediate", desc: "Runs right away" },
@@ -962,7 +962,7 @@ export default function BuilderPage() {
                 </div>
 
                 {/* Deadline */}
-                <div style={{ padding: "14px", borderBottom: "1px solid #DBEAFE", background: "#F8FAFF" }}>
+                <div style={{ padding: "14px", borderBottom: "1px solid #E3E8EF" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
                     <p style={{ ...sectionLabel, margin: 0 }}>Deadline</p>
                     <span style={{ fontSize: "13px", fontWeight: 800, color: "#2563EB" }}>
@@ -987,12 +987,12 @@ export default function BuilderPage() {
 
                 {/* Agent order */}
                 {canvasAgents.length > 0 && (
-                  <div style={{ padding: "14px", background: "#EEF2FF" }}>
+                  <div style={{ padding: "14px" }}>
                     <p style={sectionLabel}>
                       Flow — {canvasAgents.length} agent{canvasAgents.length !== 1 ? "s" : ""}
                     </p>
                     {canvasAgents.map((a, i) => (
-                      <div key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "9px", marginBottom: "7px", background: "#fff", padding: "7px 10px", borderRadius: "8px", border: "1px solid #DBEAFE" }}>
+                      <div key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "9px", marginBottom: "7px", padding: "6px 0" }}>
                         <span style={{
                           width: "19px", height: "19px", borderRadius: "50%",
                           background: "#EFF6FF",
