@@ -1,15 +1,28 @@
 import { ethers } from "ethers";
 import { prisma } from "../lib/db";
 
-const provider = new ethers.JsonRpcProvider(process.env.ARBITRUM_SEPOLIA_RPC ?? process.env.ARBITRUM_RPC);
-const signer = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY!, provider);
+const USDC_ADDRESS = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"; // Arbitrum One
 
-const ESCROW_ABI = [
-  "function markRunning(bytes32 jobId) external",
-  "function releasePayment(bytes32 jobId) external",
-];
+// EIP-3009 TransferWithAuthorization typed data
+const USDC_DOMAIN = {
+  name: "USD Coin",
+  version: "2",
+  chainId: 42161,
+  verifyingContract: USDC_ADDRESS,
+};
+const TRANSFER_WITH_AUTHORIZATION_TYPES = {
+  TransferWithAuthorization: [
+    { name: "from", type: "address" },
+    { name: "to", type: "address" },
+    { name: "value", type: "uint256" },
+    { name: "validAfter", type: "uint256" },
+    { name: "validBefore", type: "uint256" },
+    { name: "nonce", type: "bytes32" },
+  ],
+};
 
-const escrow = new ethers.Contract(process.env.JOB_ESCROW_ADDRESS!, ESCROW_ABI, signer);
+// Orchestrator key — signs x402 payment authorizations sent to agents
+const orchestrator = new ethers.Wallet(process.env.ORCHESTRATOR_PRIVATE_KEY!);
 
 export async function executeFlow(flow: {
   id: string;
@@ -21,6 +34,8 @@ export async function executeFlow(flow: {
     id: string;
     agentId: number;
     orderIndex: number;
+    agentAddress: string;
+    amountUsdc: string;
     staticInputs: unknown;
     inputMapping: unknown;
   }[];
@@ -28,9 +43,6 @@ export async function executeFlow(flow: {
   console.log(`[engine] Starting flow ${flow.jobId}`);
 
   try {
-    const markTx = await escrow.markRunning(flow.jobId);
-    await markTx.wait();
-
     await prisma.flow.update({ where: { id: flow.id }, data: { status: "RUNNING" } });
 
     let previousOutput: Record<string, unknown> | null = null;
@@ -47,13 +59,21 @@ export async function executeFlow(flow: {
 
       await prisma.flowAgent.update({ where: { id: flowAgent.id }, data: { status: "RUNNING" } });
 
+      const resource = `${agent.endpoint.replace(/\/$/, "")}/execute`;
+      const paymentHeader = await buildPaymentHeader(
+        flowAgent.agentAddress,
+        flowAgent.amountUsdc,
+        flow.deadline,
+        resource
+      );
+
       const result = await callAgent(
-        agent.endpoint,
+        resource,
         flow.jobId,
         flow.callerAddress,
-        flow.escrowTxHash ?? "",
         taskInput,
-        flow.deadline
+        flow.deadline,
+        paymentHeader
       );
 
       if (!result.success) throw new Error(`Agent ${agent.name} failed: ${result.error}`);
@@ -67,19 +87,61 @@ export async function executeFlow(flow: {
       console.log(`[engine] Agent ${agent.name} completed`);
     }
 
-    const releaseTx = await escrow.releasePayment(flow.jobId);
-    await releaseTx.wait();
-
     await prisma.flow.update({
       where: { id: flow.id },
       data: { status: "COMPLETED", completedAt: new Date() },
     });
 
-    console.log(`[engine] Flow ${flow.jobId} completed — payment released`);
+    console.log(`[engine] Flow ${flow.jobId} completed`);
   } catch (err) {
     console.error(`[engine] Flow ${flow.jobId} failed:`, (err as Error).message);
     await prisma.flow.update({ where: { id: flow.id }, data: { status: "FAILED" } });
   }
+}
+
+// Sign an EIP-3009 transferWithAuthorization to pay an agent via x402
+async function buildPaymentHeader(
+  toAddress: string,
+  amountUsdc: string,
+  deadline: Date,
+  resource: string
+): Promise<string> {
+  const rawAmount = BigInt(Math.round(parseFloat(amountUsdc) * 1_000_000));
+  const validBefore = Math.floor(deadline.getTime() / 1000);
+  const nonce = ethers.hexlify(ethers.randomBytes(32));
+
+  const signature = await orchestrator.signTypedData(
+    USDC_DOMAIN,
+    TRANSFER_WITH_AUTHORIZATION_TYPES,
+    {
+      from: orchestrator.address,
+      to: toAddress,
+      value: rawAmount,
+      validAfter: 0n,
+      validBefore: BigInt(validBefore),
+      nonce,
+    }
+  );
+
+  const payment = {
+    x402Version: 1,
+    scheme: "exact",
+    network: "eip155:42161",
+    payload: {
+      authorization: {
+        from: orchestrator.address,
+        to: toAddress,
+        value: rawAmount.toString(),
+        validAfter: "0",
+        validBefore: validBefore.toString(),
+        nonce,
+      },
+      signature,
+      resource,
+    },
+  };
+
+  return Buffer.from(JSON.stringify(payment)).toString("base64");
 }
 
 function buildInput(
@@ -99,34 +161,37 @@ function buildInput(
 }
 
 async function callAgent(
-  endpoint: string,
+  resource: string,
   jobId: string,
   caller: string,
-  escrowTx: string,
   taskInput: Record<string, unknown>,
-  deadline: Date
+  deadline: Date,
+  paymentHeader: string
 ): Promise<{ success: boolean; output?: Record<string, unknown>; error?: string }> {
   try {
     const timeoutMs = Math.max(0, deadline.getTime() - Date.now() - 2000);
     const controller = new AbortController();
     setTimeout(() => controller.abort(), timeoutMs);
 
-    const res = await fetch(`${endpoint.replace(/\/$/, "")}/execute`, {
+    const res = await fetch(resource, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "User-Agent": "MilkyWay-Engine/1.0" },
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "MilkyWay-Engine/1.0",
+        "payment-signature": paymentHeader,
+      },
       signal: controller.signal,
       body: JSON.stringify({
         milkyway_version: "1.0",
         job_id: jobId,
         caller,
-        escrow_tx: escrowTx,
         task: { input: taskInput },
         deadline: Math.floor(deadline.getTime() / 1000),
       }),
     });
 
     if (res.status === 200) {
-      const data = await res.json();
+      const data = (await res.json()) as { output?: Record<string, unknown> };
       return { success: true, output: data.output };
     }
 

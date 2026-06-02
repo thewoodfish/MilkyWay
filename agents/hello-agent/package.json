@@ -1,13 +1,20 @@
 {
   "name": "hello-agent",
   "version": "2.0.0",
-  "description": "Minimal MilkyWay test agent",
-  "main": "index.js",
+  "description": "MilkyWay reference agent — greets any name",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "node index.js"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
   },
   "dependencies": {
-    "ethers": "^6.16.0",
-    "express": "^4.18.2"
+    "@usemilkyway/agent-sdk": "file:../../sdk"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.0",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
   }
 }

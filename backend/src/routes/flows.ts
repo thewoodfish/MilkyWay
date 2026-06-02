@@ -1,5 +1,4 @@
 import { Router, Response } from "express";
-import { ethers } from "ethers";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/db";
 import { authenticateJWT, AuthRequest } from "../middleware/auth";
@@ -19,14 +18,14 @@ router.post("/preview", async (req: AuthRequest, res: Response) => {
         return {
           agentId: a.agentId,
           name: agent?.name ?? "Unknown",
-          priceEth: agent?.priceEth ?? "0",
+          priceUsdc: agent?.priceUsdc ?? "0",
           phase2Ready: agent?.phase2Ready ?? false,
           aboutSchema: agent?.aboutSchema ?? null,
         };
       })
     );
 
-    const subtotal = details.reduce((sum, a) => sum + parseFloat(a.priceEth), 0);
+    const subtotal = details.reduce((sum, a) => sum + parseFloat(a.priceUsdc), 0);
     const protocolFee = subtotal * 0.01;
 
     res.json({
@@ -34,7 +33,7 @@ router.post("/preview", async (req: AuthRequest, res: Response) => {
       subtotal: subtotal.toFixed(6),
       protocolFee: protocolFee.toFixed(6),
       total: (subtotal + protocolFee).toFixed(6),
-      currency: "ETH",
+      currency: "USDC",
     });
   } catch (err) {
     console.error(err);
@@ -42,36 +41,44 @@ router.post("/preview", async (req: AuthRequest, res: Response) => {
   }
 });
 
-// POST /api/flows/create — creates flow, returns lockPayment() args
+// POST /api/flows/create — creates flow, returns payment details
 router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) => {
   try {
     const { agents, trigger = "IMMEDIATE", triggerValue, deadlineSeconds = 300 } = req.body;
     if (!agents?.length) return res.status(400).json({ error: "agents required" });
 
     const jobId = uuidv4();
-    const jobIdBytes32 = ethers.id(jobId);
     const deadline = Math.floor(Date.now() / 1000) + Number(deadlineSeconds);
 
     const agentDetails = await Promise.all(
-      agents.map(async (a: { agentId: number; orderIndex: number; staticInputs?: object; inputMapping?: object }) => {
-        const agent = await prisma.agent.findUnique({ where: { agentId: a.agentId } });
-        if (!agent) throw new Error(`Agent ${a.agentId} not found`);
-        return { ...a, wallet: agent.ownerAddress, amount: agent.priceEth, name: agent.name };
-      })
+      agents.map(
+        async (a: {
+          agentId: number;
+          orderIndex: number;
+          staticInputs?: object;
+          inputMapping?: object;
+        }) => {
+          const agent = await prisma.agent.findUnique({ where: { agentId: a.agentId } });
+          if (!agent) throw new Error(`Agent ${a.agentId} not found`);
+          return {
+            ...a,
+            wallet: agent.ownerAddress,
+            amount: agent.priceUsdc,
+            name: agent.name,
+          };
+        }
+      )
     );
 
-    // Compute msg.value using integer math so that:
-    //   msg.value - floor(msg.value / 100) === sum of agent amounts exactly
-    // (the contract verifies this with protocolFeeBps = 100)
-    const agentPricesWei = agentDetails.map((a) => ethers.parseEther(a.amount));
-    const totalPriceWei = agentPricesWei.reduce((s, v) => s + v, 0n);
-    const msgValueWei = (totalPriceWei * 10000n) / 9900n;
+    const subtotal = agentDetails.reduce((s, a) => s + parseFloat(a.amount), 0);
+    const fee = subtotal * 0.01;
+    const total = subtotal + fee;
 
     const flow = await prisma.flow.create({
       data: {
-        jobId: jobIdBytes32,
+        jobId,
         callerAddress: req.user!.address,
-        totalAmountEth: ethers.formatEther(msgValueWei),
+        totalAmountUsdc: total.toFixed(6),
         deadline: new Date(deadline * 1000),
         trigger,
         triggerValue: triggerValue?.toString() ?? null,
@@ -80,7 +87,7 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
             agentId: a.agentId,
             agentAddress: a.wallet,
             orderIndex: a.orderIndex,
-            amountEth: a.amount,
+            amountUsdc: a.amount,
             staticInputs: a.staticInputs ?? {},
             inputMapping: a.inputMapping ?? {},
           })),
@@ -90,12 +97,14 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
     });
 
     res.json({
-      jobId: jobIdBytes32,
+      jobId,
       internalId: flow.id,
-      agentWallets: agentDetails.map((a) => a.wallet),
-      agentAmounts: agentPricesWei.map((v) => v.toString()),
+      // Address users send USDC to before calling /confirm
+      milkywayPaymentAddress: process.env.ORCHESTRATOR_ADDRESS ?? "",
+      // Raw USDC units (6 decimals) for ERC-20 transfer call
+      rawAmountUsdc: Math.round(total * 1_000_000).toString(),
+      totalUsdc: total.toFixed(6),
       deadline,
-      totalEth: ethers.formatEther(msgValueWei),
     });
   } catch (err) {
     console.error(err);
@@ -103,7 +112,7 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
   }
 });
 
-// POST /api/flows/confirm — called after lockPayment() tx confirms
+// POST /api/flows/confirm — called after user's USDC transfer confirms
 router.post("/confirm", authenticateJWT, async (req: AuthRequest, res: Response) => {
   try {
     const { internalId, escrowTxHash } = req.body;

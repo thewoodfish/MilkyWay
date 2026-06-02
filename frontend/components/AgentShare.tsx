@@ -6,7 +6,7 @@ interface AgentShareData {
   agentId: number;
   name: string;
   description: string;
-  priceEth: string;
+  priceUsdc: string;
   pricingModel: string;
   jobCount: number;
   badgeTier: "NONE" | "BRONZE" | "SILVER" | "GOLD";
@@ -26,7 +26,7 @@ function buildShareContent(agent: AgentShareData, baseUrl: string) {
   const badge = BADGE_EMOJI[agent.badgeTier];
   const price = agent.pricingModel === "FREE"
     ? "Free"
-    : `${agent.priceEth} ETH ${PRICING_LABEL[agent.pricingModel]}`;
+    : `${agent.priceUsdc} USDC ${PRICING_LABEL[agent.pricingModel]}`;
   const jobs = agent.jobCount > 0
     ? `${agent.jobCount.toLocaleString()} jobs completed`
     : "New agent";

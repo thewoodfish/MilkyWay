@@ -1,27 +1,30 @@
 "use client";
 
-import { useCallback, useState, useEffect, memo } from "react";
+import { useCallback, useState, useEffect, useRef, memo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ReactFlow, {
-  Node, addEdge, Connection,
+  Node, Edge, addEdge, Connection,
   useNodesState, useEdgesState,
   Background, Controls,
   Handle, Position,
   BackgroundVariant,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { parseEther } from "viem";
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
 import { apiFetch, CATEGORY_LABELS } from "@/lib/utils";
 import { authFetch } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import { ESCROW_ABI } from "@/lib/escrow-abi";
 import { AuthGate } from "@/components/AuthGate";
-import { EthAmount } from "@/components/EthAmount";
+import { UsdcAmount } from "@/components/UsdcAmount";
 import type { Agent } from "@/lib/types";
 
-const ESCROW = process.env.NEXT_PUBLIC_JOB_ESCROW_ADDRESS as `0x${string}`;
+const USDC_ADDRESS = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" as `0x${string}`;
+const USDC_TRANSFER_ABI = [
+  { name: "transfer", type: "function", stateMutability: "nonpayable",
+    inputs: [{ name: "to", type: "address" }, { name: "amount", type: "uint256" }],
+    outputs: [{ name: "", type: "bool" }] },
+] as const;
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -32,13 +35,241 @@ function formatDeadline(s: number): string {
   return `${Math.round(s / 3600)}h`;
 }
 
-type AboutSchema = {
-  input_schema?: Record<string, { type: string; required?: boolean; description?: string }>;
-  output_schema?: Record<string, { type: string; description?: string }>;
-  capabilities?: string[];
-  pricing?: { model: string; amount: string; currency: string };
-  max_deadline_seconds?: number;
+type FieldSchema = Record<string, { type: string; required?: boolean; description?: string }>;
+type CapabilityDef = {
+  description?: string;
+  pricing:      { model: string; amount: string; currency: string };
+  input_schema:  FieldSchema;
+  output_schema: FieldSchema;
 };
+type AboutSchema = {
+  milkyway_version?: string;
+  capabilities?: Record<string, CapabilityDef>;
+  max_deadline_seconds?: number;
+  // legacy flat-schema support
+  input_schema?:  FieldSchema;
+  output_schema?: FieldSchema;
+};
+
+function getFirstCapability(about: AboutSchema | null): CapabilityDef | null {
+  if (!about) return null;
+  if (about.capabilities) {
+    const first = Object.values(about.capabilities)[0];
+    if (first) return first;
+  }
+  // fall back to legacy flat schema
+  if (about.input_schema || about.output_schema) {
+    return {
+      description:   "",
+      pricing:       { model: "per_job", amount: "0", currency: "USDC" },
+      input_schema:  about.input_schema  ?? {},
+      output_schema: about.output_schema ?? {},
+    };
+  }
+  return null;
+}
+
+function getInputSchema(about: AboutSchema | null): FieldSchema {
+  return getFirstCapability(about)?.input_schema ?? {};
+}
+
+function getOutputSchema(about: AboutSchema | null): FieldSchema {
+  return getFirstCapability(about)?.output_schema ?? {};
+}
+
+// ── Visual field mapper ────────────────────────────────────────────────────
+
+const FM_ROW_H = 32;
+const FM_PORT_R = 5;
+
+interface FieldMapperProps {
+  sourceName: string;
+  targetName: string;
+  sourceFields: string[];
+  targetFields: Array<{ name: string; required: boolean; type: string }>;
+  mappings: Record<string, string>;
+  onMap: (targetField: string, sourceField: string) => void;
+  onUnmap: (targetField: string) => void;
+}
+
+const FieldMapper = memo(function FieldMapper({
+  sourceName, targetName, sourceFields, targetFields, mappings, onMap, onUnmap,
+}: FieldMapperProps) {
+  const rowsRef = useRef<HTMLDivElement>(null);
+  const [cWidth, setCWidth] = useState(220);
+  const [drag, setDrag] = useState<{ field: string } | null>(null);
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const el = rowsRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => setCWidth(Math.floor(entries[0].contentRect.width)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!drag) return;
+    const onMove = (e: MouseEvent) => {
+      const rect = rowsRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setMouse({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    };
+    const onUp = (e: MouseEvent) => {
+      const rect = rowsRef.current?.getBoundingClientRect();
+      if (rect) {
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const tgtPx = Math.floor(cWidth * 0.57);
+        for (let i = 0; i < targetFields.length; i++) {
+          const py = i * FM_ROW_H + FM_ROW_H / 2;
+          if (Math.abs(x - tgtPx) <= FM_PORT_R + 12 && Math.abs(y - py) <= FM_PORT_R + 12) {
+            onMap(targetFields[i].name, drag.field);
+            break;
+          }
+        }
+      }
+      setDrag(null);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    return () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+  }, [drag, cWidth, targetFields, onMap]);
+
+  const srcX = Math.floor(cWidth * 0.43);
+  const tgtX = Math.floor(cWidth * 0.57);
+  const pY = (i: number) => i * FM_ROW_H + FM_ROW_H / 2;
+  const svgH = Math.max(sourceFields.length, targetFields.length, 1) * FM_ROW_H;
+  const bez = (x1: number, y1: number, x2: number, y2: number) => {
+    const cx = (x1 + x2) / 2;
+    return `M${x1} ${y1} C${cx} ${y1} ${cx} ${y2} ${x2} ${y2}`;
+  };
+
+  return (
+    <div style={{ userSelect: "none" }}>
+      {/* Column headers */}
+      <div style={{ display: "flex", marginBottom: "6px" }}>
+        <div style={{ width: "43%", paddingRight: `${FM_PORT_R + 8}px`, textAlign: "right" }}>
+          <div style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#60A5FA" }}>Output</div>
+          <div style={{ fontSize: "9px", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sourceName}</div>
+        </div>
+        <div style={{ width: "14%", display: "flex", alignItems: "center", justifyContent: "center", paddingTop: "2px" }}>
+          <svg width="14" height="8" fill="none" viewBox="0 0 14 8">
+            <path d="M0 4h11M8 1l3 3-3 3" stroke="#BFDBFE" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+        <div style={{ width: "43%", paddingLeft: `${FM_PORT_R + 8}px` }}>
+          <div style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#10b981" }}>Input</div>
+          <div style={{ fontSize: "9px", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{targetName}</div>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: "1px", background: "#EEF2FF", marginBottom: "4px" }} />
+
+      {/* Field rows — SVG is positioned over this div only */}
+      <div ref={rowsRef} style={{ position: "relative" }}>
+        <div style={{ display: "flex" }}>
+          {/* Source column */}
+          <div style={{ width: "43%", display: "flex", flexDirection: "column" }}>
+            {sourceFields.map((f) => (
+              <div key={f} style={{ height: FM_ROW_H, display: "flex", alignItems: "center", justifyContent: "flex-end", paddingRight: `${FM_PORT_R + 8}px` }}>
+                <span style={{ fontSize: "10px", color: "#425466", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{f}</span>
+              </div>
+            ))}
+          </div>
+          {/* 14% gap — SVG connector zone */}
+          <div style={{ width: "14%" }} />
+          {/* Target column */}
+          <div style={{ width: "43%", display: "flex", flexDirection: "column" }}>
+            {targetFields.map((f) => {
+              const isMapped = !!mappings[f.name];
+              return (
+                <div key={f.name} style={{ height: FM_ROW_H, display: "flex", alignItems: "center", paddingLeft: `${FM_PORT_R + 8}px`, gap: "4px" }}>
+                  <span style={{ fontSize: "10px", color: isMapped ? "#0A2540" : "#94a3b8", fontWeight: isMapped ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{f.name}</span>
+                  {f.required && !isMapped && <span style={{ fontSize: "8px", color: "#ef4444", flexShrink: 0, fontWeight: 700 }}>req</span>}
+                  {isMapped && (
+                    <button
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={() => onUnmap(f.name)}
+                      style={{ fontSize: "9px", color: "#ef4444", background: "transparent", border: "none", cursor: "pointer", padding: "0 3px", flexShrink: 0, lineHeight: 1 }}
+                    >✕</button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* SVG overlay — covers field rows only */}
+        <svg
+          style={{ position: "absolute", top: 0, left: 0, width: "100%", height: svgH, overflow: "visible", pointerEvents: "none" }}
+          height={svgH}
+        >
+          {/* Mapping lines */}
+          {Object.entries(mappings).map(([tgt, src]) => {
+            const si = sourceFields.indexOf(src);
+            const ti = targetFields.findIndex((f) => f.name === tgt);
+            if (si === -1 || ti === -1) return null;
+            return (
+              <path key={tgt}
+                d={bez(srcX, pY(si), tgtX, pY(ti))}
+                fill="none" stroke="#2563EB" strokeWidth={2} strokeOpacity={0.75}
+              />
+            );
+          })}
+
+          {/* In-progress drag line */}
+          {drag && (() => {
+            const si = sourceFields.indexOf(drag.field);
+            if (si === -1) return null;
+            return (
+              <path
+                d={bez(srcX, pY(si), mouse.x, mouse.y)}
+                fill="none" stroke="#2563EB" strokeWidth={1.5} strokeDasharray="5 3" strokeOpacity={0.9}
+              />
+            );
+          })()}
+
+          {/* Source port dots */}
+          {sourceFields.map((f, i) => (
+            <circle key={`sp-${f}`}
+              cx={srcX} cy={pY(i)} r={FM_PORT_R}
+              fill={drag?.field === f ? "#1d4ed8" : "#60A5FA"}
+              stroke="#fff" strokeWidth={2}
+              style={{ cursor: "crosshair", pointerEvents: "auto" }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                const rect = rowsRef.current!.getBoundingClientRect();
+                setMouse({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+                setDrag({ field: f });
+              }}
+            />
+          ))}
+
+          {/* Target port dots */}
+          {targetFields.map((f, i) => (
+            <circle key={`tp-${f.name}`}
+              cx={tgtX} cy={pY(i)} r={FM_PORT_R}
+              fill={mappings[f.name] ? "#10b981" : "#E2E8F0"}
+              stroke={mappings[f.name] ? "#86EFAC" : "#CBD5E1"} strokeWidth={2}
+            />
+          ))}
+        </svg>
+      </div>
+
+      {/* Drag hint */}
+      <div style={{ display: "flex", alignItems: "center", gap: "5px", justifyContent: "center", marginTop: "8px" }}>
+        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#60A5FA" stroke="#fff" strokeWidth="1"/></svg>
+        <span style={{ fontSize: "9px", color: "#CBD5E1", letterSpacing: "0.02em" }}>drag a dot to connect</span>
+        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#10b981" stroke="#fff" strokeWidth="1"/></svg>
+      </div>
+    </div>
+  );
+});
 
 // ── Agent canvas node ──────────────────────────────────────────────────────
 
@@ -57,8 +288,8 @@ const AgentNode = memo(function AgentNode({
 }) {
   const { agent, orderIndex, onRemove } = data;
   const about = agent.aboutSchema as AboutSchema | null;
-  const inCount = about?.input_schema ? Object.keys(about.input_schema).length : null;
-  const outCount = about?.output_schema ? Object.keys(about.output_schema).length : null;
+  const inCount  = Object.keys(getInputSchema(about)).length  || null;
+  const outCount = Object.keys(getOutputSchema(about)).length || null;
 
   return (
     <div
@@ -90,8 +321,8 @@ const AgentNode = memo(function AgentNode({
       <div
         style={{
           padding: "10px 12px 9px",
-          borderBottom: "1px solid #F1F5F9",
-          background: "#F8FAFF",
+          borderBottom: "1px solid #DBEAFE",
+          background: "#EFF6FF",
           display: "flex",
           alignItems: "center",
           gap: "9px",
@@ -185,7 +416,7 @@ const AgentNode = memo(function AgentNode({
             borderRadius: "100px",
             border: "1px solid #E3E8EF",
           }}>
-            {agent.pricingModel === "FREE" ? "Free" : <EthAmount amount={agent.priceEth!} size={10} />}
+            {agent.pricingModel === "FREE" ? "Free" : <UsdcAmount amount={agent.priceUsdc!} size={10} />}
           </span>
 
           {inCount !== null && (
@@ -213,6 +444,21 @@ const AgentNode = memo(function AgentNode({
 
 const nodeTypes = { agentNode: AgentNode };
 
+// ── Auto-match helper ─────────────────────────────────────────────────────
+
+function computeAutoMatches(
+  outputSchema: Record<string, { type: string }>,
+  inputSchema: Record<string, { type: string; required?: boolean }>,
+): Record<string, string> {
+  const matches: Record<string, string> = {};
+  for (const [targetField, targetDef] of Object.entries(inputSchema)) {
+    if (outputSchema[targetField] && outputSchema[targetField].type === targetDef.type) {
+      matches[targetField] = targetField;
+    }
+  }
+  return matches;
+}
+
 
 // ── Builder page ───────────────────────────────────────────────────────────
 
@@ -233,7 +479,9 @@ export default function BuilderPage() {
   const [libraryOpen, setLibraryOpen] = useState(true);
   const [libraryAgent, setLibraryAgent] = useState<Agent | null>(null);
   const [staticInputs, setStaticInputs] = useState<Record<string, Record<string, string>>>({});
-  const [trigger, setTrigger] = useState<"IMMEDIATE" | "SCHEDULED" | "CONDITION">("IMMEDIATE");
+  const [inputMappings, setInputMappings] = useState<Record<string, Record<string, string>>>({});
+  const [rightPanel, setRightPanel] = useState<"overview" | "agent" | "mapping" | "summary">("overview");
+  const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
   const [deadlineSeconds, setDeadlineSeconds] = useState(300);
 
   const [preview, setPreview] = useState<{ subtotal: string; protocolFee: string; total: string } | null>(null);
@@ -274,6 +522,11 @@ export default function BuilderPage() {
     setEdges((es) => es.filter((e) => e.source !== `agent-${agentId}` && e.target !== `agent-${agentId}`));
     setCanvasAgents((prev) => prev.filter((a) => a.agentId !== agentId));
     setSelectedAgent((prev) => (prev?.agentId === agentId ? null : prev));
+    setInputMappings((prev) => {
+      const next = { ...prev };
+      delete next[String(agentId)];
+      return next;
+    });
   }, [setNodes, setEdges]);
 
   const onConnect = useCallback(
@@ -285,6 +538,7 @@ export default function BuilderPage() {
   );
 
   function addToCanvas(agent: Agent) {
+    if (!agent.phase2Ready) return;
     if (canvasAgents.find((a) => a.agentId === agent.agentId)) return;
     const idx = canvasAgents.length;
     const newNode: Node = {
@@ -306,27 +560,24 @@ export default function BuilderPage() {
         agentId: a.agentId,
         orderIndex: i,
         staticInputs: staticInputs[String(a.agentId)] ?? {},
-        inputMapping: {},
+        inputMapping: inputMappings[String(a.agentId)] ?? {},
       }));
       const res = await authFetch(`${API}/api/flows/create`, {
         method: "POST",
-        body: JSON.stringify({ agents: agentsPayload, trigger, deadlineSeconds }),
+        body: JSON.stringify({ agents: agentsPayload, trigger: "IMMEDIATE", deadlineSeconds }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to create flow");
 
       setFlowInternalId(data.internalId);
       writeContract({
-        address: ESCROW,
-        abi: ESCROW_ABI,
-        functionName: "lockPayment",
+        address: USDC_ADDRESS,
+        abi: USDC_TRANSFER_ABI,
+        functionName: "transfer",
         args: [
-          data.jobId as `0x${string}`,
-          data.agentWallets as `0x${string}`[],
-          data.agentAmounts.map((a: string) => BigInt(a)),
-          BigInt(data.deadline),
+          data.milkywayPaymentAddress as `0x${string}`,
+          BigInt(data.rawAmountUsdc),
         ],
-        value: parseEther(data.totalEth),
       });
     } catch (e) {
       setError((e as Error).message);
@@ -342,9 +593,33 @@ export default function BuilderPage() {
     return true;
   });
 
-  const about = selectedAgent?.aboutSchema as AboutSchema | null;
-  const inputSchema = about?.input_schema ?? null;
-  const outputSchema = about?.output_schema ?? null;
+  // Per-agent: required fields that are neither wired nor hardcoded
+  const missingFieldsCount = canvasAgents.reduce((count, agent) => {
+    const agentAbout  = agent.aboutSchema as AboutSchema | null;
+    const agentInputs = Object.entries(getInputSchema(agentAbout));
+    const agentMappings = inputMappings[String(agent.agentId)] ?? {};
+    const agentStatics  = staticInputs[String(agent.agentId)] ?? {};
+    return count + agentInputs.filter(([f, d]) => d.required && !agentMappings[f] && !agentStatics[f]).length;
+  }, 0);
+
+  const about       = selectedAgent?.aboutSchema as AboutSchema | null;
+  const inputSchema  = Object.keys(getInputSchema(about)).length  ? getInputSchema(about)  : null;
+  const outputSchema = Object.keys(getOutputSchema(about)).length ? getOutputSchema(about) : null;
+
+  const incomingEdge = selectedAgent
+    ? edges.find((e) => e.target === `agent-${selectedAgent.agentId}`)
+    : null;
+  const sourceAgent = incomingEdge
+    ? (canvasAgents.find((a) => `agent-${a.agentId}` === incomingEdge.source) ?? null)
+    : null;
+
+  const edgeSourceAgent = selectedEdge
+    ? (canvasAgents.find((a) => `agent-${a.agentId}` === selectedEdge.source) ?? null)
+    : null;
+  const edgeTargetAgent = selectedEdge
+    ? (canvasAgents.find((a) => `agent-${a.agentId}` === selectedEdge.target) ?? null)
+    : null;
+
   const canActivate = isConnected && isSignedIn && !isPending && !activating && canvasAgents.length > 0;
 
   // Shared label style for right panel sections
@@ -502,7 +777,7 @@ export default function BuilderPage() {
                             {CATEGORY_LABELS[libraryAgent.category] ?? libraryAgent.category}
                           </span>
                           <span style={{ fontSize: "11px", fontWeight: 600, padding: "3px 10px", borderRadius: "100px", background: libraryAgent.pricingModel === "FREE" ? "#F0FDF4" : "#FFFBEB", color: libraryAgent.pricingModel === "FREE" ? "#10b981" : "#D97706", border: `1px solid ${libraryAgent.pricingModel === "FREE" ? "#BBF7D0" : "#FDE68A"}` }}>
-                            {libraryAgent.pricingModel === "FREE" ? "Free" : `${libraryAgent.priceEth} ETH / job`}
+                            {libraryAgent.pricingModel === "FREE" ? "Free" : `${libraryAgent.priceUsdc} USDC / job`}
                           </span>
                         </div>
                       </div>
@@ -518,7 +793,7 @@ export default function BuilderPage() {
                       {(() => {
                         const la = libraryAgent.aboutSchema as AboutSchema | null;
                         if (!la) return null;
-                        const caps = la.capabilities ?? [];
+                        const caps = la.capabilities ? Object.keys(la.capabilities) : [];
                         return (
                           <div style={{ padding: "12px 16px", borderBottom: "1px solid #E3E8EF", display: "flex", flexWrap: "wrap", gap: "6px" }}>
                             {la.max_deadline_seconds && (
@@ -538,8 +813,8 @@ export default function BuilderPage() {
 
                       {/* Inputs */}
                       {(() => {
-                        const ins = (libraryAgent.aboutSchema as AboutSchema | null)?.input_schema;
-                        if (!ins || Object.keys(ins).length === 0) return null;
+                        const ins = getInputSchema(libraryAgent.aboutSchema as AboutSchema | null);
+                        if (Object.keys(ins).length === 0) return null;
                         return (
                           <div style={{ padding: "14px 16px", borderBottom: "1px solid #E3E8EF" }}>
                             <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#60A5FA", margin: "0 0 10px" }}>Inputs</p>
@@ -557,8 +832,8 @@ export default function BuilderPage() {
 
                       {/* Outputs */}
                       {(() => {
-                        const outs = (libraryAgent.aboutSchema as AboutSchema | null)?.output_schema;
-                        if (!outs || Object.keys(outs).length === 0) return null;
+                        const outs = getOutputSchema(libraryAgent.aboutSchema as AboutSchema | null);
+                        if (Object.keys(outs).length === 0) return null;
                         return (
                           <div style={{ padding: "14px 16px", borderBottom: "1px solid #E3E8EF" }}>
                             <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "#10b981", margin: "0 0 10px" }}>Outputs</p>
@@ -579,6 +854,10 @@ export default function BuilderPage() {
                       {canvasAgents.some((a) => a.agentId === libraryAgent.agentId) ? (
                         <div style={{ width: "100%", padding: "10px", borderRadius: "10px", background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#10b981", fontSize: "13px", fontWeight: 600, textAlign: "center" }}>
                           ✓ Added to Canvas
+                        </div>
+                      ) : !libraryAgent.phase2Ready ? (
+                        <div style={{ width: "100%", padding: "10px", borderRadius: "10px", background: "#F8FAFF", border: "1px solid #E3E8EF", color: "#94a3b8", fontSize: "12px", fontWeight: 500, textAlign: "center" }}>
+                          Not available for flows
                         </div>
                       ) : (
                         <button
@@ -664,17 +943,17 @@ export default function BuilderPage() {
                                 <p style={{ color: "#94a3b8", fontSize: "10px", margin: "0 0 3px" }}>
                                   {CATEGORY_LABELS[agent.category] ?? agent.category}
                                   {" · "}
-                                  {agent.pricingModel === "FREE" ? "Free" : `${agent.priceEth} ETH`}
+                                  {agent.pricingModel === "FREE" ? "Free" : `${agent.priceUsdc} USDC`}
                                 </p>
                                 {agent.description && (
                                   <p style={{ color: "#64748b", fontSize: "10px", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{agent.description}</p>
                                 )}
                               </div>
                               <button
-                                onClick={(e) => { e.stopPropagation(); if (!onCanvas) addToCanvas(agent); }}
-                                style={{ width: "26px", height: "26px", borderRadius: "7px", background: onCanvas ? "#DCFCE7" : "#EFF6FF", border: `1px solid ${onCanvas ? "#86EFAC" : "#BFDBFE"}`, color: onCanvas ? "#10b981" : "#2563EB", fontSize: onCanvas ? "11px" : "15px", cursor: onCanvas ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: 700, lineHeight: 1 }}
+                                onClick={(e) => { e.stopPropagation(); if (!onCanvas && agent.phase2Ready) addToCanvas(agent); }}
+                                style={{ width: "26px", height: "26px", borderRadius: "7px", background: onCanvas ? "#DCFCE7" : agent.phase2Ready ? "#EFF6FF" : "#F1F5F9", border: `1px solid ${onCanvas ? "#86EFAC" : agent.phase2Ready ? "#BFDBFE" : "#E2E8F0"}`, color: onCanvas ? "#10b981" : agent.phase2Ready ? "#2563EB" : "#CBD5E1", fontSize: onCanvas ? "11px" : "15px", cursor: onCanvas || !agent.phase2Ready ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: 700, lineHeight: 1 }}
                               >
-                                {onCanvas ? "✓" : "+"}
+                                {onCanvas ? "✓" : agent.phase2Ready ? "+" : "—"}
                               </button>
                             </div>
                           </div>
@@ -747,9 +1026,32 @@ export default function BuilderPage() {
               onConnect={onConnect}
               onNodeClick={(_, node) => {
                 const a = canvasAgents.find((a) => `agent-${a.agentId}` === node.id);
-                if (a) setSelectedAgent(a);
+                if (a) { setSelectedAgent(a); setSelectedEdge(null); setRightPanel("agent"); }
               }}
-              onPaneClick={() => setSelectedAgent(null)}
+              onEdgeClick={(_, edge) => {
+                setSelectedEdge(edge);
+                setSelectedAgent(null);
+                setRightPanel("mapping");
+                const tgtId = edge.target.replace("agent-", "");
+                const srcAg = canvasAgents.find((a) => `agent-${a.agentId}` === edge.source);
+                const tgtAg = canvasAgents.find((a) => `agent-${a.agentId}` === edge.target);
+                if (srcAg && tgtAg) {
+                  const autoM = computeAutoMatches(
+                    getOutputSchema(srcAg.aboutSchema as AboutSchema | null),
+                    getInputSchema(tgtAg.aboutSchema as AboutSchema | null),
+                  );
+                  if (Object.keys(autoM).length > 0) {
+                    setInputMappings((prev) =>
+                      Object.keys(prev[tgtId] ?? {}).length === 0
+                        ? { ...prev, [tgtId]: autoM }
+                        : prev
+                    );
+                  }
+                }
+              }}
+              onPaneClick={() => {
+                setSelectedAgent(null); setSelectedEdge(null); setRightPanel("overview");
+              }}
               nodeTypes={nodeTypes}
               fitView
               fitViewOptions={{ padding: 0.35 }}
@@ -773,119 +1075,9 @@ export default function BuilderPage() {
 
           </div>
 
-          {/* ── Bottom bar — canvas-wide only ── */}
-          {canvasAgents.length > 0 && (
-            <div style={{
-              position: "fixed",
-              bottom: 0,
-              left: libraryOpen ? "320px" : "36px",
-              right: "272px",
-              zIndex: 50,
-              background: "#0A2540",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 20px",
-              height: "56px",
-              borderTop: "1px solid rgba(255,255,255,0.06)",
-              transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-              gap: "16px",
-            }}>
-
-              {/* LEFT — agent count + avatar stack */}
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
-                <span style={{
-                  fontSize: "11px", fontWeight: 700, color: "#94a3b8",
-                  background: "rgba(255,255,255,0.07)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "100px", padding: "3px 10px", whiteSpace: "nowrap",
-                }}>
-                  {canvasAgents.length} agent{canvasAgents.length !== 1 ? "s" : ""}
-                </span>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  {canvasAgents.slice(0, 6).map((a, i) => (
-                    <div key={a.agentId} title={a.name} style={{
-                      width: "26px", height: "26px", borderRadius: "50%",
-                      overflow: "hidden", flexShrink: 0,
-                      border: "2px solid #0A2540",
-                      marginLeft: i > 0 ? "-8px" : 0,
-                      position: "relative", zIndex: 6 - i,
-                    }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${a.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
-                        alt={a.name} width={26} height={26}
-                        style={{ display: "block", width: "100%", height: "100%" }}
-                      />
-                    </div>
-                  ))}
-                  {canvasAgents.length > 6 && (
-                    <div style={{
-                      width: "26px", height: "26px", borderRadius: "50%",
-                      background: "rgba(255,255,255,0.1)",
-                      border: "2px solid #0A2540",
-                      marginLeft: "-8px",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "9px", fontWeight: 800, color: "#94a3b8",
-                      flexShrink: 0, position: "relative", zIndex: 0,
-                    }}>
-                      +{canvasAgents.length - 6}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* CENTER — cost breakdown */}
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                {preview ? (
-                  <>
-                    <EthAmount amount={preview.subtotal} size={11} style={{ color: "#64748b" }} />
-                    <span style={{ fontSize: "11px", color: "#334155" }}>+</span>
-                    <EthAmount amount={preview.protocolFee} size={11} style={{ color: "#64748b" }} />
-                    <span style={{ fontSize: "11px", color: "#64748b" }}>fee</span>
-                    <span style={{ width: "1px", height: "16px", background: "#1e3a5f", flexShrink: 0, margin: "0 8px" }} />
-                    <EthAmount amount={preview.total} size={13} style={{ color: "#fff", fontWeight: 800 }} />
-                  </>
-                ) : (
-                  <span style={{ fontSize: "12px", color: "#475569" }}>Calculating…</span>
-                )}
-              </div>
-
-              {/* RIGHT — status message + activate button */}
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
-                {error && (
-                  <p style={{ fontSize: "11px", color: "#fca5a5", margin: 0, maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{error}</p>
-                )}
-                {!error && !isConnected && (
-                  <p style={{ fontSize: "11px", color: "#475569", margin: 0 }}>Connect wallet</p>
-                )}
-                {!error && isConnected && !isSignedIn && (
-                  <p style={{ fontSize: "11px", color: "#475569", margin: 0 }}>Sign in to activate</p>
-                )}
-                <button
-                  onClick={activateFlow}
-                  disabled={!canActivate}
-                  style={{
-                    padding: "9px 22px", borderRadius: "9px", border: "none",
-                    fontSize: "13px", fontWeight: 700,
-                    cursor: canActivate ? "pointer" : "not-allowed",
-                    background: canActivate ? "#fff" : "#1a2f4a",
-                    color: canActivate ? "#0A2540" : "#3d5a80",
-                    transition: "background 0.15s",
-                    letterSpacing: "-0.01em", whiteSpace: "nowrap",
-                  }}
-                  onMouseEnter={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#dbeafe"; }}
-                  onMouseLeave={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#fff"; }}
-                >
-                  {isPending ? "Check wallet…" : activating ? "Activating…" : "⚡ Activate Agentic Flow"}
-                </button>
-              </div>
-
-            </div>
-          )}
         </div>
 
-          {/* ── RIGHT: Config panel ───────────────────────────────── */}
+          {/* ── RIGHT: Context panel ─────────────────────────────── */}
           <div style={{
             width: "272px",
             flexShrink: 0,
@@ -893,228 +1085,484 @@ export default function BuilderPage() {
             flexDirection: "column",
             borderLeft: "1px solid #BFDBFE",
             background: "#fff",
-            overflowY: "auto",
+            overflow: "hidden",
           }}>
-            {selectedAgent ? (
-              /* ── Agent config ── */
-              <>
-                <div style={{ padding: "14px", borderBottom: "1px solid #E3E8EF", borderLeft: "3px solid #2563EB" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-                    <div style={{ width: "36px", height: "36px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, border: "1px solid #DBEAFE" }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${selectedAgent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
-                        alt={selectedAgent.name}
-                        width={36}
-                        height={36}
-                        style={{ display: "block", width: "100%", height: "100%" }}
-                      />
-                    </div>
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 600, margin: "0 0 2px" }}>{selectedAgent.name}</p>
-                      <span style={{ fontSize: "10px", color: "#94a3b8" }}>{CATEGORY_LABELS[selectedAgent.category] ?? selectedAgent.category}</span>
-                    </div>
-                  </div>
-                  {selectedAgent.description && (
-                    <p style={{ color: "#64748b", fontSize: "11px", lineHeight: 1.6, margin: 0 }}>
-                      {selectedAgent.description}
-                    </p>
-                  )}
-                </div>
 
-                {/* Input fields */}
-                {inputSchema && Object.keys(inputSchema).length > 0 && (
-                  <div style={{ padding: "14px", borderBottom: "1px solid #E3E8EF" }}>
-                    <p style={sectionLabel}>Inputs</p>
-                    {Object.entries(inputSchema).map(([field, def]) => (
-                      <div key={field} style={{ marginBottom: "11px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "5px" }}>
-                          <label style={{ fontSize: "11px", color: "#425466", fontWeight: 500 }}>{field}</label>
-                          <span style={{ fontSize: "9px", color: "#2563EB", background: "#EEF2FF", padding: "1px 5px", borderRadius: "4px", border: "1px solid #BFDBFE" }}>
-                            {def.type}
-                          </span>
-                          {def.required && (
-                            <span style={{ fontSize: "9px", color: "#ef4444", fontWeight: 600 }}>required</span>
-                          )}
-                        </div>
-                        <input
-                          value={staticInputs[String(selectedAgent.agentId)]?.[field] ?? ""}
-                          onChange={(e) =>
-                            setStaticInputs((prev) => ({
-                              ...prev,
-                              [String(selectedAgent.agentId)]: {
-                                ...(prev[String(selectedAgent.agentId)] ?? {}),
-                                [field]: e.target.value,
-                              },
-                            }))
-                          }
-                          placeholder={def.description ?? `${field}…`}
-                          style={{
-                            width: "100%",
-                            background: "#EEF2FF",
-                            border: "1px solid #C7D7F5",
-                            borderRadius: "8px",
-                            padding: "7px 10px",
-                            fontSize: "12px",
-                            color: "#0A2540",
-                            outline: "none",
-                            boxSizing: "border-box",
-                            transition: "border-color 0.15s",
-                          }}
-                          onFocus={(e) => { e.target.style.borderColor = "#2563EB"; }}
-                          onBlur={(e) => { e.target.style.borderColor = "#C7D7F5"; }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Output schema */}
-                {outputSchema && Object.keys(outputSchema).length > 0 && (
-                  <div style={{ padding: "14px", borderBottom: "1px solid #E3E8EF" }}>
-                    <p style={sectionLabel}>Outputs</p>
-                    {Object.entries(outputSchema).map(([field, def]) => (
-                      <div key={field} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "7px" }}>
-                        <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#10b981", flexShrink: 0 }} />
-                        <span style={{ fontSize: "11px", color: "#64748b", flex: 1 }}>{field}</span>
-                        <span style={{ fontSize: "9px", color: "#2563EB", background: "#EEF2FF", padding: "1px 5px", borderRadius: "4px", border: "1px solid #BFDBFE" }}>
-                          {def.type}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div style={{ padding: "14px" }}>
-                  <button
-                    onClick={() => removeFromCanvas(selectedAgent.agentId)}
-                    style={{
-                      width: "100%",
-                      padding: "8px",
-                      borderRadius: "8px",
-                      border: "1px solid #FECACA",
-                      background: "#FEF2F2",
-                      color: "#ef4444",
-                      fontSize: "12px",
-                      fontWeight: 500,
-                      cursor: "pointer",
-                      transition: "border-color 0.15s, background 0.15s",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.borderColor = "#FCA5A5";
-                      (e.currentTarget as HTMLButtonElement).style.background = "#FEE2E2";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.borderColor = "#FECACA";
-                      (e.currentTarget as HTMLButtonElement).style.background = "#FEF2F2";
-                    }}
-                  >
-                    Remove from canvas
-                  </button>
-                </div>
-              </>
-            ) : (
-              /* ── Flow settings ── */
-              <>
-                <div style={{ padding: "14px", borderBottom: "1px solid #E3E8EF" }}>
-                  <p style={{ color: "#1D4ED8", fontSize: "13px", fontWeight: 700, margin: "0 0 2px" }}>Configuration</p>
-                  <p style={{ color: "#94a3b8", fontSize: "11px", margin: 0 }}>
-                    {canvasAgents.length === 0 ? "Add agents to get started" : "Click an agent to configure its inputs"}
+            {/* ── STATE: overview ── */}
+            {rightPanel === "overview" && (
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                {/* Header */}
+                <div style={{ padding: "14px 16px 12px", borderBottom: "1px solid #E3E8EF", flexShrink: 0 }}>
+                  <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 700, margin: "0 0 1px", letterSpacing: "-0.01em" }}>Deployment Chain</p>
+                  <p style={{ color: "#94a3b8", fontSize: "10px", margin: 0 }}>
+                    {canvasAgents.length === 0 ? "Add agents to build a flow" : `${canvasAgents.length} agent${canvasAgents.length !== 1 ? "s" : ""} · click to configure`}
                   </p>
                 </div>
 
-                {/* Trigger */}
-                <div style={{ padding: "14px", borderBottom: "1px solid #E3E8EF" }}>
-                  <p style={sectionLabel}>Trigger</p>
-                  {([
-                    { value: "IMMEDIATE", icon: "⚡", label: "Immediate", desc: "Runs right away" },
-                    { value: "SCHEDULED", icon: "🕐", label: "Scheduled", desc: "Run at a set time" },
-                    { value: "CONDITION", icon: "🔮", label: "Condition", desc: "Triggered externally" },
-                  ] as const).map(({ value, icon, label, desc }) => (
-                    <button
-                      key={value}
-                      onClick={() => setTrigger(value)}
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        padding: "9px 11px",
-                        borderRadius: "9px",
-                        border: `1px solid ${trigger === value ? "#93C5FD" : "#E2E8F0"}`,
-                        background: trigger === value ? "#DBEAFE" : "#F1F5F9",
-                        cursor: "pointer",
-                        textAlign: "left",
-                        marginBottom: "6px",
-                        transition: "all 0.15s",
-                      }}
-                    >
-                      <span style={{ fontSize: "16px" }}>{icon}</span>
-                      <div>
-                        <p style={{ color: trigger === value ? "#2563EB" : "#425466", fontSize: "12px", fontWeight: 600, margin: 0 }}>{label}</p>
-                        <p style={{ color: "#94a3b8", fontSize: "10px", margin: 0 }}>{desc}</p>
+                <div style={{ flex: 1, overflowY: "auto" }}>
+                  {canvasAgents.length === 0 ? (
+                    <div style={{ padding: "36px 16px", textAlign: "center" }}>
+                      <p style={{ color: "#CBD5E1", fontSize: "12px", lineHeight: 1.7, margin: 0 }}>
+                        Add agents from the library, then connect them on the canvas.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Deployment chain list */}
+                      <div style={{ padding: "12px 12px 4px" }}>
+                        {canvasAgents.map((a, i) => {
+                          const aAbout  = a.aboutSchema as AboutSchema | null;
+                          const aInputs = Object.entries(getInputSchema(aAbout));
+                          const aMappings = inputMappings[String(a.agentId)] ?? {};
+                          const aStatics = staticInputs[String(a.agentId)] ?? {};
+                          const missing = aInputs.filter(([f, d]) => d.required && !aMappings[f] && !aStatics[f]).length;
+                          const hasAll = missing === 0;
+                          return (
+                            <div key={a.agentId} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                              <button
+                                onClick={() => { setSelectedAgent(a); setSelectedEdge(null); setRightPanel("agent"); }}
+                                style={{
+                                  width: "100%", display: "flex", alignItems: "center", gap: "8px",
+                                  padding: "8px 10px", borderRadius: "10px",
+                                  border: `1px solid ${hasAll ? "#BBF7D0" : "#FED7AA"}`,
+                                  background: hasAll ? "#F0FDF4" : "#FFF7ED",
+                                  cursor: "pointer", textAlign: "left", transition: "all 0.15s",
+                                }}
+                                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = hasAll ? "#86EFAC" : "#FCA5A5"; }}
+                                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = hasAll ? "#BBF7D0" : "#FED7AA"; }}
+                              >
+                                <span style={{
+                                  width: "20px", height: "20px", borderRadius: "50%",
+                                  background: hasAll ? "#DCFCE7" : "#FEF3C7",
+                                  border: `1.5px solid ${hasAll ? "#86EFAC" : "#FDE68A"}`,
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  fontSize: "9px", fontWeight: 800,
+                                  color: hasAll ? "#16a34a" : "#D97706", flexShrink: 0,
+                                }}>
+                                  {i + 1}
+                                </span>
+                                <div style={{ width: "24px", height: "24px", borderRadius: "7px", overflow: "hidden", flexShrink: 0, border: "1px solid #DBEAFE" }}>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${a.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`} alt={a.name} width={24} height={24} style={{ display: "block", width: "100%", height: "100%" }} />
+                                </div>
+                                <span style={{ fontSize: "11px", color: "#0A2540", fontWeight: 600, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {a.name}
+                                </span>
+                                <span style={{ fontSize: "10px", color: hasAll ? "#16a34a" : "#D97706", fontWeight: 600, flexShrink: 0 }}>
+                                  {hasAll ? "✓" : `${missing} missing`}
+                                </span>
+                              </button>
+                              {i < canvasAgents.length - 1 && (
+                                <div style={{ width: "2px", height: "10px", background: "#BFDBFE", margin: "2px 0" }} />
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                    </button>
-                  ))}
+
+                      {/* Deadline */}
+                      <div style={{ padding: "12px 12px 4px" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                          <p style={{ ...sectionLabel, margin: 0 }}>Deadline</p>
+                          <span style={{ fontSize: "12px", fontWeight: 800, color: "#2563EB" }}>{formatDeadline(deadlineSeconds)}</span>
+                        </div>
+                        <input type="range" min={30} max={86400} step={30} value={deadlineSeconds}
+                          onChange={(e) => setDeadlineSeconds(Number(e.target.value))}
+                          style={{ width: "100%", accentColor: "#2563EB", cursor: "pointer" }}
+                        />
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#93C5FD", marginTop: "2px" }}>
+                          <span>30s</span><span>12h</span><span>24h</span>
+                        </div>
+                      </div>
+
+                      {/* Checklist */}
+                      <div style={{ padding: "12px 12px 4px", borderTop: "1px solid #F1F5F9" }}>
+                        <p style={sectionLabel}>Checklist</p>
+                        {[
+                          { ok: isConnected, label: "Wallet connected" },
+                          { ok: isSignedIn, label: "Signed in" },
+                          { ok: canvasAgents.length > 0, label: `${canvasAgents.length} agent${canvasAgents.length !== 1 ? "s" : ""} added` },
+                          { ok: missingFieldsCount === 0, label: missingFieldsCount === 0 ? "All fields filled" : `${missingFieldsCount} required field${missingFieldsCount !== 1 ? "s" : ""} missing` },
+                        ].map(({ ok, label }) => (
+                          <div key={label} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "7px" }}>
+                            <span style={{
+                              width: "16px", height: "16px", borderRadius: "50%", flexShrink: 0,
+                              background: ok ? "#DCFCE7" : "#FEF2F2",
+                              border: `1.5px solid ${ok ? "#86EFAC" : "#FECACA"}`,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              fontSize: "9px", color: ok ? "#16a34a" : "#ef4444", fontWeight: 700,
+                            }}>
+                              {ok ? "✓" : "✗"}
+                            </span>
+                            <span style={{ fontSize: "11px", color: ok ? "#425466" : "#94a3b8" }}>{label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                {/* Deadline */}
-                <div style={{ padding: "14px", borderBottom: "1px solid #E3E8EF" }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-                    <p style={{ ...sectionLabel, margin: 0 }}>Deadline</p>
-                    <span style={{ fontSize: "13px", fontWeight: 800, color: "#2563EB" }}>
-                      {formatDeadline(deadlineSeconds)}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={30}
-                    max={86400}
-                    step={30}
-                    value={deadlineSeconds}
-                    onChange={(e) => setDeadlineSeconds(Number(e.target.value))}
-                    style={{ width: "100%", accentColor: "#2563EB", cursor: "pointer" }}
-                  />
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#93C5FD", marginTop: "4px" }}>
-                    <span>30s</span>
-                    <span>12h</span>
-                    <span>24h</span>
-                  </div>
-                </div>
-
-                {/* Agent order */}
+                {/* Deploy button — sticky footer */}
                 {canvasAgents.length > 0 && (
-                  <div style={{ padding: "14px" }}>
-                    <p style={sectionLabel}>
-                      Agentic Flow — {canvasAgents.length} agent{canvasAgents.length !== 1 ? "s" : ""}
-                    </p>
-                    {canvasAgents.map((a, i) => (
-                      <div key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "9px", marginBottom: "7px", padding: "6px 0" }}>
-                        <span style={{
-                          width: "19px", height: "19px", borderRadius: "50%",
-                          background: "#EFF6FF",
-                          border: "1.5px solid #BFDBFE",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: "9px", fontWeight: 800, color: "#2563EB", flexShrink: 0,
-                        }}>
-                          {i + 1}
-                        </span>
-                        <span style={{ fontSize: "11px", color: "#425466", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {a.name}
+                  <div style={{ padding: "12px", borderTop: "1px solid #E3E8EF", flexShrink: 0 }}>
+                    <button
+                      onClick={() => setRightPanel("summary")}
+                      disabled={!canActivate || missingFieldsCount > 0}
+                      style={{
+                        width: "100%", padding: "12px", borderRadius: "10px", border: "none",
+                        fontSize: "13px", fontWeight: 700, letterSpacing: "-0.01em",
+                        cursor: (canActivate && missingFieldsCount === 0) ? "pointer" : "not-allowed",
+                        background: (canActivate && missingFieldsCount === 0) ? "#2563EB" : "#E2E8F0",
+                        color: (canActivate && missingFieldsCount === 0) ? "#fff" : "#94a3b8",
+                        transition: "background 0.15s",
+                        boxShadow: (canActivate && missingFieldsCount === 0) ? "0 4px 14px rgba(37,99,235,0.35)" : "none",
+                      }}
+                      onMouseEnter={(e) => { if (canActivate && missingFieldsCount === 0) (e.currentTarget as HTMLButtonElement).style.background = "#1d4ed8"; }}
+                      onMouseLeave={(e) => { if (canActivate && missingFieldsCount === 0) (e.currentTarget as HTMLButtonElement).style.background = "#2563EB"; }}
+                    >
+                      Review & Deploy
+                    </button>
+                    {!isConnected && <p style={{ fontSize: "10px", color: "#94a3b8", margin: "6px 0 0", textAlign: "center" }}>Connect wallet to deploy</p>}
+                    {isConnected && !isSignedIn && <p style={{ fontSize: "10px", color: "#94a3b8", margin: "6px 0 0", textAlign: "center" }}>Sign in to deploy</p>}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── STATE: agent ── */}
+            {rightPanel === "agent" && selectedAgent && (() => {
+              const agentAbout       = selectedAgent.aboutSchema as AboutSchema | null;
+              const agentInputSchema  = getInputSchema(agentAbout);
+              const agentOutputSchema = getOutputSchema(agentAbout);
+              const agentMappings     = inputMappings[String(selectedAgent.agentId)] ?? {};
+              const agentStatics      = staticInputs[String(selectedAgent.agentId)] ?? {};
+              const srcAbout          = sourceAgent?.aboutSchema as AboutSchema | null;
+              const srcOutputs        = Object.keys(getOutputSchema(srcAbout));
+
+              return (
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                  {/* Back + agent header */}
+                  <div style={{ padding: "12px 14px", borderBottom: "1px solid #E3E8EF", flexShrink: 0 }}>
+                    <button
+                      onClick={() => { setSelectedAgent(null); setRightPanel("overview"); }}
+                      style={{ display: "flex", alignItems: "center", gap: "4px", color: "#2563EB", fontSize: "11px", fontWeight: 500, background: "transparent", border: "none", cursor: "pointer", padding: "0 0 10px", opacity: 0.8 }}
+                    >
+                      <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                      Chain
+                    </button>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div style={{ width: "36px", height: "36px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, border: "1px solid #DBEAFE" }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${selectedAgent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`} alt={selectedAgent.name} width={36} height={36} style={{ display: "block", width: "100%", height: "100%" }} />
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 700, margin: "0 0 1px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selectedAgent.name}</p>
+                        <span style={{ fontSize: "10px", color: "#94a3b8" }}>
+                          {selectedAgent.pricingModel === "FREE" ? "Free" : `${selectedAgent.priceUsdc} USDC / job`}
                         </span>
                       </div>
-                    ))}
+                    </div>
                   </div>
-                )}
 
-                {canvasAgents.length === 0 && (
-                  <div style={{ padding: "24px 14px", textAlign: "center" }}>
-                    <p style={{ fontSize: "12px", color: "#CBD5E1", lineHeight: 1.6, margin: 0 }}>
-                      Add agents from the library to configure your agentic flow.
-                    </p>
+                  <div style={{ flex: 1, overflowY: "auto" }}>
+                    {/* What it needs */}
+                    {Object.keys(agentInputSchema).length > 0 && (
+                      <div style={{ padding: "12px 14px", borderBottom: "1px solid #E3E8EF" }}>
+                        <p style={sectionLabel}>What it needs</p>
+                        {sourceAgent && srcOutputs.length > 0 ? (
+                          <>
+                            <FieldMapper
+                              sourceName={sourceAgent.name}
+                              targetName={selectedAgent.name}
+                              sourceFields={srcOutputs}
+                              targetFields={Object.entries(agentInputSchema).map(([name, d]) => ({ name, required: d.required ?? false, type: d.type }))}
+                              mappings={agentMappings}
+                              onMap={(tgt, src) => setInputMappings((prev) => ({
+                                ...prev,
+                                [String(selectedAgent.agentId)]: { ...(prev[String(selectedAgent.agentId)] ?? {}), [tgt]: src },
+                              }))}
+                              onUnmap={(tgt) => setInputMappings((prev) => {
+                                const m = { ...(prev[String(selectedAgent.agentId)] ?? {}) };
+                                delete m[tgt];
+                                return { ...prev, [String(selectedAgent.agentId)]: m };
+                              })}
+                            />
+                            {/* Hardcode unmapped fields */}
+                            {Object.entries(agentInputSchema).some(([f]) => !agentMappings[f]) && (
+                              <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px dashed #E3E8EF" }}>
+                                <p style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", margin: "0 0 8px" }}>Hardcode unmapped</p>
+                                {Object.entries(agentInputSchema).filter(([f]) => !agentMappings[f]).map(([field, def]) => (
+                                  <div key={field} style={{ marginBottom: "8px" }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "4px" }}>
+                                      <span style={{ fontSize: "10px", color: "#425466", fontWeight: 500, flex: 1 }}>{field}</span>
+                                      <span style={{ fontSize: "8px", color: "#2563EB", background: "#EEF2FF", padding: "1px 4px", borderRadius: "3px", border: "1px solid #BFDBFE" }}>{def.type}</span>
+                                      {def.required && !agentStatics[field] && <span style={{ fontSize: "8px", color: "#ef4444", fontWeight: 700 }}>req</span>}
+                                    </div>
+                                    <input
+                                      value={agentStatics[field] ?? ""}
+                                      onChange={(e) => setStaticInputs((prev) => ({
+                                        ...prev,
+                                        [String(selectedAgent.agentId)]: { ...(prev[String(selectedAgent.agentId)] ?? {}), [field]: e.target.value },
+                                      }))}
+                                      placeholder={def.description ?? `${field}…`}
+                                      style={{
+                                        width: "100%", background: agentStatics[field] ? "#F0FDF4" : "#F8FAFF",
+                                        border: `1px solid ${agentStatics[field] ? "#86EFAC" : (def.required && !agentStatics[field]) ? "#FECACA" : "#E3E8EF"}`,
+                                        borderRadius: "7px", padding: "5px 8px", fontSize: "11px",
+                                        color: "#0A2540", outline: "none", boxSizing: "border-box",
+                                      }}
+                                      onFocus={(e) => { e.target.style.borderColor = "#2563EB"; }}
+                                      onBlur={(e) => { e.target.style.borderColor = agentStatics[field] ? "#86EFAC" : (def.required && !agentStatics[field]) ? "#FECACA" : "#E3E8EF"; }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          Object.entries(agentInputSchema).map(([field, def]) => {
+                            const hardcoded = agentStatics[field] ?? "";
+                            const isMissing = def.required && !hardcoded;
+                            return (
+                              <div key={field} style={{ marginBottom: "10px" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "4px" }}>
+                                  <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: isMissing ? "#ef4444" : "#10b981", flexShrink: 0 }} />
+                                  <span style={{ fontSize: "11px", color: "#0A2540", fontWeight: 600, flex: 1 }}>{field}</span>
+                                  <span style={{ fontSize: "9px", color: "#2563EB", background: "#EEF2FF", padding: "1px 5px", borderRadius: "4px", border: "1px solid #BFDBFE" }}>{def.type}</span>
+                                  {def.required && <span style={{ fontSize: "9px", color: "#ef4444", fontWeight: 700 }}>req</span>}
+                                </div>
+                                <input
+                                  value={hardcoded}
+                                  onChange={(e) => setStaticInputs((prev) => ({
+                                    ...prev,
+                                    [String(selectedAgent.agentId)]: { ...(prev[String(selectedAgent.agentId)] ?? {}), [field]: e.target.value },
+                                  }))}
+                                  placeholder={def.description ?? `Enter ${field}…`}
+                                  style={{
+                                    width: "100%", background: hardcoded ? "#F0FDF4" : "#F8FAFF",
+                                    border: `1px solid ${hardcoded ? "#86EFAC" : isMissing ? "#FECACA" : "#E3E8EF"}`,
+                                    borderRadius: "8px", padding: "6px 8px", fontSize: "11px",
+                                    color: "#0A2540", outline: "none", boxSizing: "border-box",
+                                  }}
+                                  onFocus={(e) => { e.target.style.borderColor = "#2563EB"; }}
+                                  onBlur={(e) => { e.target.style.borderColor = hardcoded ? "#86EFAC" : isMissing ? "#FECACA" : "#E3E8EF"; }}
+                                />
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
+
+                    {/* What it returns */}
+                    {Object.keys(agentOutputSchema).length > 0 && (
+                      <div style={{ padding: "12px 14px", borderBottom: "1px solid #E3E8EF" }}>
+                        <p style={sectionLabel}>What it returns</p>
+                        {Object.entries(agentOutputSchema).map(([field, def]) => (
+                          <div key={field} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "7px" }}>
+                            <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#10b981", flexShrink: 0 }} />
+                            <span style={{ fontSize: "11px", color: "#425466", flex: 1 }}>{field}</span>
+                            <span style={{ fontSize: "9px", color: "#10b981", background: "#DCFCE7", padding: "1px 5px", borderRadius: "4px", border: "1px solid #BBF7D0" }}>{def.type}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* No schema */}
+                    {Object.keys(agentInputSchema).length === 0 && Object.keys(agentOutputSchema).length === 0 && (
+                      <div style={{ padding: "24px 14px", textAlign: "center" }}>
+                        <p style={{ color: "#CBD5E1", fontSize: "11px", margin: 0 }}>This agent has no published schema.</p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </>
+
+                  {/* Remove button */}
+                  <div style={{ padding: "12px 14px", borderTop: "1px solid #E3E8EF", flexShrink: 0 }}>
+                    <button
+                      onClick={() => { removeFromCanvas(selectedAgent.agentId); setRightPanel("overview"); }}
+                      style={{
+                        width: "100%", padding: "8px", borderRadius: "8px",
+                        border: "1px solid #FECACA", background: "#FEF2F2",
+                        color: "#ef4444", fontSize: "12px", fontWeight: 500, cursor: "pointer", transition: "all 0.15s",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#FEE2E2"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#FEF2F2"; }}
+                    >
+                      Remove agent
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ── STATE: mapping (edge selected) ── */}
+            {rightPanel === "mapping" && selectedEdge && edgeSourceAgent && edgeTargetAgent && (() => {
+              const srcAbout       = edgeSourceAgent.aboutSchema as AboutSchema | null;
+              const tgtAbout       = edgeTargetAgent.aboutSchema as AboutSchema | null;
+              const srcOutputSchema = getOutputSchema(srcAbout);
+              const tgtInputSchema  = getInputSchema(tgtAbout);
+              const tgtMappings = inputMappings[String(edgeTargetAgent.agentId)] ?? {};
+              const srcOutputKeys = Object.keys(srcOutputSchema);
+              const stillMissing = Object.entries(tgtInputSchema).filter(
+                ([f, d]) => d.required && !tgtMappings[f] && !(staticInputs[String(edgeTargetAgent.agentId)] ?? {})[f]
+              );
+
+              return (
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                  {/* Back + header */}
+                  <div style={{ padding: "12px 14px", borderBottom: "1px solid #E3E8EF", flexShrink: 0 }}>
+                    <button
+                      onClick={() => { setSelectedEdge(null); setRightPanel("overview"); }}
+                      style={{ display: "flex", alignItems: "center", gap: "4px", color: "#2563EB", fontSize: "11px", fontWeight: 500, background: "transparent", border: "none", cursor: "pointer", padding: "0 0 10px", opacity: 0.8 }}
+                    >
+                      <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                      Chain
+                    </button>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#0A2540", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "90px" }}>{edgeSourceAgent.name}</span>
+                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#93C5FD" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#0A2540", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "90px" }}>{edgeTargetAgent.name}</span>
+                    </div>
+                  </div>
+
+                  <div style={{ flex: 1, overflowY: "auto" }}>
+                    <div style={{ padding: "12px 14px" }}>
+                      {srcOutputKeys.length > 0 && Object.keys(tgtInputSchema).length > 0 ? (
+                        <>
+                          <FieldMapper
+                            sourceName={edgeSourceAgent.name}
+                            targetName={edgeTargetAgent.name}
+                            sourceFields={srcOutputKeys}
+                            targetFields={Object.entries(tgtInputSchema).map(([name, d]) => ({ name, required: d.required ?? false, type: d.type }))}
+                            mappings={tgtMappings}
+                            onMap={(tgt, src) => setInputMappings((prev) => ({
+                              ...prev,
+                              [String(edgeTargetAgent.agentId)]: { ...(prev[String(edgeTargetAgent.agentId)] ?? {}), [tgt]: src },
+                            }))}
+                            onUnmap={(tgt) => setInputMappings((prev) => {
+                              const m = { ...(prev[String(edgeTargetAgent.agentId)] ?? {}) };
+                              delete m[tgt];
+                              return { ...prev, [String(edgeTargetAgent.agentId)]: m };
+                            })}
+                          />
+                        </>
+                      ) : (
+                        <p style={{ color: "#CBD5E1", fontSize: "11px", margin: 0 }}>
+                          {srcOutputKeys.length === 0 ? `${edgeSourceAgent.name} has no declared outputs.` : `${edgeTargetAgent.name} has no declared inputs.`}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Still needed */}
+                    {stillMissing.length > 0 && (
+                      <div style={{ padding: "0 14px 12px", borderTop: "1px solid #F1F5F9" }}>
+                        <p style={{ ...sectionLabel, color: "#F59E0B", margin: "12px 0 8px" }}>Still needed</p>
+                        {stillMissing.map(([field]) => (
+                          <div key={field} style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px", padding: "6px 9px", background: "#FFFBEB", borderRadius: "8px", border: "1px solid #FDE68A" }}>
+                            <span style={{ fontSize: "10px", color: "#92400E" }}>⚠ <b>{field}</b> — hardcode on agent</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ── STATE: summary ── */}
+            {rightPanel === "summary" && (
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                {/* Back + header */}
+                <div style={{ padding: "12px 14px", borderBottom: "1px solid #E3E8EF", flexShrink: 0 }}>
+                  <button
+                    onClick={() => setRightPanel("overview")}
+                    style={{ display: "flex", alignItems: "center", gap: "4px", color: "#2563EB", fontSize: "11px", fontWeight: 500, background: "transparent", border: "none", cursor: "pointer", padding: "0 0 10px", opacity: 0.8 }}
+                  >
+                    <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                    Back
+                  </button>
+                  <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 700, margin: 0, letterSpacing: "-0.01em" }}>Order Summary</p>
+                </div>
+
+                <div style={{ flex: 1, overflowY: "auto", padding: "14px" }}>
+                  {/* Per-agent rows */}
+                  {canvasAgents.map((a, i) => (
+                    <div key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                      <span style={{ fontSize: "10px", color: "#94a3b8", width: "14px", flexShrink: 0 }}>{i + 1}</span>
+                      <div style={{ width: "22px", height: "22px", borderRadius: "6px", overflow: "hidden", flexShrink: 0, border: "1px solid #DBEAFE" }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${a.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`} alt={a.name} width={22} height={22} style={{ display: "block", width: "100%", height: "100%" }} />
+                      </div>
+                      <span style={{ fontSize: "11px", color: "#425466", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</span>
+                      <span style={{ fontSize: "11px", color: "#0A2540", fontWeight: 600, flexShrink: 0 }}>
+                        {a.pricingModel === "FREE" ? "Free" : `${a.priceUsdc} USDC`}
+                      </span>
+                    </div>
+                  ))}
+
+                  <div style={{ height: "1px", background: "#E3E8EF", margin: "10px 0" }} />
+
+                  {/* Fee + total */}
+                  {preview ? (
+                    <>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                        <span style={{ fontSize: "11px", color: "#64748b" }}>Subtotal</span>
+                        <UsdcAmount amount={preview.subtotal} size={11} style={{ color: "#425466" }} />
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                        <span style={{ fontSize: "11px", color: "#64748b" }}>Protocol fee (1%)</span>
+                        <UsdcAmount amount={preview.protocolFee} size={11} style={{ color: "#425466" }} />
+                      </div>
+                      <div style={{
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        padding: "11px 14px", borderRadius: "10px", background: "#0A2540",
+                      }}>
+                        <span style={{ fontSize: "13px", fontWeight: 700, color: "#94a3b8" }}>Total</span>
+                        <UsdcAmount amount={preview.total} size={15} style={{ color: "#fff", fontWeight: 800 }} />
+                      </div>
+                    </>
+                  ) : (
+                    <p style={{ fontSize: "11px", color: "#CBD5E1" }}>Calculating…</p>
+                  )}
+
+                  {/* Deadline summary */}
+                  <div style={{ marginTop: "12px", padding: "10px 12px", background: "#F8FAFF", borderRadius: "8px", border: "1px solid #E3E8EF" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: "10px", color: "#94a3b8" }}>Deadline</span>
+                      <span style={{ fontSize: "10px", color: "#425466", fontWeight: 600 }}>{formatDeadline(deadlineSeconds)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Confirm button */}
+                <div style={{ padding: "12px 14px", borderTop: "1px solid #E3E8EF", flexShrink: 0 }}>
+                  {error && <p style={{ fontSize: "11px", color: "#ef4444", margin: "0 0 8px", lineHeight: 1.4 }}>{error}</p>}
+                  <button
+                    onClick={activateFlow}
+                    disabled={!canActivate}
+                    style={{
+                      width: "100%", padding: "12px", borderRadius: "10px", border: "none",
+                      fontSize: "13px", fontWeight: 700, letterSpacing: "-0.01em",
+                      cursor: canActivate ? "pointer" : "not-allowed",
+                      background: canActivate ? "#2563EB" : "#E2E8F0",
+                      color: canActivate ? "#fff" : "#94a3b8",
+                      transition: "background 0.15s",
+                      boxShadow: canActivate ? "0 4px 14px rgba(37,99,235,0.35)" : "none",
+                    }}
+                    onMouseEnter={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#1d4ed8"; }}
+                    onMouseLeave={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#2563EB"; }}
+                  >
+                    {isPending ? "Check wallet…" : activating ? "Locking payment…" : "Confirm & Lock Payment"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Fallback when agent/mapping state but selection cleared */}
+            {((rightPanel === "agent" && !selectedAgent) || (rightPanel === "mapping" && (!selectedEdge || !edgeSourceAgent || !edgeTargetAgent))) && (
+              <div style={{ padding: "32px 16px", textAlign: "center" }}>
+                <p style={{ color: "#CBD5E1", fontSize: "12px", margin: 0 }}>Click an agent or connection on the canvas.</p>
+              </div>
             )}
           </div>
         </div>

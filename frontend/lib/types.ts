@@ -16,7 +16,7 @@ export interface Agent {
   version: string;
   endpoint: string;
   pricingModel: PricingModel;
-  priceEth: string;
+  priceUsdc: string;
   permissions: string[];
   logoUrl?: string | null;
   metadataHash: string;

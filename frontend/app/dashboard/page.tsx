@@ -10,7 +10,7 @@ import { REGISTRY_ABI } from "@/lib/registry-abi";
 import { CATEGORY_LABELS, timeAgo } from "@/lib/utils";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { Portal } from "@/components/Portal";
-import { EthAmount } from "@/components/EthAmount";
+import { UsdcAmount } from "@/components/UsdcAmount";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from "recharts";
@@ -24,7 +24,7 @@ type HistoryFilter = "ALL" | "COMPLETED" | "FAILED" | "REFUNDED";
 type EarningsPeriod = "7d" | "30d" | "all";
 
 interface Summary {
-  totalEarnedEth: string;
+  totalEarnedUsdc: string;
   totalJobsRun: number;
   activeFlows: number;
   agentsLive: number;
@@ -37,7 +37,7 @@ interface FlowAgent {
   agentName: string;
   orderIndex: number;
   status: "PENDING" | "RUNNING" | "COMPLETED" | "FAILED";
-  amountEth: string;
+  amountUsdc: string;
   executedAt: string | null;
   output: unknown;
 }
@@ -47,7 +47,7 @@ interface DashFlow {
   jobId: string;
   status: "LOCKED" | "RUNNING" | "COMPLETED" | "REFUNDED" | "FAILED";
   trigger: string;
-  totalAmountEth: string;
+  totalAmountUsdc: string;
   escrowTxHash: string | null;
   createdAt: string;
   completedAt: string | null;
@@ -64,26 +64,26 @@ interface DashAgent {
   active: boolean;
   verifiedAt: string | null;
   failedChecks: number;
-  priceEth: string;
+  priceUsdc: string;
   pricingModel: string;
   aboutSchema: unknown;
   registeredAt: string;
   txHash: string | null;
   totalJobs: number;
-  totalEarnedEth: string;
-  recentJobs: { flowJobId: string; executedAt: string | null; amountEth: string }[];
+  totalEarnedUsdc: string;
+  recentJobs: { flowJobId: string; executedAt: string | null; amountUsdc: string }[];
   reliabilityDays: { date: string; hasData: boolean; success: boolean | null }[];
 }
 
 interface Earnings {
-  totalEarnedEth: string;
+  totalEarnedUsdc: string;
   totalExecutions: number;
   activeFlows: number;
   perAgent: {
     agentId: number;
     name: string;
     executions: number;
-    totalEarnedEth: string;
+    totalEarnedUsdc: string;
     lastRunAt: string | null;
   }[];
   recentPayments: {
@@ -91,7 +91,7 @@ interface Earnings {
     agentId: number;
     agentName: string;
     flowJobId: string;
-    amountEth: string;
+    amountUsdc: string;
     txHash: string | null;
   }[];
 }
@@ -105,10 +105,10 @@ interface AgentAnalytics {
   active: boolean;
   verifiedAt: string | null;
   registeredAt: string;
-  priceEth: string;
+  priceUsdc: string;
   pricingModel: string;
   totalJobs: number;
-  totalEarnedEth: string;
+  totalEarnedUsdc: string;
   avgResponseTimeMs: number | null;
   successRate: number | null;
   uptime: number | null;
@@ -117,7 +117,7 @@ interface AgentAnalytics {
   recentJobs: {
     flowJobId: string;
     executedAt: string | null;
-    amountEth: string;
+    amountUsdc: string;
     status: string;
     escrowTxHash: string | null;
   }[];
@@ -277,7 +277,7 @@ export default function DashboardPage() {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [confirmDeactivate, setConfirmDeactivate] = useState<DashAgent | null>(null);
   const [editAgent, setEditAgent] = useState<DashAgent | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", priceEth: "", pricingModel: "" });
+  const [editForm, setEditForm] = useState({ name: "", priceUsdc: "", pricingModel: "" });
   const [editSaving, setEditSaving] = useState(false);
   const [deactivating, setDeactivating] = useState<number | null>(null);
   const [error, setError] = useState("");
@@ -369,7 +369,7 @@ export default function DashboardPage() {
       const r = await authFetch(`${API}/api/agents/${editAgent.agentId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editForm.name, priceEth: editForm.priceEth, pricingModel: editForm.pricingModel }),
+        body: JSON.stringify({ name: editForm.name, priceUsdc: editForm.priceUsdc, pricingModel: editForm.pricingModel }),
       });
       if (!r.ok) throw new Error("Failed to save");
       setAgents((prev) => prev.map((a) => a.agentId === editAgent.agentId ? { ...a, ...editForm } : a));
@@ -409,7 +409,7 @@ export default function DashboardPage() {
       const dateStr = d.toISOString().slice(0, 10);
       const eth = earnings.recentPayments
         .filter((p) => p.executedAt?.slice(0, 10) === dateStr)
-        .reduce((s, p) => s + parseFloat(p.amountEth), 0);
+        .reduce((s, p) => s + parseFloat(p.amountUsdc), 0);
       return { day: dateStr.slice(5), eth };
     });
   }
@@ -452,7 +452,7 @@ export default function DashboardPage() {
           {/* Summary strip */}
           {summary && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px", marginBottom: "28px" }}>
-              {summary.agentsTotal > 0 && <StatCard label="Total earned" value={<EthAmount amount={fmt(summary.totalEarnedEth)} size={17} />} sub="all time" />}
+              {summary.agentsTotal > 0 && <StatCard label="Total earned" value={<UsdcAmount amount={fmt(summary.totalEarnedUsdc)} size={17} />} sub="all time" />}
               {(summary.totalJobsRun > 0 || summary.activeFlows > 0) && <StatCard label="Jobs run" value={summary.totalJobsRun.toLocaleString()} sub="all time" />}
               {(summary.totalJobsRun > 0 || summary.activeFlows > 0) && <StatCard label="Active agentic flows" value={summary.activeFlows.toString()} sub="right now" />}
               {summary.agentsTotal > 0 && <StatCard label="Agents" value={`${summary.agentsLive} live`} sub={`${summary.agentsTotal} total`} />}
@@ -576,7 +576,7 @@ export default function DashboardPage() {
                               >
                                 <td style={{ padding: "12px 16px", color: "#64748b", fontSize: "12px" }}>{timeAgo(f.createdAt)}</td>
                                 <td style={{ padding: "12px 16px", color: "#0A2540", fontWeight: 500 }}>{f.agents.map((a) => a.agentName).join(" → ")}</td>
-                                <td style={{ padding: "12px 16px", textAlign: "right", color: "#0A2540", fontWeight: 700, fontFamily: "monospace" }}><EthAmount amount={fmt(f.totalAmountEth)} size={12} /></td>
+                                <td style={{ padding: "12px 16px", textAlign: "right", color: "#0A2540", fontWeight: 700, fontFamily: "monospace" }}><UsdcAmount amount={fmt(f.totalAmountUsdc)} size={12} /></td>
                                 <td style={{ padding: "12px 16px", textAlign: "right" }}><StatusChip status={f.status} /></td>
                               </tr>
                             ))}
@@ -666,14 +666,14 @@ export default function DashboardPage() {
                                 {agent.totalJobs}
                               </p>
                               <p style={{ fontSize: "12px", color: "#0A2540", fontWeight: 600, textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end", fontFamily: "monospace" }}>
-                                <EthAmount amount={fmt(agent.totalEarnedEth)} size={11} />
+                                <UsdcAmount amount={fmt(agent.totalEarnedUsdc)} size={11} />
                               </p>
                               <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "6px" }}>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setEditAgent(agent);
-                                    setEditForm({ name: agent.name, priceEth: agent.priceEth, pricingModel: agent.pricingModel });
+                                    setEditForm({ name: agent.name, priceUsdc: agent.priceUsdc, pricingModel: agent.pricingModel });
                                   }}
                                   style={{ fontSize: "11px", fontWeight: 600, color: "#2563EB", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "6px", padding: "4px 8px", cursor: "pointer" }}
                                 >
@@ -734,12 +734,12 @@ export default function DashboardPage() {
                     <>
                       {/* Summary */}
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px", marginBottom: "20px" }}>
-                        <StatCard label="Total earned" value={<EthAmount amount={fmt(earnings.totalEarnedEth)} size={17} />} sub="all time" />
+                        <StatCard label="Total earned" value={<UsdcAmount amount={fmt(earnings.totalEarnedUsdc)} size={17} />} sub="all time" />
                         <StatCard label="Executions" value={earnings.totalExecutions.toLocaleString()} sub="all time" />
                         <StatCard
                           label="Best agent"
-                          value={[...earnings.perAgent].sort((a, b) => parseFloat(b.totalEarnedEth) - parseFloat(a.totalEarnedEth))[0]?.name ?? "—"}
-                          sub={<EthAmount amount={fmt([...earnings.perAgent].sort((a, b) => parseFloat(b.totalEarnedEth) - parseFloat(a.totalEarnedEth))[0]?.totalEarnedEth ?? "0")} size={11} />}
+                          value={[...earnings.perAgent].sort((a, b) => parseFloat(b.totalEarnedUsdc) - parseFloat(a.totalEarnedUsdc))[0]?.name ?? "—"}
+                          sub={<UsdcAmount amount={fmt([...earnings.perAgent].sort((a, b) => parseFloat(b.totalEarnedUsdc) - parseFloat(a.totalEarnedUsdc))[0]?.totalEarnedUsdc ?? "0")} size={11} />}
                         />
                       </div>
 
@@ -753,7 +753,7 @@ export default function DashboardPage() {
                             <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} interval={earningsPeriod === "7d" ? 0 : 6} />
                             <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} />
                             <Tooltip
-                              formatter={(v: unknown) => [`${fmt(String(v))} ETH`, "Earned"]}
+                              formatter={(v: unknown) => [`${fmt(String(v))} USDC`, "Earned"]}
                               contentStyle={{ border: "1px solid #E3E8EF", borderRadius: "8px", fontSize: "12px" }}
                               cursor={{ fill: "#EFF6FF" }}
                             />
@@ -768,8 +768,8 @@ export default function DashboardPage() {
                           <SectionLabel>By agent</SectionLabel>
                         </div>
                         {earnings.perAgent.map((a) => {
-                          const total = parseFloat(earnings.totalEarnedEth);
-                          const pct = total > 0 ? (parseFloat(a.totalEarnedEth) / total) * 100 : 0;
+                          const total = parseFloat(earnings.totalEarnedUsdc);
+                          const pct = total > 0 ? (parseFloat(a.totalEarnedUsdc) / total) * 100 : 0;
                           return (
                             <div key={a.agentId} style={{ padding: "16px 20px", borderBottom: "1px solid #F1F5F9" }}>
                               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
@@ -781,7 +781,7 @@ export default function DashboardPage() {
                                   </p>
                                 </div>
                                 <div style={{ textAlign: "right" }}>
-                                  <p style={{ fontSize: "14px", fontWeight: 700, color: "#0A2540", fontFamily: "monospace", display: "flex", alignItems: "center", justifyContent: "flex-end" }}><EthAmount amount={fmt(a.totalEarnedEth)} size={13} /></p>
+                                  <p style={{ fontSize: "14px", fontWeight: 700, color: "#0A2540", fontFamily: "monospace", display: "flex", alignItems: "center", justifyContent: "flex-end" }}><UsdcAmount amount={fmt(a.totalEarnedUsdc)} size={13} /></p>
                                   <p style={{ fontSize: "11px", color: "#64748b", fontWeight: 600 }}>{pct.toFixed(0)}% of total</p>
                                 </div>
                               </div>
@@ -822,7 +822,7 @@ export default function DashboardPage() {
                                   <td style={{ padding: "12px 16px", fontFamily: "monospace", fontSize: "11px" }}>
                                     <span style={{ background: "#F1F5F9", color: "#64748b", padding: "2px 7px", borderRadius: "5px", fontWeight: 600 }}>{p.flowJobId.slice(0, 14)}…</span>
                                   </td>
-                                  <td style={{ padding: "12px 16px", textAlign: "right", color: "#10b981", fontWeight: 700, fontFamily: "monospace" }}><EthAmount amount={fmt(p.amountEth)} size={12} /></td>
+                                  <td style={{ padding: "12px 16px", textAlign: "right", color: "#10b981", fontWeight: 700, fontFamily: "monospace" }}><UsdcAmount amount={fmt(p.amountUsdc)} size={12} /></td>
                                   <td style={{ padding: "12px 16px", textAlign: "right" }}>
                                     {p.txHash
                                       ? <a href={`${ARBISCAN}/tx/${p.txHash}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "#64748b", textDecoration: "none", fontWeight: 600 }}>↗ Tx</a>
@@ -912,10 +912,10 @@ export default function DashboardPage() {
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: "11px", fontWeight: 600, color: "#425466", display: "block", marginBottom: "6px" }}>Price (ETH)</label>
+                <label style={{ fontSize: "11px", fontWeight: 600, color: "#425466", display: "block", marginBottom: "6px" }}>Price (USDC)</label>
                 <input
-                  value={editForm.priceEth}
-                  onChange={(e) => setEditForm((f) => ({ ...f, priceEth: e.target.value }))}
+                  value={editForm.priceUsdc}
+                  onChange={(e) => setEditForm((f) => ({ ...f, priceUsdc: e.target.value }))}
                   disabled={editForm.pricingModel === "FREE"}
                   style={{ width: "100%", border: "1px solid #E3E8EF", borderRadius: "8px", padding: "9px 12px", fontSize: "13px", color: "#0A2540", outline: "none", opacity: editForm.pricingModel === "FREE" ? 0.4 : 1 }}
                 />
@@ -1001,7 +1001,7 @@ export default function DashboardPage() {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                     {[
                       { label: "Total jobs",   value: analyticsAgent.totalJobs.toString(),       sub: "completed" },
-                      { label: "Total earned", value: <EthAmount amount={fmt(analyticsAgent.totalEarnedEth)} size={17} />, sub: "all time" },
+                      { label: "Total earned", value: <UsdcAmount amount={fmt(analyticsAgent.totalEarnedUsdc)} size={17} />, sub: "all time" },
                       { label: "Avg response", value: analyticsAgent.avgResponseTimeMs != null ? `${analyticsAgent.avgResponseTimeMs}ms` : "—", sub: "last 30 days" },
                       { label: "Uptime",       value: analyticsAgent.uptime != null ? `${analyticsAgent.uptime}%` : "—", sub: "last 30 days" },
                     ].map(({ label, value, sub }) => (
@@ -1066,7 +1066,7 @@ export default function DashboardPage() {
                               <span style={{ textAlign: "right" }}>
                                 <span style={{ fontSize: "11px", fontWeight: 600, padding: "2px 7px", borderRadius: "5px", background: sc.bg, color: sc.text }}>{job.status}</span>
                               </span>
-                              <span style={{ fontSize: "12px", fontWeight: 600, color: "#10b981", textAlign: "right", fontFamily: "monospace", display: "flex", alignItems: "center", justifyContent: "flex-end" }}><EthAmount amount={fmt(job.amountEth)} size={11} /></span>
+                              <span style={{ fontSize: "12px", fontWeight: 600, color: "#10b981", textAlign: "right", fontFamily: "monospace", display: "flex", alignItems: "center", justifyContent: "flex-end" }}><UsdcAmount amount={fmt(job.amountUsdc)} size={11} /></span>
                               <span style={{ fontSize: "11px", color: "#94a3b8", textAlign: "right" }}>{job.executedAt ? timeAgo(job.executedAt) : "—"}</span>
                             </div>
                           );

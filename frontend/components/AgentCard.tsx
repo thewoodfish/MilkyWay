@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Agent } from "@/lib/types";
 import { agentStatus, shortAddress, CATEGORY_LABELS } from "@/lib/utils";
 import { AgentAvatar } from "./AgentAvatar";
-import { EthAmount } from "./EthAmount";
+import { UsdcAmount } from "./UsdcAmount";
 
 const CATEGORY_META: Record<string, { color: string; bg: string; border: string }> = {
   DEFI:         { color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" },
@@ -130,7 +130,7 @@ export function AgentCard({ agent }: AgentCardProps) {
           <div>
             <p className="text-[13px] font-semibold font-mono-custom" style={{ color: "#0A2540" }}>
               {agent.pricingModel === "FREE" ? "Free" : (
-                <EthAmount amount={agent.priceEth!} size={12} />
+                <UsdcAmount amount={agent.priceUsdc!} size={12} />
               )}
             </p>
             <p className="text-[11px] font-mono-custom mt-0.5" style={{ color: "#94a3b8" }}>

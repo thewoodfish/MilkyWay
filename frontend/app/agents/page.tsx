@@ -97,7 +97,7 @@ function AgentsContent() {
             )}
           </h1>
           <p className="text-[16px]" style={{ color: "rgba(255,255,255,0.6)" }}>
-            Activate autonomous agents on Arbitrum. Pay per job, refund guaranteed.
+            Activate autonomous agents on Arbitrum. Pay per job in USDC.
           </p>
         </div>
       </div>

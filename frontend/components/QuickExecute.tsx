@@ -2,15 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
-import { parseEther } from "viem";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAuth } from "@/context/AuthContext";
 import { authFetch } from "@/lib/auth";
-import { ESCROW_ABI } from "@/lib/escrow-abi";
 import { SignInButton } from "./SignInButton";
 
-const API    = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-const ESCROW = process.env.NEXT_PUBLIC_JOB_ESCROW_ADDRESS as `0x${string}`;
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const USDC_ADDRESS = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" as `0x${string}`;
+const USDC_TRANSFER_ABI = [
+  { name: "transfer", type: "function", stateMutability: "nonpayable",
+    inputs: [{ name: "to", type: "address" }, { name: "amount", type: "uint256" }],
+    outputs: [{ name: "", type: "bool" }] },
+] as const;
 
 interface FieldDef {
   type: "string" | "number" | "boolean" | "array";
@@ -28,7 +31,7 @@ interface AboutSchema {
 interface Props {
   agentId: number;
   aboutSchema: AboutSchema;
-  priceEth: string;
+  priceUsdc: string;
 }
 
 type Status = "idle" | "creating" | "wallet" | "confirming" | "polling" | "done" | "error";
@@ -36,13 +39,13 @@ type Status = "idle" | "creating" | "wallet" | "confirming" | "polling" | "done"
 interface PendingFlow {
   jobId: string;
   internalId: string;
-  agentWallets: string[];
-  agentAmounts: string[];
+  milkywayPaymentAddress: string;
+  rawAmountUsdc: string;
+  totalUsdc: string;
   deadline: number;
-  totalEth: string;
 }
 
-export function QuickExecute({ agentId, aboutSchema, priceEth }: Props) {
+export function QuickExecute({ agentId, aboutSchema, priceUsdc }: Props) {
   const { isConnected } = useAccount();
   const { isSignedIn } = useAuth();
 
@@ -113,19 +116,16 @@ export function QuickExecute({ agentId, aboutSchema, priceEth }: Props) {
       if (!res.ok) throw new Error((flow as { error?: string }).error ?? "Failed to create flow");
       setPendingFlow(flow);
 
-      // Step 2: trigger wallet
+      // Step 2: trigger wallet — send USDC to MilkyWay orchestrator
       setStatus("wallet");
       writeContract({
-        address: ESCROW,
-        abi: ESCROW_ABI,
-        functionName: "lockPayment",
+        address: USDC_ADDRESS,
+        abi: USDC_TRANSFER_ABI,
+        functionName: "transfer",
         args: [
-          flow.jobId as `0x${string}`,
-          flow.agentWallets as `0x${string}`[],
-          flow.agentAmounts.map(BigInt),
-          BigInt(flow.deadline),
+          flow.milkywayPaymentAddress as `0x${string}`,
+          BigInt(flow.rawAmountUsdc),
         ],
-        value: parseEther(flow.totalEth),
       });
     } catch (e) {
       setError((e as Error).message);
@@ -195,7 +195,7 @@ export function QuickExecute({ agentId, aboutSchema, priceEth }: Props) {
           </div>
           <h3 className="font-bold text-emerald-800 text-base">Completed</h3>
         </div>
-        <p className="text-emerald-700 text-xs mb-3">Cost: {priceEth} ETH · paid from escrow</p>
+        <p className="text-emerald-700 text-xs mb-3">Cost: {priceUsdc} USDC · MilkyWay orchestrator</p>
         <div className="bg-white border border-emerald-200 rounded-lg p-3 mb-4">
           <p className="text-slate-500 text-xs font-medium mb-1.5">Output</p>
           <pre className="text-slate-800 text-xs overflow-auto max-h-48 leading-relaxed">
@@ -215,7 +215,7 @@ export function QuickExecute({ agentId, aboutSchema, priceEth }: Props) {
       <div className="flex items-center justify-between mb-5">
         <h3 className="font-bold text-ink text-base">Run This Agent</h3>
         <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full font-mono-custom">
-          {priceEth} ETH
+          {priceUsdc} ETH
         </span>
       </div>
 
@@ -267,7 +267,7 @@ export function QuickExecute({ agentId, aboutSchema, priceEth }: Props) {
       {/* Cost row */}
       <div className="flex justify-between text-xs text-slate-500 mb-4 py-3 border-y border-slate-100">
         <span>Cost</span>
-        <span className="font-semibold text-ink">{priceEth} ETH + gas</span>
+        <span className="font-semibold text-ink">{priceUsdc} USDC + gas</span>
       </div>
 
       {/* Error */}

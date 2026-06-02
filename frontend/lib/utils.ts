@@ -9,7 +9,7 @@ export function computeMetadataHash(profile: {
   name: string;
   ownerAddress: string;
   permissions: string[];
-  priceEth: string;
+  priceUsdc: string;
   pricingModel: string;
   subcategory: string | null;
   version: string;
@@ -38,7 +38,7 @@ export function formatPrice(agent: Agent): string {
     PER_MONTH: "/ month",
     FREE: "",
   };
-  return `${agent.priceEth} ETH ${suffix[agent.pricingModel]}`;
+  return `${agent.priceUsdc} USDC ${suffix[agent.pricingModel]}`;
 }
 
 export function agentStatus(agent: Agent): "live" | "degraded" | "down" {

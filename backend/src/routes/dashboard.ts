@@ -26,15 +26,15 @@ router.get("/summary", authenticateJWT, async (req: AuthRequest, res: Response) 
       agentIds.length > 0
         ? prisma.flowAgent.findMany({
             where: { agentId: { in: agentIds }, status: "COMPLETED" },
-            select: { amountEth: true },
+            select: { amountUsdc: true },
           })
         : Promise.resolve([]),
     ]);
 
-    const totalEarned = earnedJobs.reduce((s, j) => s + parseFloat(j.amountEth), 0);
+    const totalEarned = earnedJobs.reduce((s, j) => s + parseFloat(j.amountUsdc), 0);
 
     res.json({
-      totalEarnedEth: totalEarned > 0 ? parseFloat(totalEarned.toFixed(6)).toString() : "0",
+      totalEarnedUsdc: totalEarned > 0 ? parseFloat(totalEarned.toFixed(6)).toString() : "0",
       totalJobsRun: completedFlows,
       activeFlows,
       agentsLive: myAgents.filter((a) => a.active).length,
@@ -75,7 +75,7 @@ router.get("/flows", authenticateJWT, async (req: AuthRequest, res: Response) =>
       jobId: f.jobId,
       status: f.status,
       trigger: f.trigger,
-      totalAmountEth: f.totalAmountEth,
+      totalAmountUsdc: f.totalAmountUsdc,
       escrowTxHash: f.escrowTxHash,
       createdAt: f.createdAt,
       completedAt: f.completedAt,
@@ -86,7 +86,7 @@ router.get("/flows", authenticateJWT, async (req: AuthRequest, res: Response) =>
         agentName: nameMap[a.agentId] ?? `Agent #${a.agentId}`,
         orderIndex: a.orderIndex,
         status: a.status,
-        amountEth: a.amountEth,
+        amountUsdc: a.amountUsdc,
         executedAt: a.executedAt,
         output: a.output,
       })),
@@ -130,7 +130,7 @@ router.get("/agents", authenticateJWT, async (req: AuthRequest, res: Response) =
 
     const result = myAgents.map((agent) => {
       const jobs = completedJobs.filter((j) => j.agentId === agent.agentId);
-      const totalEarned = jobs.reduce((s, j) => s + parseFloat(j.amountEth), 0);
+      const totalEarned = jobs.reduce((s, j) => s + parseFloat(j.amountUsdc), 0);
 
       // 7-day reliability calendar
       const reliabilityDays = [];
@@ -159,18 +159,18 @@ router.get("/agents", authenticateJWT, async (req: AuthRequest, res: Response) =
         active: agent.active,
         verifiedAt: agent.verifiedAt,
         failedChecks: agent.failedChecks,
-        priceEth: agent.priceEth,
+        priceUsdc: agent.priceUsdc,
         pricingModel: agent.pricingModel,
         phase2Ready: agent.phase2Ready,
         aboutSchema: agent.aboutSchema,
         registeredAt: agent.registeredAt,
         txHash: agent.txHash,
         totalJobs: jobs.length,
-        totalEarnedEth: totalEarned > 0 ? parseFloat(totalEarned.toFixed(6)).toString() : "0",
+        totalEarnedUsdc: totalEarned > 0 ? parseFloat(totalEarned.toFixed(6)).toString() : "0",
         recentJobs: jobs.slice(0, 3).map((j) => ({
           flowJobId: j.flow.jobId,
           executedAt: j.executedAt,
-          amountEth: j.amountEth,
+          amountUsdc: j.amountUsdc,
         })),
         reliabilityDays,
       };
@@ -235,7 +235,7 @@ router.get("/agents/:agentId/analytics", authenticateJWT, async (req: AuthReques
       const day = new Date(job.executedAt).toISOString().slice(0, 10);
       if (jobsMap[day]) {
         jobsMap[day].count += 1;
-        jobsMap[day].earned += parseFloat(job.amountEth);
+        jobsMap[day].earned += parseFloat(job.amountUsdc);
       }
     }
     const jobsPerDay = Object.entries(jobsMap).map(([date, v]) => ({
@@ -266,14 +266,14 @@ router.get("/agents/:agentId/analytics", authenticateJWT, async (req: AuthReques
     const recentJobs = allJobs.slice(0, 15).map((j) => ({
       flowJobId: j.flow.jobId,
       executedAt: j.executedAt,
-      amountEth: j.amountEth,
+      amountUsdc: j.amountUsdc,
       status: j.status,
       escrowTxHash: j.flow.escrowTxHash,
     }));
 
     const totalEarned = allJobs
       .filter((j) => j.status === "COMPLETED")
-      .reduce((s, j) => s + parseFloat(j.amountEth), 0);
+      .reduce((s, j) => s + parseFloat(j.amountUsdc), 0);
 
     res.json({
       agentId,
@@ -285,10 +285,10 @@ router.get("/agents/:agentId/analytics", authenticateJWT, async (req: AuthReques
       phase2Ready: agent.phase2Ready,
       verifiedAt: agent.verifiedAt,
       registeredAt: agent.registeredAt,
-      priceEth: agent.priceEth,
+      priceUsdc: agent.priceUsdc,
       pricingModel: agent.pricingModel,
       totalJobs: allJobs.filter((j) => j.status === "COMPLETED").length,
-      totalEarnedEth: totalEarned > 0 ? parseFloat(totalEarned.toFixed(6)).toString() : "0",
+      totalEarnedUsdc: totalEarned > 0 ? parseFloat(totalEarned.toFixed(6)).toString() : "0",
       avgResponseTimeMs,
       successRate,
       uptime,

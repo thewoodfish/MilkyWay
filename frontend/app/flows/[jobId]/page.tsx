@@ -2,11 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
+import { useAccount } from "wagmi";
 import { apiFetch, timeAgo } from "@/lib/utils";
-import { ESCROW_ABI } from "@/lib/escrow-abi";
-
-const ESCROW = process.env.NEXT_PUBLIC_JOB_ESCROW_ADDRESS as `0x${string}`;
 
 type FlowStatus = "LOCKED" | "RUNNING" | "COMPLETED" | "REFUNDED" | "FAILED";
 type AgentStatus = "PENDING" | "RUNNING" | "COMPLETED" | "FAILED";
@@ -15,7 +12,7 @@ interface FlowAgent {
   id: string;
   agentId: number;
   orderIndex: number;
-  amountEth: string;
+  amountUsdc: string;
   status: AgentStatus;
   output: unknown;
   executedAt: string | null;
@@ -25,7 +22,7 @@ interface Flow {
   id: string;
   jobId: string;
   callerAddress: string;
-  totalAmountEth: string;
+  totalAmountUsdc: string;
   deadline: string;
   trigger: string;
   status: FlowStatus;
@@ -63,11 +60,6 @@ export default function FlowPage() {
   const [flow, setFlow] = useState<Flow | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedOutput, setExpandedOutput] = useState<string | null>(null);
-  const [refundError, setRefundError] = useState("");
-
-  const { writeContract, data: refundTxHash, isPending: isRefunding } = useWriteContract();
-  const { isSuccess: refundSuccess } = useWaitForTransactionReceipt({ hash: refundTxHash });
-
   const decodedJobId = decodeURIComponent(jobId);
 
   useEffect(() => {
@@ -78,10 +70,6 @@ export default function FlowPage() {
     }, 3000);
     return () => clearInterval(interval);
   }, [flow?.status]);
-
-  useEffect(() => {
-    if (refundSuccess) fetchFlow();
-  }, [refundSuccess]);
 
   async function fetchFlow() {
     try {
@@ -94,24 +82,10 @@ export default function FlowPage() {
     }
   }
 
-  function refund() {
-    setRefundError("");
-    try {
-      writeContract({
-        address: ESCROW,
-        abi: ESCROW_ABI,
-        functionName: "refundPayment",
-        args: [decodedJobId as `0x${string}`],
-      });
-    } catch (e) {
-      setRefundError((e as Error).message);
-    }
-  }
-
+  // Refunds are handled manually by MilkyWay support for failed flows
   const canRefund =
     flow &&
-    (flow.status === "LOCKED" || flow.status === "RUNNING") &&
-    new Date(flow.deadline) < new Date() &&
+    (flow.status === "FAILED") &&
     address?.toLowerCase() === flow.callerAddress.toLowerCase();
 
   if (loading) {
@@ -147,7 +121,7 @@ export default function FlowPage() {
           <div className="flex gap-6 mt-4 text-sm">
             <div>
               <p className="text-[#8892A4] text-xs">Total</p>
-              <p className="text-white font-semibold">{flow.totalAmountEth} ETH</p>
+              <p className="text-white font-semibold">{flow.totalAmountUsdc} USDC</p>
             </div>
             <div>
               <p className="text-[#8892A4] text-xs">Trigger</p>
@@ -180,7 +154,7 @@ export default function FlowPage() {
                     <span className={`text-lg font-bold ${AGENT_COLOR[fa.status]}`}>{AGENT_ICON[fa.status]}</span>
                     <p className="text-white text-sm font-medium">Agent #{fa.agentId}</p>
                   </div>
-                  <p className="text-[#8892A4] text-xs">{fa.amountEth} ETH</p>
+                  <p className="text-[#8892A4] text-xs">{fa.amountUsdc} USDC</p>
                   {fa.executedAt && (
                     <p className="text-[#8892A4] text-xs mt-1">{timeAgo(fa.executedAt)}</p>
                   )}
@@ -213,16 +187,16 @@ export default function FlowPage() {
             {flow.agents.map((fa) => (
               <div key={fa.id} className="flex justify-between text-sm">
                 <span className="text-[#8892A4]">Agent #{fa.agentId}</span>
-                <span className="text-white">{fa.amountEth} ETH</span>
+                <span className="text-white">{fa.amountUsdc} USDC</span>
               </div>
             ))}
             <div className="flex justify-between text-sm border-t border-white/8 pt-2 mt-2">
               <span className="text-[#8892A4]">Protocol fee (1%)</span>
-              <span className="text-white">{(parseFloat(flow.totalAmountEth) * 0.01 / 1.01).toFixed(6)} ETH</span>
+              <span className="text-white">{(parseFloat(flow.totalAmountUsdc) * 0.01 / 1.01).toFixed(6)} USDC</span>
             </div>
             <div className="flex justify-between text-sm font-semibold">
               <span className="text-white">Total</span>
-              <span className="text-accent">{flow.totalAmountEth} ETH</span>
+              <span className="text-accent">{flow.totalAmountUsdc} USDC</span>
             </div>
           </div>
 
@@ -232,22 +206,16 @@ export default function FlowPage() {
             </div>
           )}
 
-          {flow.status === "FAILED" && !canRefund && (
-            <div className="mt-4 p-3 bg-red-500/5 border border-red-500/20 rounded-xl">
-              <p className="text-red-400 text-sm">Agentic flow failed. Refund available after deadline passes.</p>
-            </div>
-          )}
-
           {canRefund && (
-            <div className="mt-4">
-              {refundError && <p className="text-red-400 text-xs mb-2">{refundError}</p>}
-              <button
-                onClick={refund}
-                disabled={isRefunding}
-                className="w-full bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-100 rounded-xl py-3 text-sm font-medium transition-colors disabled:opacity-50"
-              >
-                {isRefunding ? "Check Wallet…" : `Refund ${flow.totalAmountEth} ETH`}
-              </button>
+            <div className="mt-4 p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+              <p className="text-amber-400 text-sm font-medium mb-1">Flow failed</p>
+              <p className="text-[#8892A4] text-xs">
+                USDC refunds are processed manually. Contact{" "}
+                <a href="mailto:support@milkyway.fi" className="text-blue-400 underline">
+                  support@milkyway.fi
+                </a>{" "}
+                with job ID <span className="font-mono">{flow.jobId.slice(0, 12)}…</span>
+              </p>
             </div>
           )}
         </div>

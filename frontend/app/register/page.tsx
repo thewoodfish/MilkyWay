@@ -11,7 +11,7 @@ import { authFetch, getNonce, buildSiweMessage, verifySignature } from "@/lib/au
 import { useAuth } from "@/context/AuthContext";
 import { AuthGate } from "@/components/AuthGate";
 import { AgentAvatarUpload } from "@/components/AgentAvatarUpload";
-import { EthAmount } from "@/components/EthAmount";
+import { UsdcAmount } from "@/components/UsdcAmount";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -105,7 +105,7 @@ export default function RegisterPage() {
     version: "1.0.0",
     endpoint: "",
     pricingModel: "PER_CALL",
-    priceEth: "0.001",
+    priceUsdc: "0.001",
     permissions: [] as string[],
     logoUrl: "",
   });
@@ -523,10 +523,10 @@ export default function RegisterPage() {
 
                     {form.pricingModel !== "FREE" && (
                       <div>
-                        <label style={labelStyle}>Price (ETH)</label>
+                        <label style={labelStyle}>Price (USDC)</label>
                         <Input
-                          value={form.priceEth}
-                          onChange={(v) => field("priceEth", v)}
+                          value={form.priceUsdc}
+                          onChange={(v) => field("priceUsdc", v)}
                           placeholder="0.001"
                         />
                       </div>
@@ -639,7 +639,7 @@ export default function RegisterPage() {
                           <span style={{ fontSize: "13px", fontWeight: 700, color: "#10b981" }}>Free</span>
                         ) : (
                           <div>
-                            <EthAmount amount={form.priceEth} size={13} style={{ fontSize: "15px", fontWeight: 700, color: "#0A2540" }} />
+                            <UsdcAmount amount={form.priceUsdc} size={13} style={{ fontSize: "15px", fontWeight: 700, color: "#0A2540" }} />
                             <span style={{ fontSize: "12px", color: "#64748b", marginLeft: "4px" }}>
                               / {form.pricingModel.toLowerCase().replace("per_", "")}
                             </span>
@@ -678,7 +678,7 @@ export default function RegisterPage() {
                     <div style={{ padding: "14px 18px", background: "#fff" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                         <span style={{ fontSize: "13px", color: "#64748b" }}>Registration stake</span>
-                        <EthAmount amount="0.01" size={12} style={{ fontSize: "13px", fontWeight: 600, color: "#0A2540" }} />
+                        <UsdcAmount amount="0.01" size={12} style={{ fontSize: "13px", fontWeight: 600, color: "#0A2540" }} />
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "12px", borderBottom: "1px solid #F1F5F9" }}>
                         <span style={{ fontSize: "13px", color: "#64748b" }}>Protocol fee</span>
@@ -784,7 +784,7 @@ export default function RegisterPage() {
                 <button
                   onClick={() => {
                     setStep(1);
-                    setForm({ name: "", description: "", category: "", subcategory: "", version: "1.0.0", endpoint: "", pricingModel: "PER_CALL", priceEth: "0.001", permissions: [], logoUrl: "" });
+                    setForm({ name: "", description: "", category: "", subcategory: "", version: "1.0.0", endpoint: "", pricingModel: "PER_CALL", priceUsdc: "0.001", permissions: [], logoUrl: "" });
                     setEndpointStatus(null);
                     setProfileId("");
                     setRegisteredAgentId(null);

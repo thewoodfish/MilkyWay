@@ -9,7 +9,7 @@ import { AgentCard } from "@/components/AgentCard";
 import { TechnicalDetails } from "@/components/TechnicalDetails";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { AgentShare } from "@/components/AgentShare";
-import { EthAmount } from "@/components/EthAmount";
+import { UsdcAmount } from "@/components/UsdcAmount";
 
 
 const CATEGORY_META: Record<string, { color: string; bg: string; border: string }> = {
@@ -80,14 +80,6 @@ async function getRelated(agentId: number, category: string): Promise<Agent[]> {
   }
 }
 
-async function getEthUsd(): Promise<number | null> {
-  try {
-    const data = await apiFetch<{ usd: number }>("/api/rates/eth-usd");
-    return data.usd;
-  } catch {
-    return null;
-  }
-}
 
 export async function generateMetadata({ params }: { params: { agentId: string } }) {
   const agent = await getAgent(params.agentId);
@@ -127,10 +119,9 @@ export default async function AgentProfilePage({
 }: {
   params: { agentId: string };
 }) {
-  const [agent, logs, ethUsd] = await Promise.all([
+  const [agent, logs] = await Promise.all([
     getAgent(params.agentId),
     getLogs(params.agentId),
-    getEthUsd(),
   ]);
 
   if (!agent) {
@@ -191,10 +182,8 @@ export default async function AgentProfilePage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const capabilities: string[] = (aboutSchema as any)?.capabilities ?? [];
 
-  // USD conversion
-  const priceUsd = ethUsd && agent.priceEth && agent.pricingModel !== "FREE"
-    ? (parseFloat(agent.priceEth) * ethUsd).toFixed(4)
-    : null;
+  // USDC price is already in USD
+  const priceUsd = agent.priceUsdc && agent.pricingModel !== "FREE" ? agent.priceUsdc : null;
 
   const lastLog = logs[0];
 
@@ -263,7 +252,7 @@ export default async function AgentProfilePage({
             <div className="flex-shrink-0 sm:text-right">
               <div className="text-[32px] font-bold font-mono-custom leading-none text-white mb-1">
                 {agent.pricingModel === "FREE" ? "Free" : (
-                  <EthAmount amount={agent.priceEth!} size={26} style={{ color: "#fff" }} />
+                  <UsdcAmount amount={agent.priceUsdc!} size={26} style={{ color: "#fff" }} />
                 )}
               </div>
               <div className="text-[12px]" style={{ color: "rgba(255,255,255,0.4)" }}>{PRICING_SUFFIX[agent.pricingModel] ?? ""}</div>
@@ -528,7 +517,7 @@ export default async function AgentProfilePage({
                 agentId={agent.agentId!}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 aboutSchema={agent.aboutSchema as any}
-                priceEth={agent.priceEth}
+                priceUsdc={agent.priceUsdc}
               />
             ) : status === "down" ? (
               <Card>
@@ -563,7 +552,7 @@ export default async function AgentProfilePage({
                     agentId: agent.agentId,
                     name: agent.name,
                     description: agent.description,
-                    priceEth: agent.priceEth ?? "0",
+                    priceUsdc: agent.priceUsdc ?? "0",
                     pricingModel: agent.pricingModel,
                     jobCount: logs.length,
                     badgeTier: (agent.badgeTier ?? "NONE") as "NONE" | "BRONZE" | "SILVER" | "GOLD",

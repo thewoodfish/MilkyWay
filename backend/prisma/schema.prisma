@@ -19,7 +19,7 @@ model Agent {
   version      String       @default("1.0.0")
   endpoint     String
   pricingModel PricingModel
-  priceEth     String
+  priceUsdc    String       @default("0")
   permissions  String[]
   logoUrl      String?
   metadataHash String
@@ -47,7 +47,7 @@ model Flow {
   id             String      @id @default(cuid())
   jobId          String      @unique
   callerAddress  String
-  totalAmountEth String
+  totalAmountUsdc String       @default("0")
   deadline       DateTime
   trigger        TriggerType
   triggerValue   String?
@@ -68,7 +68,7 @@ model FlowAgent {
   agentId      Int
   agentAddress String
   orderIndex   Int
-  amountEth    String
+  amountUsdc   String       @default("0")
   staticInputs Json?
   inputMapping Json?
   status       AgentJobStatus @default(PENDING)
@@ -157,4 +157,15 @@ model Notification {
   createdAt DateTime @default(now())
 
   @@index([address, read])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  keyHash    String    @unique
+  address    String
+  name       String?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  @@index([address])
 }

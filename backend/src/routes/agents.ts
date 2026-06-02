@@ -4,6 +4,7 @@ import { prisma } from "../lib/db";
 import { verifyEndpoint } from "../services/verification";
 import { fetchAbout } from "../services/about";
 import { authenticateJWT, AuthRequest } from "../middleware/auth";
+import { authenticateAPIKey, ApiKeyRequest } from "../middleware/apiKey";
 
 const router = Router();
 
@@ -38,12 +39,84 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/agents/:agentId/logs?count=N — CLI logs command (API key auth)
+router.get("/:agentId/logs", authenticateAPIKey, async (req: Request, res: Response) => {
+  try {
+    const agentId = Number(req.params.agentId);
+    const count   = Math.min(Number(req.query.count || 20), 100);
+
+    const agent = await prisma.agent.findUnique({
+      where:  { agentId },
+      select: { ownerAddress: true },
+    });
+    if (!agent) return res.status(404).json({ error: "Agent not found" });
+
+    if (agent.ownerAddress.toLowerCase() !== (req as ApiKeyRequest).builderAddress!.toLowerCase()) {
+      return res.status(403).json({ error: "Not your agent" });
+    }
+
+    const jobs = await prisma.flowAgent.findMany({
+      where:   { agentId },
+      take:    count,
+      orderBy: { executedAt: "desc" },
+      include: { flow: { select: { jobId: true } } },
+    });
+
+    res.json(jobs.map((j) => ({
+      executedAt: j.executedAt,
+      status:     j.status,
+      amountUsdc: j.amountUsdc,
+      flowJobId:  j.flow.jobId,
+      output:     j.output,
+    })));
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/agents/:agentId/health — CLI monitor command
+router.get("/:agentId/health", authenticateAPIKey, async (req: Request, res: Response) => {
+  try {
+    const agent = await prisma.agent.findUnique({
+      where:  { agentId: Number(req.params.agentId) },
+      select: { endpoint: true, active: true, failedChecks: true, verifiedAt: true },
+    });
+    if (!agent) return res.status(404).json({ error: "Agent not found" });
+
+    const start = Date.now();
+    let alive = false;
+    try {
+      const r = await fetch(`${agent.endpoint.replace(/\/$/, "")}/health`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      alive = r.status === 200;
+    } catch {
+      alive = false;
+    }
+    const responseTimeMs = Date.now() - start;
+
+    const status = !agent.active
+      ? "down"
+      : agent.failedChecks >= 7
+        ? "down"
+        : agent.failedChecks >= 3
+          ? "degraded"
+          : alive
+            ? "live"
+            : "down";
+
+    res.json({ status, responseTimeMs: alive ? responseTimeMs : null });
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // GET /api/agents/:agentId/about — cached /about schema
 router.get("/:agentId/about", async (req: Request, res: Response) => {
   try {
     const agent = await prisma.agent.findUnique({
       where: { agentId: Number(req.params.agentId) },
-      select: { aboutSchema: true, phase2Ready: true, priceEth: true },
+      select: { aboutSchema: true, phase2Ready: true, priceUsdc: true },
     });
     if (!agent) return res.status(404).json({ error: "Not found" });
     if (!agent.phase2Ready || !agent.aboutSchema) {
@@ -69,6 +142,76 @@ router.get("/:agentId", async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/agents/pre-register — CLI: save profile before on-chain stake
+router.post("/pre-register", authenticateAPIKey, async (req: Request, res: Response) => {
+  try {
+    const { config, endpoint, metadataHash } = req.body;
+    const ownerAddress = (req as ApiKeyRequest).builderAddress!;
+
+    if (!config || !endpoint || !metadataHash) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const pingResult = await verifyEndpoint(endpoint);
+    if (!pingResult.success) {
+      return res.status(400).json({ error: "Endpoint verification failed", detail: pingResult.error });
+    }
+
+    const agent = await prisma.agent.create({
+      data: {
+        agentId:      null,
+        metadataHash,
+        active:       false,
+        name:         config.name,
+        description:  config.description,
+        category:     config.category || "UTILITY",
+        version:      config.milkyway_version || "1.0",
+        endpoint,
+        pricingModel: "FREE",
+        priceUsdc:    "0",
+        permissions:  [],
+        builder: {
+          connectOrCreate: {
+            where:  { address: ownerAddress },
+            create: { address: ownerAddress },
+          },
+        },
+      },
+    });
+
+    const aboutResult = await fetchAbout(endpoint);
+    if (aboutResult.success) {
+      await prisma.agent.update({
+        where: { id: agent.id },
+        data: {
+          aboutSchema:   aboutResult.schema as object,
+          phase2Ready:   true,
+          aboutCachedAt: new Date(),
+        },
+      });
+    }
+
+    res.json({ profileId: agent.id, agentId: agent.agentId ?? 0 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/agents/stake-status/:profileId — CLI polls this after directing user to stake
+router.get("/stake-status/:profileId", authenticateAPIKey, async (req: Request, res: Response) => {
+  try {
+    const agent = await prisma.agent.findUnique({
+      where: { id: req.params.profileId },
+      select: { active: true, txHash: true },
+    });
+    if (!agent) return res.status(404).json({ error: "Profile not found" });
+    res.json({ staked: agent.active, txHash: agent.txHash });
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // POST /api/agents/pre-verify — endpoint liveness check only
 router.post("/pre-verify", async (req: Request, res: Response) => {
   const { endpoint } = req.body;
@@ -89,7 +232,7 @@ router.post("/register", async (req: Request, res: Response) => {
       version,
       endpoint,
       pricingModel,
-      priceEth,
+      priceUsdc,
       permissions,
       logoUrl,
       ownerAddress,
@@ -115,7 +258,7 @@ router.post("/register", async (req: Request, res: Response) => {
       name,
       ownerAddress,
       permissions: permissions ?? [],
-      priceEth: priceEth ?? "0",
+      priceUsdc: priceUsdc ?? "0",
       pricingModel: pricingModel ?? "FREE",
       subcategory: subcategory ?? null,
       version: version ?? "1.0.0",
@@ -136,7 +279,7 @@ router.post("/register", async (req: Request, res: Response) => {
         version: profile.version,
         endpoint: profile.endpoint,
         pricingModel: profile.pricingModel,
-        priceEth: profile.priceEth,
+        priceUsdc: profile.priceUsdc,
         permissions: profile.permissions,
         logoUrl: profile.logoUrl ?? undefined,
         builder: {
@@ -203,7 +346,7 @@ router.post("/confirm", authenticateJWT, async (req: AuthRequest, res: Response)
 // PUT /api/agents/:agentId — update mutable profile fields (auth required)
 router.put("/:agentId", authenticateJWT, async (req: AuthRequest, res: Response) => {
   try {
-    const { name, description, pricingModel, priceEth, logoUrl } = req.body;
+    const { name, description, pricingModel, priceUsdc, logoUrl } = req.body;
 
     const existing = await prisma.agent.findUnique({
       where: { agentId: Number(req.params.agentId) },
@@ -219,7 +362,7 @@ router.put("/:agentId", authenticateJWT, async (req: AuthRequest, res: Response)
         ...(name && { name }),
         ...(description && { description }),
         ...(pricingModel && { pricingModel }),
-        ...(priceEth && { priceEth }),
+        ...(priceUsdc && { priceUsdc }),
         ...(logoUrl !== undefined && { logoUrl }),
       },
     });

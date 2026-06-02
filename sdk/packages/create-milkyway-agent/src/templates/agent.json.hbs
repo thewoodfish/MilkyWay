@@ -1,0 +1,30 @@
+{
+  "milkyway_version": "1.0",
+  "name": "{{name}}",
+  "description": "{{description}}",
+  "wallet": "${AGENT_WALLET_ADDRESS}",
+  "max_deadline_seconds": 30,
+  "capabilities": {
+    "{{capability}}": {
+      "description": "TODO: describe what {{capability}} does",
+      "pricing": {
+        "model":    "{{pricingModel}}",
+        "amount":   "{{price}}",
+        "currency": "USDC"
+      },
+      "input_schema": {
+        "query": {
+          "type":        "string",
+          "required":    true,
+          "description": "TODO: describe this input"
+        }
+      },
+      "output_schema": {
+        "result": {
+          "type":        "string",
+          "description": "TODO: describe this output"
+        }
+      }
+    }
+  }
+}
