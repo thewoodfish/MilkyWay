@@ -21,8 +21,14 @@ const TRANSFER_WITH_AUTHORIZATION_TYPES = {
   ],
 };
 
-// Orchestrator key — signs x402 payment authorizations sent to agents
-const orchestrator = new ethers.Wallet(process.env.ORCHESTRATOR_PRIVATE_KEY!);
+// Orchestrator key — signs x402 payment authorizations sent to agents (lazy init)
+let _orchestrator: ethers.Wallet | null = null;
+function getOrchestrator(): ethers.Wallet {
+  if (!_orchestrator) {
+    _orchestrator = new ethers.Wallet(process.env.ORCHESTRATOR_PRIVATE_KEY!);
+  }
+  return _orchestrator;
+}
 
 export async function executeFlow(flow: {
   id: string;
@@ -110,11 +116,12 @@ async function buildPaymentHeader(
   const validBefore = Math.floor(deadline.getTime() / 1000);
   const nonce = ethers.hexlify(ethers.randomBytes(32));
 
-  const signature = await orchestrator.signTypedData(
+  const orch = getOrchestrator();
+  const signature = await orch.signTypedData(
     USDC_DOMAIN,
     TRANSFER_WITH_AUTHORIZATION_TYPES,
     {
-      from: orchestrator.address,
+      from: orch.address,
       to: toAddress,
       value: rawAmount,
       validAfter: 0n,
@@ -129,7 +136,7 @@ async function buildPaymentHeader(
     network: "eip155:42161",
     payload: {
       authorization: {
-        from: orchestrator.address,
+        from: orch.address,
         to: toAddress,
         value: rawAmount.toString(),
         validAfter: "0",

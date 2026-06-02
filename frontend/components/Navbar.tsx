@@ -41,7 +41,6 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-1">
             {navLink("/agents", "Explore")}
             {navLink("/dashboard", "Dashboard")}
-            {navLink("/settings", "Settings")}
           </div>
         )}
 

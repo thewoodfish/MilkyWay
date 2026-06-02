@@ -4,10 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
-  { label: "General",       href: "/settings" },
-  { label: "API Keys",      href: "/settings/api-keys" },
-  { label: "Notifications", href: "/settings/notifications" },
-  { label: "Billing",       href: "/settings/billing" },
+  { label: "API Keys", href: "/settings/api-keys" },
 ];
 
 export function SettingsSidebar() {

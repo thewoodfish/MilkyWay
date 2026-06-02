@@ -397,7 +397,7 @@ function APIKeyRow({
 // ── Main Page ────────────────────────────────────────────────────────
 
 export default function APIKeysPage() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isHydrating } = useAuth();
   const router = useRouter();
 
   const [keys, setKeys]         = useState<ApiKey[]>([]);
@@ -425,9 +425,10 @@ export default function APIKeysPage() {
   }, []);
 
   useEffect(() => {
+    if (isHydrating) return;
     if (!isSignedIn) { router.push("/"); return; }
     fetchKeys();
-  }, [isSignedIn, router, fetchKeys]);
+  }, [isHydrating, isSignedIn, router, fetchKeys]);
 
   async function handleRevokeSingle() {
     if (!revokeTarget) return;
