@@ -2,8 +2,10 @@ import { Router, Request, Response } from "express";
 import { SiweMessage, generateNonce } from "siwe";
 import { getIronSession } from "iron-session";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { sessionOptions } from "../lib/session";
 import { authenticateJWT, AuthRequest } from "../middleware/auth";
+import { prisma } from "../lib/db";
 
 const router = Router();
 
@@ -71,6 +73,94 @@ router.post("/logout", async (req: Request, res: Response) => {
 // GET /api/auth/me
 router.get("/me", authenticateJWT, (req: AuthRequest, res: Response) => {
   res.json({ address: req.user!.address });
+});
+
+// ── API Keys ──────────────────────────────────────────────────────────
+
+// GET /api/auth/api-keys
+router.get("/api-keys", authenticateJWT, async (req: AuthRequest, res: Response) => {
+  try {
+    const keys = await prisma.apiKey.findMany({
+      where: { address: req.user!.address, active: true },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, name: true, preview: true, createdAt: true, lastUsedAt: true },
+    });
+    res.json(keys);
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/auth/api-keys
+router.post("/api-keys", authenticateJWT, async (req: AuthRequest, res: Response) => {
+  try {
+    const { name = "Default" } = req.body;
+    const random = crypto.randomBytes(18).toString("base64url").slice(0, 24);
+    const key = `mw_live_${random}`;
+    const keyHash = crypto.createHash("sha256").update(key).digest("hex");
+    const preview = `${key.slice(0, 14)}...${key.slice(-4)}`;
+
+    const created = await prisma.apiKey.create({
+      data: { keyHash, preview, address: req.user!.address, name },
+    });
+
+    // Return full key once — never stored
+    res.json({ key, preview, id: created.id });
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// DELETE /api/auth/api-keys/:id — revoke single key
+router.delete("/api-keys/:id", authenticateJWT, async (req: AuthRequest, res: Response) => {
+  try {
+    const key = await prisma.apiKey.findUnique({ where: { id: req.params.id } });
+    if (!key || key.address !== req.user!.address) {
+      return res.status(404).json({ error: "Key not found" });
+    }
+    await prisma.apiKey.update({
+      where: { id: req.params.id },
+      data: { active: false, revokedAt: new Date() },
+    });
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// DELETE /api/auth/api-keys — revoke all keys
+router.delete("/api-keys", authenticateJWT, async (req: AuthRequest, res: Response) => {
+  try {
+    await prisma.apiKey.updateMany({
+      where: { address: req.user!.address, active: true },
+      data: { active: false, revokedAt: new Date() },
+    });
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/auth/api-keys/activity
+router.get("/api-keys/activity", authenticateJWT, async (req: AuthRequest, res: Response) => {
+  try {
+    const keys = await prisma.apiKey.findMany({
+      where: { address: req.user!.address },
+      select: { id: true },
+    });
+    const keyIds = keys.map((k) => k.id);
+
+    const activity = await prisma.aPIKeyActivity.findMany({
+      where: { keyId: { in: keyIds } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      include: { apiKey: { select: { name: true, preview: true } } },
+    });
+
+    res.json(activity);
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 export default router;

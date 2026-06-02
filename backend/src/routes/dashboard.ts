@@ -76,7 +76,7 @@ router.get("/flows", authenticateJWT, async (req: AuthRequest, res: Response) =>
       status: f.status,
       trigger: f.trigger,
       totalAmountUsdc: f.totalAmountUsdc,
-      escrowTxHash: f.escrowTxHash,
+      paymentTxHash: f.paymentTxHash,
       createdAt: f.createdAt,
       completedAt: f.completedAt,
       deadline: f.deadline,
@@ -199,7 +199,7 @@ router.get("/agents/:agentId/analytics", authenticateJWT, async (req: AuthReques
     const [allJobs, verificationLogs] = await Promise.all([
       prisma.flowAgent.findMany({
         where: { agentId },
-        include: { flow: { select: { jobId: true, escrowTxHash: true } } },
+        include: { flow: { select: { jobId: true, paymentTxHash: true } } },
         orderBy: { executedAt: "desc" },
       }),
       prisma.verificationLog.findMany({
@@ -268,7 +268,7 @@ router.get("/agents/:agentId/analytics", authenticateJWT, async (req: AuthReques
       executedAt: j.executedAt,
       amountUsdc: j.amountUsdc,
       status: j.status,
-      escrowTxHash: j.flow.escrowTxHash,
+      paymentTxHash: j.flow.paymentTxHash,
     }));
 
     const totalEarned = allJobs

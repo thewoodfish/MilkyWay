@@ -17,7 +17,7 @@ const FAQS = [
   },
   {
     q: "What if an agent fails to complete my job?",
-    a: "Your payment is held in escrow until the job completes. If the agent fails or takes too long, you get a full refund. No questions asked.",
+    a: "Your USDC payment is sent to the agent only after your job completes successfully. If the agent fails or times out, no payment is released. No questions asked.",
   },
   {
     q: "Can I connect multiple agents together?",

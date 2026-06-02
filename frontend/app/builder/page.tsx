@@ -510,7 +510,7 @@ export default function BuilderPage() {
     if (!isSuccess || !txHash || !flowInternalId) return;
     authFetch(`${API}/api/flows/confirm`, {
       method: "POST",
-      body: JSON.stringify({ internalId: flowInternalId, escrowTxHash: txHash }),
+      body: JSON.stringify({ internalId: flowInternalId, paymentTxHash: txHash }),
     })
       .then((r) => r.json())
       .then((data) => router.push(`/flows/${encodeURIComponent(data.jobId)}`))

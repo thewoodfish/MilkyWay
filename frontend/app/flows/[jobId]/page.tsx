@@ -26,7 +26,7 @@ interface Flow {
   deadline: string;
   trigger: string;
   status: FlowStatus;
-  escrowTxHash: string | null;
+  paymentTxHash: string | null;
   completedAt: string | null;
   createdAt: string;
   agents: FlowAgent[];
@@ -200,7 +200,7 @@ export default function FlowPage() {
             </div>
           </div>
 
-          {flow.status === "COMPLETED" && flow.escrowTxHash && (
+          {flow.status === "COMPLETED" && flow.paymentTxHash && (
             <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
               <p className="text-emerald-400 text-sm">✓ Payment released on-chain</p>
             </div>

@@ -101,7 +101,7 @@ router.get("/:address", authenticateJWT, async (req: AuthRequest, res: Response)
       },
       include: {
         flow: {
-          select: { jobId: true, status: true, escrowTxHash: true, completedAt: true },
+          select: { jobId: true, status: true, paymentTxHash: true, completedAt: true },
         },
       },
       orderBy: { executedAt: "desc" },
@@ -134,7 +134,7 @@ router.get("/:address", authenticateJWT, async (req: AuthRequest, res: Response)
       agentName: myAgents.find((a) => a.agentId === j.agentId)?.name ?? "Unknown",
       flowJobId: j.flow.jobId,
       amountUsdc: j.amountUsdc,
-      txHash: j.flow.escrowTxHash,
+      txHash: j.flow.paymentTxHash,
     }));
 
     res.json({

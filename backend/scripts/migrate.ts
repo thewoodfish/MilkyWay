@@ -100,7 +100,7 @@ const statements = [
     "trigger" "TriggerType" NOT NULL,
     "triggerValue" TEXT,
     "status" "FlowStatus" NOT NULL DEFAULT 'LOCKED',
-    "escrowTxHash" TEXT,
+    "paymentTxHash" TEXT,
     "completedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

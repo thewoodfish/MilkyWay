@@ -74,7 +74,7 @@ export function QuickExecute({ agentId, aboutSchema, priceUsdc }: Props) {
 
     authFetch(`${API}/api/flows/confirm`, {
       method: "POST",
-      body: JSON.stringify({ internalId: pendingFlow.internalId, escrowTxHash: txHash }),
+      body: JSON.stringify({ internalId: pendingFlow.internalId, paymentTxHash: txHash }),
     })
       .then(() => {
         setStatus("polling");

@@ -52,7 +52,7 @@ model Flow {
   trigger        TriggerType
   triggerValue   String?
   status         FlowStatus  @default(LOCKED)
-  escrowTxHash   String?
+  paymentTxHash  String?
   completedAt    DateTime?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
@@ -160,12 +160,28 @@ model Notification {
 }
 
 model ApiKey {
-  id         String    @id @default(cuid())
-  keyHash    String    @unique
+  id         String           @id @default(cuid())
+  keyHash    String           @unique
+  preview    String
   address    String
-  name       String?
-  createdAt  DateTime  @default(now())
+  name       String           @default("Default")
+  active     Boolean          @default(true)
+  createdAt  DateTime         @default(now())
   lastUsedAt DateTime?
+  revokedAt  DateTime?
+  activity   APIKeyActivity[]
 
-  @@index([address])
+  @@index([address, active])
+  @@index([keyHash])
+}
+
+model APIKeyActivity {
+  id        String   @id @default(cuid())
+  keyId     String
+  action    String
+  createdAt DateTime @default(now())
+
+  apiKey    ApiKey   @relation(fields: [keyId], references: [id])
+
+  @@index([keyId])
 }

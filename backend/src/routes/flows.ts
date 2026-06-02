@@ -115,12 +115,12 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
 // POST /api/flows/confirm — called after user's USDC transfer confirms
 router.post("/confirm", authenticateJWT, async (req: AuthRequest, res: Response) => {
   try {
-    const { internalId, escrowTxHash } = req.body;
-    if (!internalId || !escrowTxHash) return res.status(400).json({ error: "Missing fields" });
+    const { internalId, paymentTxHash } = req.body;
+    if (!internalId || !paymentTxHash) return res.status(400).json({ error: "Missing fields" });
 
     const flow = await prisma.flow.update({
       where: { id: internalId },
-      data: { escrowTxHash, status: "LOCKED" },
+      data: { paymentTxHash, status: "LOCKED" },
       include: { agents: { orderBy: { orderIndex: "asc" } } },
     });
 

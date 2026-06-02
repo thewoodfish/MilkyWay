@@ -48,7 +48,7 @@ interface DashFlow {
   status: "LOCKED" | "RUNNING" | "COMPLETED" | "REFUNDED" | "FAILED";
   trigger: string;
   totalAmountUsdc: string;
-  escrowTxHash: string | null;
+  paymentTxHash: string | null;
   createdAt: string;
   completedAt: string | null;
   deadline: string;
@@ -119,7 +119,7 @@ interface AgentAnalytics {
     executedAt: string | null;
     amountUsdc: string;
     status: string;
-    escrowTxHash: string | null;
+    paymentTxHash: string | null;
   }[];
 }
 
@@ -444,6 +444,14 @@ export default function DashboardPage() {
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "#EFF6FF"; }}
                 >
                   + Register Agent
+                </Link>
+                <Link
+                  href="/settings/api-keys"
+                  style={{ fontSize: "13px", fontWeight: 600, color: "#64748b", textDecoration: "none", padding: "8px 14px", background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: "8px", transition: "background 0.15s" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#F1F5F9"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "#F8FAFC"; }}
+                >
+                  Settings →
                 </Link>
               </div>
             </div>
@@ -1057,8 +1065,8 @@ export default function DashboardPage() {
                               style={{ display: "grid", gridTemplateColumns: "1fr 90px 90px 90px", padding: "10px 14px", borderBottom: i < analyticsAgent.recentJobs.length - 1 ? "1px solid #F1F5F9" : "none", alignItems: "center" }}
                             >
                               <span style={{ fontSize: "12px", color: "#64748b", fontFamily: "monospace" }}>
-                                {job.escrowTxHash ? (
-                                  <a href={`${ARBISCAN}/tx/${job.escrowTxHash}`} target="_blank" rel="noreferrer" style={{ color: "#2563EB", textDecoration: "none" }}>
+                                {job.paymentTxHash ? (
+                                  <a href={`${ARBISCAN}/tx/${job.paymentTxHash}`} target="_blank" rel="noreferrer" style={{ color: "#2563EB", textDecoration: "none" }}>
                                     {job.flowJobId.slice(0, 10)}…
                                   </a>
                                 ) : `${job.flowJobId.slice(0, 10)}…`}

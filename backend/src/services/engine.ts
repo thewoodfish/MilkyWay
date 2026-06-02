@@ -27,7 +27,7 @@ const orchestrator = new ethers.Wallet(process.env.ORCHESTRATOR_PRIVATE_KEY!);
 export async function executeFlow(flow: {
   id: string;
   jobId: string;
-  escrowTxHash: string | null;
+  paymentTxHash: string | null;
   deadline: Date;
   callerAddress: string;
   agents: {

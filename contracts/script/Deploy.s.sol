@@ -3,7 +3,6 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
 import "../src/AgentRegistry.sol";
-import "../src/JobEscrow.sol";
 
 contract Deploy is Script {
     function run() external {
@@ -12,9 +11,6 @@ contract Deploy is Script {
 
         AgentRegistry registry = new AgentRegistry();
         console.log("AgentRegistry deployed:", address(registry));
-
-        JobEscrow escrow = new JobEscrow();
-        console.log("JobEscrow deployed:", address(escrow));
 
         vm.stopBroadcast();
     }

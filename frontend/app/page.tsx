@@ -896,7 +896,7 @@ export default async function HomePage() {
                 no custom integration, just the open x402 spec.
               </p>
               <div className="mt-5 pt-5 space-y-2" style={{ borderTop: "1px solid rgba(99,102,241,0.2)" }}>
-                {["On-chain escrow as payment proof", "HTTP-native X-PAYMENT headers", "Any x402 client works out of the box"].map(f => (
+                {["EIP-3009 signed USDC transfers", "HTTP-native X-PAYMENT headers", "Any x402 client works out of the box"].map(f => (
                   <div key={f} className="flex items-center gap-2">
                     <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#818cf8" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -932,7 +932,7 @@ export default async function HomePage() {
               </div>
               <p className="text-[16px] font-semibold text-white mb-3">Settlement Layer</p>
               <p className="text-[13px] leading-relaxed flex-1" style={{ color: "#6e7681" }}>
-                All escrow locks and payment releases happen on Arbitrum One. ~2 second
+                All USDC payments settle on Arbitrum One. ~2 second
                 finality. Fees under $0.01. The same chain your DeFi agents will be querying —
                 no cross-chain hops, no bridges, no friction.
               </p>
