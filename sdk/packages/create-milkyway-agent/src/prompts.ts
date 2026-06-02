@@ -31,7 +31,7 @@ export async function runPrompts(): Promise<ScaffoldAnswers> {
       type:    "list",
       name:    "category",
       message: "Category:",
-      choices: ["DEFI", "DATA", "TRADING", "PRODUCTIVITY", "UTILITY", "SECURITY"]
+      choices: ["DEFI", "TRADING", "DATA", "PRODUCTIVITY", "UTILITY", "SECURITY", "GAMING", "SOCIAL"]
     },
     {
       type:    "list",

@@ -3,7 +3,7 @@ import path from "path";
 import Handlebars from "handlebars";
 import { ScaffoldAnswers } from "./prompts";
 
-const TEMPLATES_DIR = path.join(__dirname, "../templates");
+const TEMPLATES_DIR = path.join(__dirname, "templates");
 
 export function scaffold(answers: ScaffoldAnswers): string {
   const dir = path.resolve(process.cwd(), answers.directory);

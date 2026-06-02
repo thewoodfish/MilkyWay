@@ -1,6 +1,6 @@
 {
   "name": "create-milkyway-agent",
-  "version": "0.1.2",
+  "version": "0.1.8",
   "description": "Scaffold a new MilkyWay agent project",
   "main": "dist/index.js",
   "bin": {
@@ -13,7 +13,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc && cp -r src/templates dist/templates",
+    "build": "tsc && rm -rf dist/templates && cp -r src/templates dist/templates",
     "dev": "tsc --watch",
     "clean": "rm -rf dist"
   },
