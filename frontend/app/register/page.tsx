@@ -3,7 +3,8 @@
 import { useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSignMessage, useChainId } from "wagmi";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSignMessage, useChainId, useSwitchChain } from "wagmi";
+import { arbitrumSepolia } from "wagmi/chains";
 import { parseEther, parseEventLogs } from "viem";
 import { REGISTRY_ABI } from "@/lib/registry-abi";
 import { apiFetch, CATEGORY_LABELS } from "@/lib/utils";
@@ -115,9 +116,10 @@ export default function RegisterPage() {
   const [registeredAgentId, setRegisteredAgentId] = useState<number | null>(null);
   const [error, setError] = useState("");
 
-  const { writeContract, data: txHash, isPending: isTxPending } = useWriteContract();
+  const { writeContract, data: txHash, isPending: isTxPending, error: txError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isTxConfirmed, data: receipt } =
     useWaitForTransactionReceipt({ hash: txHash });
+  const { switchChainAsync } = useSwitchChain();
 
   async function testEndpoint() {
     setPingLoading(true);
@@ -147,6 +149,10 @@ export default function RegisterPage() {
   async function handleRegister() {
     setError("");
     try {
+      if (chainId !== arbitrumSepolia.id) {
+        await switchChainAsync({ chainId: arbitrumSepolia.id });
+      }
+
       await ensureSignedIn();
       const data = await apiFetch<{ metadataHash: `0x${string}`; profileId: string }>(
         "/api/agents/register",
@@ -515,23 +521,32 @@ export default function RegisterPage() {
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                         {PRICING_OPTIONS.map((o) => {
                           const active = form.pricingModel === o.value;
+                          const disabled = o.value !== "PER_CALL";
                           return (
                             <button
                               key={o.value}
-                              onClick={() => field("pricingModel", o.value)}
+                              onClick={() => !disabled && field("pricingModel", o.value)}
+                              disabled={disabled}
+                              title={disabled ? "Coming soon" : undefined}
                               style={{
                                 padding: "10px",
                                 borderRadius: "8px",
                                 fontSize: "13px",
                                 fontWeight: 600,
-                                cursor: "pointer",
                                 transition: "all 0.15s",
                                 border: active ? "1px solid #BFDBFE" : "1px solid #E3E8EF",
-                                background: active ? "#EFF6FF" : "#F8FAFF",
-                                color: active ? "#2563EB" : "#64748b",
+                                background: disabled ? "#F1F5F9" : active ? "#EFF6FF" : "#F8FAFF",
+                                color: disabled ? "#CBD5E1" : active ? "#2563EB" : "#64748b",
+                                cursor: disabled ? "not-allowed" : "pointer",
+                                position: "relative",
                               }}
                             >
                               {o.label}
+                              {disabled && (
+                                <span style={{ display: "block", fontSize: "10px", fontWeight: 400, color: "#CBD5E1", marginTop: "2px" }}>
+                                  Coming soon
+                                </span>
+                              )}
                             </button>
                           );
                         })}
@@ -695,7 +710,7 @@ export default function RegisterPage() {
                     <div style={{ padding: "14px 18px", background: "#fff" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                         <span style={{ fontSize: "13px", color: "#64748b" }}>Registration stake</span>
-                        <UsdcAmount amount="0.01" size={12} style={{ fontSize: "13px", fontWeight: 600, color: "#0A2540" }} />
+                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#0A2540" }}>0.01 ETH</span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "12px", borderBottom: "1px solid #F1F5F9" }}>
                         <span style={{ fontSize: "13px", color: "#64748b" }}>Protocol fee</span>
@@ -705,13 +720,13 @@ export default function RegisterPage() {
                         <span style={{ fontSize: "14px", fontWeight: 700, color: "#0A2540" }}>Total due</span>
                         <span style={{ fontSize: "14px", fontWeight: 700, color: "#2563EB" }}>0.01 ETH</span>
                       </div>
-                      <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "8px", margin: "8px 0 0" }}>
-                        Stake is returned in full when you deactivate your agent.
+                      <p style={{ fontSize: "12px", fontWeight: 600, color: "#16a34a", marginTop: "10px", display: "flex", alignItems: "center", gap: "5px" }}>
+                        <span>✓</span> Stake is returned in full when you deactivate your agent.
                       </p>
                     </div>
                   </div>
 
-                  {error && (
+                  {(error || txError) && (
                     <div
                       style={{
                         background: "#FEF2F2",
@@ -723,7 +738,7 @@ export default function RegisterPage() {
                         color: "#ef4444",
                       }}
                     >
-                      {error}
+                      {error || (txError as Error)?.message || "Transaction failed"}
                     </div>
                   )}
 
