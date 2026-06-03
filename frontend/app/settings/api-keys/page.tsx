@@ -297,6 +297,70 @@ function RevokeAllModal({ count, onCancel, onConfirm, loading }: {
   );
 }
 
+// ── Facilitator Secret ───────────────────────────────────────────────
+
+const FACILITATOR_SECRET = "818b2d507b68130d7491276c3869ada61f6a16f69d3a904aae975208e27bf121";
+
+function FacilitatorSecretCard() {
+  const [copied, setCopied] = useState(false);
+  const [copiedEnv, setCopiedEnv] = useState(false);
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(FACILITATOR_SECRET);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function handleCopyEnv() {
+    await navigator.clipboard.writeText(`FACILITATOR_SECRET=${FACILITATOR_SECRET}`);
+    setCopiedEnv(true);
+    setTimeout(() => setCopiedEnv(false), 2000);
+  }
+
+  return (
+    <div className="border border-gray-200 rounded-xl overflow-hidden mb-8">
+      <div className="px-5 py-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900">Facilitator Secret</h2>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Used by your agent to verify x402 payments. Add to your <code className="font-mono bg-gray-100 px-1 rounded">.env</code>.
+          </p>
+        </div>
+      </div>
+      <div className="p-5 space-y-3">
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Secret value</p>
+          <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
+            <code className="flex-1 text-sm font-mono text-gray-800 break-all select-all">
+              {FACILITATOR_SECRET}
+            </code>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-800 bg-white hover:bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+            >
+              {copied ? <><span>✓</span><span>Copied</span></> : <><CopyIcon /><span>Copy</span></>}
+            </button>
+          </div>
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Add to your .env</p>
+          <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
+            <code className="flex-1 text-sm font-mono text-gray-700 min-w-0 truncate select-all">
+              FACILITATOR_SECRET={FACILITATOR_SECRET}
+            </code>
+            <button
+              onClick={handleCopyEnv}
+              className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-800 bg-white hover:bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+            >
+              {copiedEnv ? <><span>✓</span><span>Copied</span></> : <><CopyIcon /><span>Copy</span></>}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Explainer ────────────────────────────────────────────────────────
 
 const CLI_USES = [
@@ -474,6 +538,9 @@ export default function APIKeysPage() {
                 profiles, job logs, and earnings — but never to your wallet or payments.
               </p>
             </div>
+
+            {/* Facilitator Secret */}
+            <FacilitatorSecretCard />
 
             {/* Explainer (always show if no keys) */}
             {keys.length === 0 && !loading && <APIKeyExplainer />}
