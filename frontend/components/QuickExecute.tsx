@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSignTypedData, useAccount, useChainId } from "wagmi";
+import { useSignTypedData, useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAuth } from "@/context/AuthContext";
 import { authFetch } from "@/lib/auth";
@@ -9,11 +9,9 @@ import { SignInButton } from "./SignInButton";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
-// USDC contract address per chain
-const USDC_BY_CHAIN: Record<number, `0x${string}`> = {
-  42161:  "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", // Arbitrum One
-  421614: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d", // Arbitrum Sepolia
-};
+// Arbitrum Sepolia — switch to mainnet after hackathon
+const CHAIN_ID   = 421614;
+const USDC_ADDRESS = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d" as `0x${string}`;
 
 const EIP3009_TYPES = {
   TransferWithAuthorization: [
@@ -87,8 +85,6 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
   const { isConnected } = useAccount();
   const { isSignedIn } = useAuth();
   const { signTypedDataAsync } = useSignTypedData();
-  const chainId = useChainId();
-  const usdcAddress = USDC_BY_CHAIN[chainId] ?? USDC_BY_CHAIN[42161];
 
   const [inputs, setInputs] = useState<Record<string, unknown>>({});
   const [status, setStatus] = useState<Status>("idle");
@@ -129,8 +125,8 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
             domain: {
               name: "USD Coin",
               version: "2",
-              chainId,
-              verifyingContract: usdcAddress,
+              chainId: CHAIN_ID,
+              verifyingContract: USDC_ADDRESS,
             },
             types: EIP3009_TYPES,
             primaryType: "TransferWithAuthorization",

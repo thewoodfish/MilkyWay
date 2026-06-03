@@ -111,7 +111,7 @@ function getPaymentHeader(
   const payment = {
     x402Version: 1,
     scheme: "exact",
-    network: process.env.X402_NETWORK || "eip155:42161",
+    network: process.env.X402_NETWORK || "eip155:421614",
     payload: {
       authorization: {
         from: auth.from,
