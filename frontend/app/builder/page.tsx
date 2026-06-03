@@ -602,9 +602,7 @@ export default function BuilderPage() {
     return count + agentInputs.filter(([f, d]) => d.required && !agentMappings[f] && !agentStatics[f]).length;
   }, 0);
 
-  const about       = selectedAgent?.aboutSchema as AboutSchema | null;
-  const inputSchema  = Object.keys(getInputSchema(about)).length  ? getInputSchema(about)  : null;
-  const outputSchema = Object.keys(getOutputSchema(about)).length ? getOutputSchema(about) : null;
+  const about = selectedAgent?.aboutSchema as AboutSchema | null;
 
   const incomingEdge = selectedAgent
     ? edges.find((e) => e.target === `agent-${selectedAgent.agentId}`)

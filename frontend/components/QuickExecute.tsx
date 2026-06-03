@@ -90,11 +90,10 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
   const { isSignedIn } = useAuth();
   const { signTypedDataAsync } = useSignTypedData();
 
-  const [inputs, setInputs]           = useState<Record<string, unknown>>({});
-  const [status, setStatus]           = useState<Status>("idle");
-  const [error, setError]             = useState("");
-  const [result, setResult]           = useState<unknown>(null);
-  const [pendingFlow, setPendingFlow] = useState<PendingFlow | null>(null);
+  const [inputs, setInputs] = useState<Record<string, unknown>>({});
+  const [status, setStatus] = useState<Status>("idle");
+  const [error, setError]   = useState("");
+  const [result, setResult] = useState<unknown>(null);
 
   // Pre-fill defaults when capability changes
   useEffect(() => {
@@ -121,7 +120,6 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
       });
       const flow: PendingFlow = await res.json();
       if (!res.ok) throw new Error((flow as { error?: string }).error ?? "Failed to create flow");
-      setPendingFlow(flow);
 
       // Step 2: sign EIP-3009 authorizations (gasless — no on-chain tx)
       setStatus("signing");
@@ -182,7 +180,6 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
     setStatus("idle");
     setError("");
     setResult(null);
-    setPendingFlow(null);
   }
 
   const isRunning = ["creating", "signing", "confirming", "polling"].includes(status);

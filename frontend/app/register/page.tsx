@@ -874,14 +874,6 @@ function BackButton({ onClick, disabled }: { onClick: () => void; disabled?: boo
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", padding: "8px 0", borderBottom: "1px solid #F1F5F9" }}>
-      <span style={{ fontSize: "13px", color: "#64748b", flexShrink: 0 }}>{label}</span>
-      <span style={{ fontSize: "13px", color: "#0A2540", fontWeight: 500, textAlign: "right", wordBreak: "break-all" }}>{value}</span>
-    </div>
-  );
-}
 
 function FocusTextarea({
   value,
