@@ -337,9 +337,26 @@ export default function RegisterPage() {
                     </p>
                   </div>
 
-                  <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "24px", lineHeight: 1.6 }}>
+                  <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "12px", lineHeight: 1.6 }}>
                     Make sure this is the wallet you want to use as your builder identity on MilkyWay.
                   </p>
+                  <div
+                    style={{
+                      background: "#F0FDF4",
+                      border: "1px solid #BBF7D0",
+                      borderRadius: "8px",
+                      padding: "10px 14px",
+                      marginBottom: "24px",
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <span style={{ fontSize: "14px", marginTop: "1px" }}>💸</span>
+                    <p style={{ fontSize: "12px", color: "#166534", lineHeight: 1.6, margin: 0 }}>
+                      USDC payments will be sent to this address every time someone runs your agent.
+                    </p>
+                  </div>
 
                   <button
                     onClick={() => setStep(2)}
