@@ -521,11 +521,13 @@ export default async function AgentProfilePage({
             {/* 2g — Technical details (collapsed, tabbed) */}
             <TechnicalDetails
               agentId={agent.agentId!}
+              slug={agent.slug}
               ownerAddress={agent.ownerAddress}
               registeredAt={agent.registeredAt}
               updatedAt={agent.updatedAt}
               txHash={agent.txHash}
               metadataHash={agent.metadataHash}
+              aboutCachedAt={(agent as { aboutCachedAt?: string | null }).aboutCachedAt}
               aboutSchema={agent.aboutSchema}
             />
 

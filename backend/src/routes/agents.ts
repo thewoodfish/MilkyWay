@@ -129,6 +129,37 @@ router.get("/:agentId/about", async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/agents/:agentIdOrSlug/refresh-schema — live re-fetch /about and update DB
+router.post("/:agentIdOrSlug/refresh-schema", async (req: Request, res: Response) => {
+  try {
+    const param = req.params.agentIdOrSlug;
+    const isNumeric = /^\d+$/.test(param);
+    const agent = await prisma.agent.findFirst({
+      where: isNumeric ? { agentId: Number(param) } : { slug: param },
+      select: { id: true, endpoint: true },
+    });
+    if (!agent) return res.status(404).json({ error: "Agent not found" });
+
+    const result = await fetchAbout(agent.endpoint);
+    if (!result.success) {
+      return res.status(502).json({ error: `Could not reach agent /about: ${result.error}` });
+    }
+
+    await prisma.agent.update({
+      where: { id: agent.id },
+      data: {
+        aboutSchema:   result.schema as object,
+        phase2Ready:   true,
+        aboutCachedAt: new Date(),
+      },
+    });
+
+    res.json({ success: true, schema: result.schema });
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // GET /api/agents/:agentIdOrSlug — accepts numeric agentId or slug
 router.get("/:agentIdOrSlug", async (req: Request, res: Response) => {
   try {

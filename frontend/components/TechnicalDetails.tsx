@@ -3,30 +3,56 @@
 import { useState } from "react";
 import { shortAddress } from "@/lib/utils";
 
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+
 const ARBISCAN = "https://sepolia.arbiscan.io";
 const CONTRACT = process.env.NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS;
 
 interface Props {
   agentId: number;
+  slug?: string | null;
   ownerAddress: string;
   registeredAt: string;
   updatedAt: string;
   txHash?: string | null;
   metadataHash: string;
+  aboutCachedAt?: string | null;
   aboutSchema?: unknown;
 }
 
 export function TechnicalDetails({
   agentId,
+  slug,
   ownerAddress,
   registeredAt,
   updatedAt,
   txHash,
   metadataHash,
+  aboutCachedAt,
   aboutSchema,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"general" | "schema">("general");
+  const [schema, setSchema] = useState<unknown>(aboutSchema);
+  const [cachedAt, setCachedAt] = useState<string | null | undefined>(aboutCachedAt);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState("");
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    setRefreshError("");
+    try {
+      const res = await fetch(`${API}/api/agents/${slug ?? agentId}/refresh-schema`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Refresh failed");
+      setSchema(data.schema);
+      setCachedAt(new Date().toISOString());
+    } catch (e) {
+      setRefreshError((e as Error).message);
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   return (
     <div
@@ -135,35 +161,58 @@ export function TechnicalDetails({
 
           {/* Schema tab */}
           {tab === "schema" && (
-            aboutSchema ? (
-              <div
-                style={{
-                  background: "#F8FAFF",
-                  border: "1px solid #E3E8EF",
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                }}
-              >
-                {/* Toolbar */}
-                <div
-                  className="flex items-center gap-2 px-4 py-2.5"
-                  style={{ borderBottom: "1px solid #E3E8EF", background: "#EFF6FF" }}
+            <div>
+              {/* Refresh bar */}
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[11px]" style={{ color: "#94a3b8" }}>
+                  {cachedAt ? `Cached ${new Date(cachedAt).toLocaleString()}` : "Not yet cached"}
+                </p>
+                <button
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    color: refreshing ? "#94a3b8" : "#2563EB",
+                    background: "none",
+                    border: "none",
+                    cursor: refreshing ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    padding: 0,
+                  }}
                 >
-                  <span className="w-2 h-2 rounded-full" style={{ background: "#10b981" }} />
-                  <span className="text-[11px] font-mono-custom" style={{ color: "#2563EB" }}>about.json</span>
-                </div>
-                <pre
-                  className="text-[12px] font-mono-custom p-4 overflow-auto leading-relaxed"
-                  style={{ color: "#0A2540", maxHeight: "320px" }}
-                >
-                  {JSON.stringify(aboutSchema, null, 2)}
-                </pre>
+                  <svg
+                    style={{ width: 12, height: 12, animation: refreshing ? "spin 1s linear infinite" : "none" }}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {refreshing ? "Refreshing…" : "Refresh now"}
+                </button>
               </div>
-            ) : (
-              <p className="text-[13px] italic" style={{ color: "#94a3b8" }}>
-                No schema available — this agent has not published its interface yet.
-              </p>
-            )
+
+              {refreshError && (
+                <p className="text-[11px] mb-3" style={{ color: "#ef4444" }}>{refreshError}</p>
+              )}
+
+              {schema ? (
+                <div style={{ background: "#F8FAFF", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
+                  <div className="flex items-center gap-2 px-4 py-2.5" style={{ borderBottom: "1px solid #E3E8EF", background: "#EFF6FF" }}>
+                    <span className="w-2 h-2 rounded-full" style={{ background: "#10b981" }} />
+                    <span className="text-[11px] font-mono-custom" style={{ color: "#2563EB" }}>about.json</span>
+                  </div>
+                  <pre className="text-[12px] font-mono-custom p-4 overflow-auto leading-relaxed" style={{ color: "#0A2540", maxHeight: "320px" }}>
+                    {JSON.stringify(schema, null, 2)}
+                  </pre>
+                </div>
+              ) : (
+                <p className="text-[13px] italic" style={{ color: "#94a3b8" }}>
+                  No schema available — this agent has not published its interface yet.
+                </p>
+              )}
+            </div>
           )}
 
         </div>
