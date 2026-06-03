@@ -46,18 +46,25 @@ interface PendingFlow {
   deadline: number;
 }
 
-function normalizeSchema(raw: Record<string, unknown>): AboutSchema {
-  // Support both flat format { input_schema, pricing } and
-  // capabilities format { capabilities: { run: { input_schema, pricing } } }
-  if (raw.input_schema) return raw as unknown as AboutSchema;
-  const cap = raw.capabilities as Record<string, unknown> | undefined;
-  const run = (cap?.run ?? Object.values(cap ?? {})[0]) as Record<string, unknown> | undefined;
-  if (run?.input_schema) return run as unknown as AboutSchema;
-  return raw as unknown as AboutSchema;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractCapabilities(raw: any): { name: string; schema: AboutSchema }[] {
+  if (!raw) return [];
+  if (raw.input_schema) return [{ name: "run", schema: raw as AboutSchema }];
+  const cap = raw.capabilities;
+  if (cap && typeof cap === "object" && !Array.isArray(cap)) {
+    return Object.entries(cap as Record<string, unknown>).map(([name, s]) => ({
+      name,
+      schema: s as AboutSchema,
+    }));
+  }
+  return [];
 }
 
 export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Props) {
-  const aboutSchema = normalizeSchema(rawSchema as unknown as Record<string, unknown>);
+  const capabilities = extractCapabilities(rawSchema);
+  const [selectedCap, setSelectedCap] = useState(0);
+  const aboutSchema = capabilities[selectedCap]?.schema ?? ({} as AboutSchema);
+
   const { isConnected } = useAccount();
   const { isSignedIn } = useAuth();
 
@@ -70,14 +77,14 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
   const { writeContract, data: txHash, isPending: isWalletPending, error: writeError } = useWriteContract();
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({ hash: txHash });
 
-  // Pre-fill defaults from schema
+  // Pre-fill defaults when capability changes
   useEffect(() => {
     const defaults: Record<string, unknown> = {};
-    for (const [field, def] of Object.entries(aboutSchema.input_schema)) {
+    for (const [field, def] of Object.entries(aboutSchema.input_schema ?? {})) {
       if (def.default !== undefined) defaults[field] = def.default;
     }
     setInputs(defaults);
-  }, [aboutSchema]);
+  }, [selectedCap]);
 
   // Step 3: tx confirmed → call confirm API → start polling
   useEffect(() => {
@@ -227,13 +234,41 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
       <div className="flex items-center justify-between mb-5">
         <h3 className="font-bold text-ink text-base">Run This Agent</h3>
         <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full font-mono-custom">
-          {priceUsdc} ETH
+          {priceUsdc} USDC
         </span>
       </div>
 
+      {/* Capability selector — only shown when agent has multiple capabilities */}
+      {capabilities.length > 1 && (
+        <div className="flex gap-1 mb-5 p-1 rounded-lg" style={{ background: "#F1F5F9" }}>
+          {capabilities.map((cap, i) => (
+            <button
+              key={cap.name}
+              onClick={() => { setSelectedCap(i); reset(); }}
+              disabled={isRunning}
+              style={{
+                flex: 1,
+                padding: "6px 10px",
+                borderRadius: "7px",
+                fontSize: "12px",
+                fontWeight: 600,
+                border: "none",
+                cursor: isRunning ? "not-allowed" : "pointer",
+                transition: "all 0.15s",
+                background: selectedCap === i ? "#fff" : "transparent",
+                color: selectedCap === i ? "#2563EB" : "#64748b",
+                boxShadow: selectedCap === i ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+              }}
+            >
+              {cap.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Dynamic input fields */}
       <div className="space-y-4 mb-6">
-        {Object.entries(aboutSchema.input_schema).map(([field, def]) => (
+        {Object.entries(aboutSchema.input_schema ?? {}).map(([field, def]) => (
           <div key={field}>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               {field}

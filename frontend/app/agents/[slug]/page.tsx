@@ -174,13 +174,28 @@ export default async function AgentProfilePage({
   }
 
   // Schema
-  const aboutSchema = agent.aboutSchema as Record<string, unknown> | null | undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const inputSchema: Record<string, any> | null = (aboutSchema as any)?.input_schema ?? null;
+  const aboutSchema = agent.aboutSchema as Record<string, any> | null | undefined;
+
+  // Extract all capabilities as an ordered list: [{ name, schema }]
+  // Supports: flat { input_schema } or { capabilities: { run: {…}, analyze: {…} } }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const outputSchema: Record<string, any> | null = (aboutSchema as any)?.output_schema ?? null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const capabilities: string[] = (aboutSchema as any)?.capabilities ?? [];
+  const capabilityList: { name: string; schema: Record<string, any> }[] = (() => {
+    if (!aboutSchema) return [];
+    if (aboutSchema.input_schema) return [{ name: "run", schema: aboutSchema }];
+    const cap = aboutSchema.capabilities;
+    if (cap && typeof cap === "object" && !Array.isArray(cap)) {
+      return Object.entries(cap as Record<string, unknown>).map(([name, s]) => ({
+        name,
+        schema: s as Record<string, unknown>,
+      }));
+    }
+    return [];
+  })();
+
+  const capabilities: string[] = Array.isArray(aboutSchema?.capabilities)
+    ? aboutSchema.capabilities
+    : capabilityList.map((c) => c.name);
 
   // USDC price is already in USD
   const priceUsd = agent.priceUsdc && agent.pricingModel !== "FREE" ? agent.priceUsdc : null;
@@ -321,50 +336,55 @@ export default async function AgentProfilePage({
             </Card>
 
             {/* 2b — What you give it */}
-            {inputSchema ? (
+            {capabilityList.length > 0 ? (
               <Card>
                 <SectionLabel>What you give it</SectionLabel>
                 <p className="text-[13px] mb-4" style={{ color: "#64748b" }}>These are the inputs this agent accepts.</p>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr style={{ borderBottom: "1px solid #F1F5F9" }}>
-                        {["Field", "Type", "Required", "Description"].map((h) => (
-                          <th key={h} className="pb-3 text-left text-[11px] font-semibold uppercase tracking-widest pr-4" style={{ color: "#94a3b8" }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.entries(inputSchema).map(([field, def]: [string, unknown]) => {
-                        const d = def as { type?: string; required?: boolean; description?: string; default?: unknown };
-                        return (
-                          <tr key={field} style={{ borderBottom: "1px solid #F8FAFF" }}>
-                            <td className="py-3 pr-4">
-                              <span className="text-[13px] font-semibold font-mono-custom" style={{ color: "#0A2540" }}>{field}</span>
-                            </td>
-                            <td className="py-3 pr-4">
-                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded" style={{ background: "#F1F5F9", color: "#64748b" }}>
-                                {TYPE_LABELS[d.type ?? "string"] ?? d.type}
-                              </span>
-                            </td>
-                            <td className="py-3 pr-4">
-                              {d.required ? (
-                                <span className="text-[11px] font-semibold px-2 py-0.5 rounded" style={{ background: cm.bg, color: cm.color }}>Required</span>
-                              ) : (
-                                <span className="text-[11px] px-2 py-0.5 rounded" style={{ background: "#F8FAFF", color: "#94a3b8" }}>Optional</span>
-                              )}
-                            </td>
-                            <td className="py-3">
-                              <span className="text-[13px]" style={{ color: "#64748b" }}>{d.description ?? "—"}</span>
-                              {d.default !== undefined && (
-                                <span className="block text-[11px] mt-0.5 font-mono-custom" style={{ color: "#94a3b8" }}>Default: {String(d.default)}</span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                <div className="space-y-6">
+                  {capabilityList.map(({ name, schema }) => (
+                    <div key={name}>
+                      {capabilityList.length > 1 && (
+                        <p className="text-[11px] font-semibold font-mono-custom uppercase tracking-widest mb-3 px-2 py-1 rounded inline-block" style={{ background: cm.bg, color: cm.color, border: `1px solid ${cm.border}` }}>
+                          {name}
+                        </p>
+                      )}
+                      {schema.input_schema ? (
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr style={{ borderBottom: "1px solid #F1F5F9" }}>
+                                {["Field", "Type", "Required", "Description"].map((h) => (
+                                  <th key={h} className="pb-3 text-left text-[11px] font-semibold uppercase tracking-widest pr-4" style={{ color: "#94a3b8" }}>{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {Object.entries(schema.input_schema as Record<string, unknown>).map(([field, def]) => {
+                                const d = def as { type?: string; required?: boolean; description?: string; default?: unknown };
+                                return (
+                                  <tr key={field} style={{ borderBottom: "1px solid #F8FAFF" }}>
+                                    <td className="py-3 pr-4"><span className="text-[13px] font-semibold font-mono-custom" style={{ color: "#0A2540" }}>{field}</span></td>
+                                    <td className="py-3 pr-4"><span className="text-[11px] font-semibold px-2 py-0.5 rounded" style={{ background: "#F1F5F9", color: "#64748b" }}>{TYPE_LABELS[d.type ?? "string"] ?? d.type}</span></td>
+                                    <td className="py-3 pr-4">
+                                      {d.required
+                                        ? <span className="text-[11px] font-semibold px-2 py-0.5 rounded" style={{ background: cm.bg, color: cm.color }}>Required</span>
+                                        : <span className="text-[11px] px-2 py-0.5 rounded" style={{ background: "#F8FAFF", color: "#94a3b8" }}>Optional</span>}
+                                    </td>
+                                    <td className="py-3">
+                                      <span className="text-[13px]" style={{ color: "#64748b" }}>{d.description ?? "—"}</span>
+                                      {d.default !== undefined && <span className="block text-[11px] mt-0.5 font-mono-custom" style={{ color: "#94a3b8" }}>Default: {String(d.default)}</span>}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p className="text-[13px]" style={{ color: "#94a3b8" }}>No input schema defined.</p>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </Card>
             ) : (
@@ -377,40 +397,43 @@ export default async function AgentProfilePage({
             )}
 
             {/* 2c — What you get back */}
-            {outputSchema && (
+            {capabilityList.some((c) => c.schema.output_schema) && (
               <Card>
                 <SectionLabel>What you get back</SectionLabel>
                 <p className="text-[13px] mb-4" style={{ color: "#64748b" }}>The output this agent returns when the job is done.</p>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr style={{ borderBottom: "1px solid #F1F5F9" }}>
-                        {["Field", "Type", "Description"].map((h) => (
-                          <th key={h} className="pb-3 text-left text-[11px] font-semibold uppercase tracking-widest pr-4" style={{ color: "#94a3b8" }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.entries(outputSchema).map(([field, def]: [string, unknown]) => {
-                        const d = def as { type?: string; description?: string };
-                        return (
-                          <tr key={field} style={{ borderBottom: "1px solid #F8FAFF" }}>
-                            <td className="py-3 pr-4">
-                              <span className="text-[13px] font-semibold font-mono-custom" style={{ color: "#0A2540" }}>{field}</span>
-                            </td>
-                            <td className="py-3 pr-4">
-                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded" style={{ background: "#F1F5F9", color: "#64748b" }}>
-                                {TYPE_LABELS[d.type ?? "string"] ?? d.type}
-                              </span>
-                            </td>
-                            <td className="py-3">
-                              <span className="text-[13px]" style={{ color: "#64748b" }}>{d.description ?? "—"}</span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                <div className="space-y-6">
+                  {capabilityList.filter((c) => c.schema.output_schema).map(({ name, schema }) => (
+                    <div key={name}>
+                      {capabilityList.length > 1 && (
+                        <p className="text-[11px] font-semibold font-mono-custom uppercase tracking-widest mb-3 px-2 py-1 rounded inline-block" style={{ background: cm.bg, color: cm.color, border: `1px solid ${cm.border}` }}>
+                          {name}
+                        </p>
+                      )}
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr style={{ borderBottom: "1px solid #F1F5F9" }}>
+                              {["Field", "Type", "Description"].map((h) => (
+                                <th key={h} className="pb-3 text-left text-[11px] font-semibold uppercase tracking-widest pr-4" style={{ color: "#94a3b8" }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Object.entries(schema.output_schema as Record<string, unknown>).map(([field, def]) => {
+                              const d = def as { type?: string; description?: string };
+                              return (
+                                <tr key={field} style={{ borderBottom: "1px solid #F8FAFF" }}>
+                                  <td className="py-3 pr-4"><span className="text-[13px] font-semibold font-mono-custom" style={{ color: "#0A2540" }}>{field}</span></td>
+                                  <td className="py-3 pr-4"><span className="text-[11px] font-semibold px-2 py-0.5 rounded" style={{ background: "#F1F5F9", color: "#64748b" }}>{TYPE_LABELS[d.type ?? "string"] ?? d.type}</span></td>
+                                  <td className="py-3"><span className="text-[13px]" style={{ color: "#64748b" }}>{d.description ?? "—"}</span></td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </Card>
             )}
