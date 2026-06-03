@@ -69,6 +69,25 @@ interface PendingFlow {
   deadline: number;
 }
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try { await navigator.clipboard.writeText(text); }
+    catch { const el = document.createElement("textarea"); el.value = text; document.body.appendChild(el); el.select(); document.execCommand("copy"); document.body.removeChild(el); }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+  return (
+    <button onClick={copy} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors">
+      {copied
+        ? <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+        : <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      }
+      {copied ? "Copied!" : "Copy"}
+    </button>
+  );
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function extractCapabilities(raw: any): { name: string; schema: AboutSchema }[] {
   if (!raw) return [];
@@ -242,6 +261,7 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
   }
 
   if (status === "done" && result !== null) {
+    const outputText = JSON.stringify(result, null, 2);
     return (
       <div className="border border-emerald-200 rounded-xl p-6 bg-emerald-50 shadow-card">
         <div className="flex items-center gap-2 mb-4">
@@ -252,9 +272,12 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
         </div>
         <p className="text-emerald-700 text-xs mb-3">Cost: {priceUsdc} USDC · MilkyWay orchestrator</p>
         <div className="bg-white border border-emerald-200 rounded-lg p-3 mb-4">
-          <p className="text-slate-500 text-xs font-medium mb-1.5">Output</p>
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-slate-500 text-xs font-medium">Output</p>
+            <CopyButton text={outputText} />
+          </div>
           <pre className="text-slate-800 text-xs overflow-auto max-h-48 leading-relaxed">
-            {JSON.stringify(result, null, 2)}
+            {outputText}
           </pre>
         </div>
         <button onClick={reset}
