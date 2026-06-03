@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { prisma } from "../lib/db";
 import { verifyEndpoint } from "../services/verification";
 import { fetchAbout } from "../services/about";
-import { authenticateJWT, AuthRequest } from "../middleware/auth";
+import { authenticateJWT, authenticateAny, AuthRequest } from "../middleware/auth";
 import { authenticateAPIKey, ApiKeyRequest } from "../middleware/apiKey";
 
 const router = Router();
@@ -180,7 +180,7 @@ router.post("/pre-register", authenticateAPIKey, async (req: Request, res: Respo
         category:     config.category || "UTILITY",
         version:      config.milkyway_version || "1.0",
         endpoint,
-        pricingModel: "PER_JOB",
+        pricingModel: "PER_CALL",
         priceUsdc,
         permissions:  [],
         builder: {
@@ -362,7 +362,7 @@ router.post("/confirm", authenticateJWT, async (req: AuthRequest, res: Response)
 });
 
 // PUT /api/agents/:agentId — update mutable profile fields (auth required)
-router.put("/:agentId", authenticateJWT, async (req: AuthRequest, res: Response) => {
+router.put("/:agentId", authenticateAny, async (req: AuthRequest, res: Response) => {
   try {
     const { name, description, pricingModel, priceUsdc, logoUrl } = req.body;
 

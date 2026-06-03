@@ -63,3 +63,20 @@ export function authenticateJWT(
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 }
+
+// Accepts either a JWT (browser) or an API key (CLI)
+export async function authenticateAny(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) {
+  const header = req.headers.authorization;
+
+  // API key path
+  if (header?.startsWith("Bearer mw_live_") || req.headers["x-api-key"]) {
+    return authenticateAPIKey(req, res, next);
+  }
+
+  // JWT path
+  return authenticateJWT(req, res, next);
+}
