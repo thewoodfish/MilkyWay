@@ -142,7 +142,7 @@ router.get("/:agentId", async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/agents/pre-register — CLI: register and activate in one step (no on-chain staking)
+// POST /api/agents/pre-register — CLI: save profile pending on-chain stake + NFT mint
 router.post("/pre-register", authenticateAPIKey, async (req: Request, res: Response) => {
   try {
     const { config, endpoint, metadataHash } = req.body;
@@ -157,24 +157,16 @@ router.post("/pre-register", authenticateAPIKey, async (req: Request, res: Respo
       return res.status(400).json({ error: "Endpoint verification failed", detail: pingResult.error });
     }
 
-    // Auto-assign next agentId
-    const maxAgent = await prisma.agent.findFirst({
-      where:   { agentId: { not: null } },
-      orderBy: { agentId: "desc" },
-      select:  { agentId: true },
-    });
-    const nextAgentId = (maxAgent?.agentId ?? 0) + 1;
-
     // Extract pricing from agent.json capabilities if present
     const capability = config.capabilities?.run ?? config.capabilities?.[Object.keys(config.capabilities ?? {})[0]];
     const priceUsdc  = capability?.pricing?.amount ?? "0";
 
+    // Create pending profile — inactive until on-chain stake + NFT mint confirms
     const agent = await prisma.agent.create({
       data: {
-        agentId:      nextAgentId,
+        agentId:      null,
         metadataHash,
-        active:       true,
-        badgeTier:    "BRONZE",
+        active:       false,
         name:         config.name,
         description:  config.description,
         category:     config.category || "UTILITY",
@@ -192,11 +184,6 @@ router.post("/pre-register", authenticateAPIKey, async (req: Request, res: Respo
       },
     });
 
-    await prisma.builder.update({
-      where: { address: ownerAddress },
-      data:  { agentsCount: { increment: 1 } },
-    });
-
     const aboutResult = await fetchAbout(endpoint);
     if (aboutResult.success) {
       await prisma.agent.update({
@@ -209,7 +196,7 @@ router.post("/pre-register", authenticateAPIKey, async (req: Request, res: Respo
       });
     }
 
-    res.json({ profileId: agent.id, agentId: nextAgentId, phase2Ready: aboutResult.success });
+    res.json({ profileId: agent.id, phase2Ready: aboutResult.success });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });

@@ -1,6 +1,6 @@
 {
   "name": "@usemilkyway/cli",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "MilkyWay Agent Developer Tools",
   "main": "dist/index.js",
   "bin": {
