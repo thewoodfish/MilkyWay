@@ -22,6 +22,10 @@ export function shortAddress(addr: string): string {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
+export function agentPath(agent: { agentId: number | null; slug?: string | null }): string {
+  return `/agents/${agent.slug ?? agent.agentId}`;
+}
+
 export function badgeLabel(tier: BadgeTier): string {
   return { NONE: "Unverified", BRONZE: "Bronze", SILVER: "Silver", GOLD: "Gold" }[tier];
 }

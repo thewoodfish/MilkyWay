@@ -30,7 +30,8 @@ interface AboutSchema {
 
 interface Props {
   agentId: number;
-  aboutSchema: AboutSchema;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  aboutSchema: any;
   priceUsdc: string;
 }
 
@@ -45,7 +46,18 @@ interface PendingFlow {
   deadline: number;
 }
 
-export function QuickExecute({ agentId, aboutSchema, priceUsdc }: Props) {
+function normalizeSchema(raw: Record<string, unknown>): AboutSchema {
+  // Support both flat format { input_schema, pricing } and
+  // capabilities format { capabilities: { run: { input_schema, pricing } } }
+  if (raw.input_schema) return raw as unknown as AboutSchema;
+  const cap = raw.capabilities as Record<string, unknown> | undefined;
+  const run = (cap?.run ?? Object.values(cap ?? {})[0]) as Record<string, unknown> | undefined;
+  if (run?.input_schema) return run as unknown as AboutSchema;
+  return raw as unknown as AboutSchema;
+}
+
+export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Props) {
+  const aboutSchema = normalizeSchema(rawSchema as unknown as Record<string, unknown>);
   const { isConnected } = useAccount();
   const { isSignedIn } = useAuth();
 

@@ -7,10 +7,10 @@ export const contentType = "image/png";
 export default async function OGImage({
   params,
 }: {
-  params: { agentId: string };
+  params: { slug: string };
 }) {
   const agent = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/agents/${params.agentId}`
+    `${process.env.NEXT_PUBLIC_API_URL}/api/agents/${params.slug}`
   )
     .then((r) => r.json())
     .catch(() => null);
@@ -52,7 +52,7 @@ export default async function OGImage({
       : "New agent";
 
   const price =
-    agent.pricingModel === "FREE" ? "Free" : `${agent.priceEth} ETH per job`;
+    agent.pricingModel === "FREE" ? "Free" : `${agent.priceUsdc} ETH per job`;
 
   const shortDesc = agent.description?.split(".")[0]?.trim() + ".";
 

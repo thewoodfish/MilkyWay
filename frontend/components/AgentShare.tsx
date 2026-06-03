@@ -4,6 +4,7 @@ import { useState } from "react";
 
 interface AgentShareData {
   agentId: number;
+  slug?: string | null;
   name: string;
   description: string;
   priceUsdc: string;
@@ -22,7 +23,7 @@ const PRICING_LABEL: Record<string, string> = {
 };
 
 function buildShareContent(agent: AgentShareData, baseUrl: string) {
-  const url = `${baseUrl}/agents/${agent.agentId}`;
+  const url = `${baseUrl}/agents/${agent.slug ?? agent.agentId}`;
   const badge = BADGE_EMOJI[agent.badgeTier];
   const price = agent.pricingModel === "FREE"
     ? "Free"

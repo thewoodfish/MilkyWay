@@ -81,8 +81,8 @@ async function getRelated(agentId: number, category: string): Promise<Agent[]> {
 }
 
 
-export async function generateMetadata({ params }: { params: { agentId: string } }) {
-  const agent = await getAgent(params.agentId);
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  const agent = await getAgent(params.slug);
   if (!agent) return { title: "Agent not found — MilkyWay" };
   return {
     title: `${agent.name} — MilkyWay`,
@@ -117,11 +117,11 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 export default async function AgentProfilePage({
   params,
 }: {
-  params: { agentId: string };
+  params: { slug: string };
 }) {
   const [agent, logs] = await Promise.all([
-    getAgent(params.agentId),
-    getLogs(params.agentId),
+    getAgent(params.slug),
+    getLogs(params.slug),
   ]);
 
   if (!agent) {
@@ -550,6 +550,7 @@ export default async function AgentProfilePage({
                 <AgentShare
                   agent={{
                     agentId: agent.agentId,
+                    slug: agent.slug,
                     name: agent.name,
                     description: agent.description,
                     priceUsdc: agent.priceUsdc ?? "0",

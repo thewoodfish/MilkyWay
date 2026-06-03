@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { Agent } from "@/lib/types";
-import { agentStatus, shortAddress, CATEGORY_LABELS } from "@/lib/utils";
+import { agentStatus, shortAddress, CATEGORY_LABELS, agentPath } from "@/lib/utils";
 import { AgentAvatar } from "./AgentAvatar";
 import { UsdcAmount } from "./UsdcAmount";
 
@@ -42,7 +42,7 @@ export function AgentCard({ agent }: AgentCardProps) {
 
   return (
     <Link
-      href={`/agents/${agent.agentId}`}
+      href={agentPath(agent)}
       className="group block rounded-2xl overflow-hidden transition-all duration-200"
       style={{
         background: "#fff",

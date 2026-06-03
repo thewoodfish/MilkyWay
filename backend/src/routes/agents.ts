@@ -5,6 +5,7 @@ import { verifyEndpoint } from "../services/verification";
 import { fetchAbout } from "../services/about";
 import { authenticateJWT, authenticateAny, AuthRequest } from "../middleware/auth";
 import { authenticateAPIKey, ApiKeyRequest } from "../middleware/apiKey";
+import { generateUniqueSlug } from "../utils/slug";
 
 const router = Router();
 
@@ -128,11 +129,14 @@ router.get("/:agentId/about", async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/agents/:agentId
-router.get("/:agentId", async (req: Request, res: Response) => {
+// GET /api/agents/:agentIdOrSlug — accepts numeric agentId or slug
+router.get("/:agentIdOrSlug", async (req: Request, res: Response) => {
   try {
-    const agent = await prisma.agent.findUnique({
-      where: { agentId: Number(req.params.agentId) },
+    const param = req.params.agentIdOrSlug;
+    const isNumeric = /^\d+$/.test(param);
+
+    const agent = await prisma.agent.findFirst({
+      where: isNumeric ? { agentId: Number(param) } : { slug: param },
       include: { builder: true },
     });
     if (!agent) return res.status(404).json({ error: "Agent not found" });
@@ -161,6 +165,8 @@ router.post("/pre-register", authenticateAPIKey, async (req: Request, res: Respo
     const capability = config.capabilities?.run ?? config.capabilities?.[Object.keys(config.capabilities ?? {})[0]];
     const priceUsdc  = capability?.pricing?.amount ?? "0";
 
+    const slug = await generateUniqueSlug(config.name);
+
     // Create pending profile — inactive until on-chain stake + NFT mint confirms
     const agent = await prisma.agent.create({
       data: {
@@ -175,6 +181,7 @@ router.post("/pre-register", authenticateAPIKey, async (req: Request, res: Respo
         pricingModel: "PER_CALL",
         priceUsdc,
         permissions:  [],
+        slug,
         builder: {
           connectOrCreate: {
             where:  { address: ownerAddress },
@@ -272,6 +279,8 @@ router.post("/register", async (req: Request, res: Response) => {
     const profileJSON = JSON.stringify(profile, Object.keys(profile).sort());
     const metadataHash = ethers.keccak256(ethers.toUtf8Bytes(profileJSON));
 
+    const slug = await generateUniqueSlug(name);
+
     const agent = await prisma.agent.create({
       data: {
         agentId: null,
@@ -287,6 +296,7 @@ router.post("/register", async (req: Request, res: Response) => {
         priceUsdc: profile.priceUsdc,
         permissions: profile.permissions,
         logoUrl: profile.logoUrl ?? undefined,
+        slug,
         builder: {
           connectOrCreate: {
             where: { address: ownerAddress },

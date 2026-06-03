@@ -7,7 +7,7 @@ import { authFetch } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { AuthGate } from "@/components/AuthGate";
 import { REGISTRY_ABI } from "@/lib/registry-abi";
-import { CATEGORY_LABELS, timeAgo } from "@/lib/utils";
+import { CATEGORY_LABELS, timeAgo, agentPath } from "@/lib/utils";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { Portal } from "@/components/Portal";
 import { UsdcAmount } from "@/components/UsdcAmount";
@@ -736,7 +736,7 @@ export default function DashboardPage() {
                       title="No earnings yet"
                       body="Once someone runs your agent, your earnings appear here."
                       cta="Share your agent page"
-                      href={agents.length > 0 ? `/agents/${agents[0].agentId}` : "/register"}
+                      href={agents.length > 0 ? agentPath(agents[0]) : "/register"}
                     />
                   ) : (
                     <>
@@ -987,7 +987,7 @@ export default function DashboardPage() {
                   </div>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0 }}>
                     <Link
-                      href={`/agents/${analyticsAgent.agentId}`}
+                      href={agentPath(analyticsAgent)}
                       target="_blank"
                       style={{ fontSize: "12px", fontWeight: 600, color: "#2563EB", textDecoration: "none", padding: "6px 12px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "7px", whiteSpace: "nowrap" }}
                     >

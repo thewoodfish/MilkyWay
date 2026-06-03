@@ -31,6 +31,7 @@ model Agent {
   registeredAt DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   txHash       String?
+  slug         String?      @unique
   aboutSchema  Json?
   phase2Ready  Boolean      @default(false)
   aboutCachedAt DateTime?

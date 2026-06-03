@@ -2,7 +2,7 @@
   "milkyway_version": "1.0",
   "name": "Random Gem Generator",
   "description": "Accepts any topic and returns a randomly generated gem — type, rarity, and a unique descriptor.",
-  "wallet": "${AGENT_WALLET_ADDRESS}",
+  "wallet": "0x3656ABd007AED9B9A572a63c58447044D69f8DAf",
   "max_deadline_seconds": 10,
   "capabilities": {
     "run": {

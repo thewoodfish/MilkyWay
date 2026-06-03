@@ -114,6 +114,7 @@ export default function RegisterPage() {
   const [pingLoading, setPingLoading] = useState(false);
   const [profileId, setProfileId] = useState("");
   const [registeredAgentId, setRegisteredAgentId] = useState<number | null>(null);
+  const [registeredSlug, setRegisteredSlug] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   const { writeContract, data: txHash, isPending: isTxPending, error: txError } = useWriteContract();
@@ -195,6 +196,8 @@ export default function RegisterPage() {
         const err = await confirmRes.json();
         throw new Error(err.error ?? "Confirm failed");
       }
+      const confirmed = await confirmRes.json();
+      if (confirmed.agent?.slug) setRegisteredSlug(confirmed.agent.slug);
 
       setStep(5);
     } catch (e: unknown) {
@@ -798,7 +801,7 @@ export default function RegisterPage() {
 
               <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "320px", margin: "0 auto" }}>
                 <Link
-                  href={`/agents/${registeredAgentId}`}
+                  href={`/agents/${registeredSlug ?? registeredAgentId}`}
                   style={{
                     display: "block",
                     background: "#2563EB",
