@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSignTypedData, useAccount } from "wagmi";
+import { useSignTypedData, useAccount, useReadContract } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAuth } from "@/context/AuthContext";
 import { authFetch } from "@/lib/auth";
@@ -12,6 +12,12 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 // Arbitrum Sepolia — switch to mainnet after hackathon
 const CHAIN_ID   = 421614;
 const USDC_ADDRESS = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d" as `0x${string}`;
+
+const USDC_ABI = [
+  { name: "balanceOf", type: "function", stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }] },
+] as const;
 
 const EIP3009_TYPES = {
   TransferWithAuthorization: [
@@ -82,9 +88,17 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
   const [selectedCap, setSelectedCap] = useState(0);
   const aboutSchema = capabilities[selectedCap]?.schema ?? ({} as AboutSchema);
 
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { isSignedIn } = useAuth();
   const { signTypedDataAsync } = useSignTypedData();
+
+  const { data: usdcBalance } = useReadContract({
+    address: USDC_ADDRESS,
+    abi: USDC_ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    query: { enabled: !!address },
+  });
 
   const [inputs, setInputs] = useState<Record<string, unknown>>({});
   const [status, setStatus] = useState<Status>("idle");
@@ -102,6 +116,16 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
 
   async function handleExecute() {
     setError("");
+
+    // Check USDC balance before touching the API
+    const requiredRaw = BigInt(Math.round(parseFloat(priceUsdc) * 1_000_000));
+    const balance = usdcBalance ?? BigInt(0);
+    if (balance < requiredRaw) {
+      const have = (Number(balance) / 1_000_000).toFixed(2);
+      setError(`Insufficient USDC — need ${priceUsdc}, you have ${have}`);
+      return;
+    }
+
     setStatus("creating");
 
     try {
