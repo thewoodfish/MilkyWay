@@ -1,34 +1,4 @@
-import { ethers } from "ethers";
 import { prisma } from "../lib/db";
-
-const USDC_ADDRESS = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"; // Arbitrum One
-
-// EIP-3009 TransferWithAuthorization typed data
-const USDC_DOMAIN = {
-  name: "USD Coin",
-  version: "2",
-  chainId: 42161,
-  verifyingContract: USDC_ADDRESS,
-};
-const TRANSFER_WITH_AUTHORIZATION_TYPES = {
-  TransferWithAuthorization: [
-    { name: "from", type: "address" },
-    { name: "to", type: "address" },
-    { name: "value", type: "uint256" },
-    { name: "validAfter", type: "uint256" },
-    { name: "validBefore", type: "uint256" },
-    { name: "nonce", type: "bytes32" },
-  ],
-};
-
-// Orchestrator key — signs x402 payment authorizations sent to agents (lazy init)
-let _orchestrator: ethers.Wallet | null = null;
-function getOrchestrator(): ethers.Wallet {
-  if (!_orchestrator) {
-    _orchestrator = new ethers.Wallet(process.env.ORCHESTRATOR_PRIVATE_KEY!);
-  }
-  return _orchestrator;
-}
 
 export async function executeFlow(flow: {
   id: string;
@@ -66,10 +36,9 @@ export async function executeFlow(flow: {
       await prisma.flowAgent.update({ where: { id: flowAgent.id }, data: { status: "RUNNING" } });
 
       const resource = `${agent.endpoint.replace(/\/$/, "")}/execute`;
-      const paymentHeader = await buildPaymentHeader(
+      const paymentHeader = getPaymentHeader(
+        flow.paymentTxHash,
         flowAgent.agentAddress,
-        flowAgent.amountUsdc,
-        flow.deadline,
         resource
       );
 
@@ -119,45 +88,40 @@ export async function executeFlow(flow: {
   }
 }
 
-// Sign an EIP-3009 transferWithAuthorization to pay an agent via x402
-async function buildPaymentHeader(
-  toAddress: string,
-  amountUsdc: string,
-  deadline: Date,
+// Build x402 payment header from the user-signed EIP-3009 authorization stored at flow creation
+function getPaymentHeader(
+  storedPaymentData: string | null,
+  agentAddress: string,
   resource: string
-): Promise<string> {
-  const rawAmount = BigInt(Math.round(parseFloat(amountUsdc) * 1_000_000));
-  const validBefore = Math.floor(deadline.getTime() / 1000);
-  const nonce = ethers.hexlify(ethers.randomBytes(32));
+): string {
+  if (!storedPaymentData) throw new Error("No payment authorization stored for this flow");
 
-  const orch = getOrchestrator();
-  const signature = await orch.signTypedData(
-    USDC_DOMAIN,
-    TRANSFER_WITH_AUTHORIZATION_TYPES,
-    {
-      from: orch.address,
-      to: toAddress,
-      value: rawAmount,
-      validAfter: 0n,
-      validBefore: BigInt(validBefore),
-      nonce,
-    }
+  const { authorizations } = JSON.parse(storedPaymentData) as {
+    authorizations: Array<{
+      from: string; to: string; value: string;
+      validAfter: string; validBefore: string; nonce: string; signature: string;
+    }>;
+  };
+
+  const auth = authorizations.find(
+    (a) => a.to.toLowerCase() === agentAddress.toLowerCase()
   );
+  if (!auth) throw new Error(`No authorization found for agent address ${agentAddress}`);
 
   const payment = {
     x402Version: 1,
     scheme: "exact",
-    network: "eip155:42161",
+    network: process.env.X402_NETWORK || "eip155:42161",
     payload: {
       authorization: {
-        from: orch.address,
-        to: toAddress,
-        value: rawAmount.toString(),
-        validAfter: "0",
-        validBefore: validBefore.toString(),
-        nonce,
+        from: auth.from,
+        to: auth.to,
+        value: auth.value,
+        validAfter: auth.validAfter,
+        validBefore: auth.validBefore,
+        nonce: auth.nonce,
       },
-      signature,
+      signature: auth.signature,
       resource,
     },
   };

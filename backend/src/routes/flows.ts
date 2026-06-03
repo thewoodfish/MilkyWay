@@ -1,5 +1,6 @@
 import { Router, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
+import { ethers } from "ethers";
 import { prisma } from "../lib/db";
 import { authenticateJWT, AuthRequest } from "../middleware/auth";
 import { executeFlow } from "../services/engine";
@@ -96,13 +97,20 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
       include: { agents: { orderBy: { orderIndex: "asc" } } },
     });
 
+    // Build per-agent EIP-3009 signing params — user signs these gaslessly in their wallet
+    const eip3009Params = agentDetails.map((a) => ({
+      from: req.user!.address,
+      to: a.wallet,
+      value: Math.round(parseFloat(a.amount) * 1_000_000).toString(),
+      validAfter: "0",
+      validBefore: deadline.toString(),
+      nonce: ethers.hexlify(ethers.randomBytes(32)),
+    }));
+
     res.json({
       jobId,
       internalId: flow.id,
-      // Address users send USDC to before calling /confirm
-      milkywayPaymentAddress: process.env.ORCHESTRATOR_ADDRESS ?? "",
-      // Raw USDC units (6 decimals) for ERC-20 transfer call
-      rawAmountUsdc: Math.round(total * 1_000_000).toString(),
+      eip3009Params,
       totalUsdc: total.toFixed(6),
       deadline,
     });
@@ -112,15 +120,22 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
   }
 });
 
-// POST /api/flows/confirm — called after user's USDC transfer confirms
+// POST /api/flows/confirm — called after user signs EIP-3009 authorizations in wallet
 router.post("/confirm", authenticateJWT, async (req: AuthRequest, res: Response) => {
   try {
-    const { internalId, paymentTxHash } = req.body;
-    if (!internalId || !paymentTxHash) return res.status(400).json({ error: "Missing fields" });
+    const { internalId, signatures, eip3009Params } = req.body;
+    if (!internalId || !signatures?.length || !eip3009Params?.length) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
+
+    // Store signed authorizations so the engine can embed them in X-Payment headers
+    const authorizations = eip3009Params.map(
+      (auth: Record<string, string>, i: number) => ({ ...auth, signature: signatures[i] })
+    );
 
     const flow = await prisma.flow.update({
       where: { id: internalId },
-      data: { paymentTxHash, status: "LOCKED" },
+      data: { paymentTxHash: JSON.stringify({ authorizations }), status: "LOCKED" },
       include: { agents: { orderBy: { orderIndex: "asc" } } },
     });
 

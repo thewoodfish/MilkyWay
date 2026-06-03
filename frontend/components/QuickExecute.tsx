@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
+import { useSignTypedData, useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAuth } from "@/context/AuthContext";
 import { authFetch } from "@/lib/auth";
@@ -9,11 +9,24 @@ import { SignInButton } from "./SignInButton";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const USDC_ADDRESS = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" as `0x${string}`;
-const USDC_TRANSFER_ABI = [
-  { name: "transfer", type: "function", stateMutability: "nonpayable",
-    inputs: [{ name: "to", type: "address" }, { name: "amount", type: "uint256" }],
-    outputs: [{ name: "", type: "bool" }] },
-] as const;
+
+const EIP3009_DOMAIN = {
+  name: "USD Coin",
+  version: "2",
+  chainId: 42161,
+  verifyingContract: USDC_ADDRESS,
+} as const;
+
+const EIP3009_TYPES = {
+  TransferWithAuthorization: [
+    { name: "from",        type: "address" },
+    { name: "to",          type: "address" },
+    { name: "value",       type: "uint256" },
+    { name: "validAfter",  type: "uint256" },
+    { name: "validBefore", type: "uint256" },
+    { name: "nonce",       type: "bytes32" },
+  ],
+} as const;
 
 interface FieldDef {
   type: "string" | "number" | "boolean" | "array";
@@ -35,13 +48,21 @@ interface Props {
   priceUsdc: string;
 }
 
-type Status = "idle" | "creating" | "wallet" | "confirming" | "polling" | "done" | "error";
+type Status = "idle" | "creating" | "signing" | "confirming" | "polling" | "done" | "error";
+
+interface Eip3009Param {
+  from: string;
+  to: string;
+  value: string;
+  validAfter: string;
+  validBefore: string;
+  nonce: string;
+}
 
 interface PendingFlow {
   jobId: string;
   internalId: string;
-  milkywayPaymentAddress: string;
-  rawAmountUsdc: string;
+  eip3009Params: Eip3009Param[];
   totalUsdc: string;
   deadline: number;
 }
@@ -67,15 +88,13 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
 
   const { isConnected } = useAccount();
   const { isSignedIn } = useAuth();
+  const { signTypedDataAsync } = useSignTypedData();
 
-  const [inputs, setInputs]         = useState<Record<string, unknown>>({});
-  const [status, setStatus]         = useState<Status>("idle");
-  const [error, setError]           = useState("");
-  const [result, setResult]         = useState<unknown>(null);
+  const [inputs, setInputs]           = useState<Record<string, unknown>>({});
+  const [status, setStatus]           = useState<Status>("idle");
+  const [error, setError]             = useState("");
+  const [result, setResult]           = useState<unknown>(null);
   const [pendingFlow, setPendingFlow] = useState<PendingFlow | null>(null);
-
-  const { writeContract, data: txHash, isPending: isWalletPending, error: writeError } = useWriteContract();
-  const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({ hash: txHash });
 
   // Pre-fill defaults when capability changes
   useEffect(() => {
@@ -86,43 +105,12 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
     setInputs(defaults);
   }, [selectedCap]);
 
-  // Step 3: tx confirmed → call confirm API → start polling
-  useEffect(() => {
-    if (!txConfirmed || !pendingFlow || !txHash) return;
-    setStatus("confirming");
-
-    authFetch(`${API}/api/flows/confirm`, {
-      method: "POST",
-      body: JSON.stringify({ internalId: pendingFlow.internalId, paymentTxHash: txHash }),
-    })
-      .then(() => {
-        setStatus("polling");
-        return pollForResult(pendingFlow.jobId);
-      })
-      .then((output) => {
-        setResult(output);
-        setStatus("done");
-      })
-      .catch((e) => {
-        setError((e as Error).message);
-        setStatus("error");
-      });
-  }, [txConfirmed, txHash]);
-
-  // Propagate wagmi write errors
-  useEffect(() => {
-    if (writeError) {
-      setError(writeError.message.split("\n")[0]);
-      setStatus("error");
-    }
-  }, [writeError]);
-
   async function handleExecute() {
     setError("");
     setStatus("creating");
 
     try {
-      // Step 1: create flow
+      // Step 1: create flow — backend returns EIP-3009 params to sign
       const res = await authFetch(`${API}/api/flows/create`, {
         method: "POST",
         body: JSON.stringify({
@@ -135,17 +123,43 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
       if (!res.ok) throw new Error((flow as { error?: string }).error ?? "Failed to create flow");
       setPendingFlow(flow);
 
-      // Step 2: trigger wallet — send USDC to MilkyWay orchestrator
-      setStatus("wallet");
-      writeContract({
-        address: USDC_ADDRESS,
-        abi: USDC_TRANSFER_ABI,
-        functionName: "transfer",
-        args: [
-          flow.milkywayPaymentAddress as `0x${string}`,
-          BigInt(flow.rawAmountUsdc),
-        ],
+      // Step 2: sign EIP-3009 authorizations (gasless — no on-chain tx)
+      setStatus("signing");
+      const signatures = await Promise.all(
+        flow.eip3009Params.map((auth) =>
+          signTypedDataAsync({
+            domain: EIP3009_DOMAIN,
+            types: EIP3009_TYPES,
+            primaryType: "TransferWithAuthorization",
+            message: {
+              from:        auth.from        as `0x${string}`,
+              to:          auth.to          as `0x${string}`,
+              value:       BigInt(auth.value),
+              validAfter:  BigInt(auth.validAfter),
+              validBefore: BigInt(auth.validBefore),
+              nonce:       auth.nonce       as `0x${string}`,
+            },
+          })
+        )
+      );
+
+      // Step 3: confirm with signatures → engine starts executing
+      setStatus("confirming");
+      const confirmRes = await authFetch(`${API}/api/flows/confirm`, {
+        method: "POST",
+        body: JSON.stringify({
+          internalId: flow.internalId,
+          signatures,
+          eip3009Params: flow.eip3009Params,
+        }),
       });
+      if (!confirmRes.ok) throw new Error("Failed to confirm flow");
+
+      // Step 4: poll for result
+      setStatus("polling");
+      const output = await pollForResult(flow.jobId);
+      setResult(output);
+      setStatus("done");
     } catch (e) {
       setError((e as Error).message);
       setStatus("error");
@@ -171,13 +185,13 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
     setPendingFlow(null);
   }
 
-  const isRunning = ["creating", "wallet", "confirming", "polling"].includes(status);
+  const isRunning = ["creating", "signing", "confirming", "polling"].includes(status);
 
   const statusLabel: Record<Status, string> = {
     idle:       "",
     creating:   "Creating flow…",
-    wallet:     "Approve in wallet…",
-    confirming: "Confirming on-chain…",
+    signing:    "Sign in wallet…",
+    confirming: "Submitting…",
     polling:    "Agent is running…",
     done:       "",
     error:      "",
@@ -338,7 +352,7 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
 
       <button
         onClick={handleExecute}
-        disabled={isRunning || isWalletPending}
+        disabled={isRunning}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm py-3 rounded-lg transition-colors shadow-btn"
       >
         {isRunning ? statusLabel[status] : "Execute Now →"}
