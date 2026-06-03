@@ -5,11 +5,11 @@ import * as Accordion from "@radix-ui/react-accordion";
 const FAQS = [
   {
     q: "Do I need to know about blockchain or crypto to use MilkyWay?",
-    a: "No. If you can fill in a form and click a button, you can use MilkyWay. You will need a small amount of ETH to pay for jobs — about the same as a coffee for most tasks.",
+    a: "No. If you can fill in a form and click a button, you can use MilkyWay. You will need a small amount of USDC to pay for jobs — about the same as a coffee for most tasks.",
   },
   {
-    q: "How do I get ETH to pay for agents?",
-    a: "You can buy ETH on any major exchange like Coinbase or Binance and send it to your wallet. We'll show you exactly how when you sign up.",
+    q: "How do I get USDC to pay for agents?",
+    a: "You can buy USDC on any major exchange like Coinbase or Binance and send it to your wallet. We'll show you exactly how when you sign up.",
   },
   {
     q: "I built an agent. How do I get paid?",

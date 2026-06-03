@@ -141,10 +141,16 @@ export default async function HomePage() {
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-[14px] font-bold"
-                      style={{ background: a.bg, color: a.color }}
+                      className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0"
+                      style={{ background: a.bg }}
                     >
-                      {a.name[0]}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=transparent`}
+                        alt={a.name}
+                        width={40}
+                        height={40}
+                      />
                     </div>
                     <span
                       className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full"
@@ -397,10 +403,16 @@ export default async function HomePage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div
-                          className="w-9 h-9 rounded-lg flex items-center justify-center text-[13px] font-bold flex-shrink-0"
-                          style={{ background: a.featured ? "#2563EB" : "#EFF6FF", color: a.featured ? "#fff" : "#2563EB" }}
+                          className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0"
+                          style={{ background: a.featured ? "#dbeafe" : "#EFF6FF" }}
                         >
-                          {a.name[0]}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=transparent`}
+                            alt={a.name}
+                            width={36}
+                            height={36}
+                          />
                         </div>
                         <div>
                           <p className="text-[13px] font-semibold" style={{ color: "#0A2540" }}>{a.name}</p>
@@ -493,10 +505,16 @@ export default async function HomePage() {
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2.5">
                         <div
-                          className="w-7 h-7 rounded-md flex items-center justify-center text-[11px] font-bold flex-shrink-0"
-                          style={{ background: "#EFF6FF", color: "#2563EB" }}
+                          className="w-7 h-7 rounded-md overflow-hidden flex-shrink-0"
+                          style={{ background: "#EFF6FF" }}
                         >
-                          {a.name[0]}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=transparent`}
+                            alt={a.name}
+                            width={28}
+                            height={28}
+                          />
                         </div>
                         <div>
                           <p className="text-[12px] font-semibold" style={{ color: "#0A2540" }}>{a.name}</p>
@@ -950,6 +968,115 @@ export default async function HomePage() {
             </div>
           </div>
 
+          {/* SDK card — full width */}
+          <div
+            className="rounded-2xl p-7 mb-8 flex flex-col md:flex-row gap-8 items-start"
+            style={{
+              background: "linear-gradient(135deg, rgba(245,158,11,0.10) 0%, rgba(234,88,12,0.06) 100%)",
+              border: "1px solid rgba(245,158,11,0.28)",
+              boxShadow: "0 0 40px rgba(245,158,11,0.06)",
+            }}
+          >
+            {/* Left */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-5">
+                <span
+                  className="font-mono-custom font-bold text-[15px] tracking-tight"
+                  style={{ color: "#fbbf24" }}
+                >
+                  @usemilkyway/agent-sdk
+                </span>
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(245,158,11,0.15)", color: "#fcd34d" }}
+                >
+                  TypeScript
+                </span>
+              </div>
+              <p className="text-[16px] font-semibold text-white mb-3">Ship an agent in minutes</p>
+              <p className="text-[13px] leading-relaxed mb-5" style={{ color: "#6e7681" }}>
+                One package. No boilerplate. The SDK handles HTTP routing, input validation,
+                payment verification, and dev-mode bypass — so you write only the logic that matters.
+              </p>
+              <div className="space-y-2">
+                {[
+                  "Payment verified automatically on every call",
+                  "Input validated against your agent.json schema",
+                  "Dev mode skips payment — prod mode enforces it",
+                  "Works with any TypeScript or JavaScript runtime",
+                ].map((f) => (
+                  <div key={f} className="flex items-center gap-2">
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#f59e0b" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-[12px]" style={{ color: "#9CA3AF" }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 flex items-center gap-3">
+                <code
+                  className="text-[12px] font-mono-custom px-3 py-1.5 rounded-lg"
+                  style={{ background: "rgba(245,158,11,0.12)", color: "#fbbf24", border: "1px solid rgba(245,158,11,0.2)" }}
+                >
+                  npx create-milkyway-agent@latest
+                </code>
+              </div>
+            </div>
+
+            {/* Right — code snippet */}
+            <div
+              className="w-full md:w-[340px] rounded-xl overflow-hidden flex-shrink-0"
+              style={{
+                background: "rgba(10,22,48,0.8)",
+                border: "1px solid rgba(245,158,11,0.18)",
+              }}
+            >
+              <div
+                className="flex items-center gap-1.5 px-4 py-2.5"
+                style={{ borderBottom: "1px solid rgba(245,158,11,0.12)" }}
+              >
+                {["#FF5F57","#FEBC2E","#28C840"].map((c) => (
+                  <span key={c} className="w-2.5 h-2.5 rounded-full" style={{ background: c }} />
+                ))}
+                <span className="ml-2 text-[11px] font-mono-custom" style={{ color: "rgba(99,140,210,0.5)" }}>
+                  index.ts
+                </span>
+              </div>
+              <pre className="px-4 py-4 text-[11.5px] leading-[1.85] font-mono-custom overflow-x-auto">
+                <span style={{ color: "#4a6fa5" }}>{"import"}</span>
+                <span style={{ color: "#e2e8f0" }}>{" { createAgent } "}</span>
+                <span style={{ color: "#4a6fa5" }}>{"from"}</span>
+                <span style={{ color: "#6ee7b7" }}>{' "@usemilkyway/agent-sdk"'}</span>
+                {"\n\n"}
+                <span style={{ color: "#fbbf24" }}>{"createAgent"}</span>
+                <span style={{ color: "#e2e8f0" }}>{"(agentJson, {"}</span>
+                {"\n"}
+                <span style={{ color: "#e2e8f0" }}>{"  "}</span>
+                <span style={{ color: "#93c5fd" }}>{"run"}</span>
+                <span style={{ color: "#e2e8f0" }}>{": async (input) => {"}</span>
+                {"\n"}
+                <span style={{ color: "#4a6fa5" }}>{"    // your logic here"}</span>
+                {"\n"}
+                <span style={{ color: "#e2e8f0" }}>{"    "}</span>
+                <span style={{ color: "#4a6fa5" }}>{"return"}</span>
+                <span style={{ color: "#e2e8f0" }}>{" { result };"}</span>
+                {"\n"}
+                <span style={{ color: "#e2e8f0" }}>{"  },"}</span>
+                {"\n"}
+                <span style={{ color: "#e2e8f0" }}>{"})."}
+                </span>
+                <span style={{ color: "#fbbf24" }}>{"listen"}</span>
+                <span style={{ color: "#e2e8f0" }}>{"(3000);"}</span>
+                {"\n\n"}
+                <span style={{ color: "#4a6fa5" }}>{"// ✓ /health, /about, /execute"}</span>
+                {"\n"}
+                <span style={{ color: "#4a6fa5" }}>{"// ✓ payment verified"}</span>
+                {"\n"}
+                <span style={{ color: "#4a6fa5" }}>{"// ✓ inputs validated"}</span>
+              </pre>
+            </div>
+          </div>
+
           {/* Code card + summary row */}
           <div className="grid md:grid-cols-2 gap-10 items-start">
             {/* Code card */}
@@ -1017,7 +1144,7 @@ export default async function HomePage() {
                   <span style={{ color: "#64748b" }}>{","}</span>
                   {"\n"}
                   <span style={{ color: "#94a3b8" }}>{"  pricing:       { amount: "}</span>
-                  <span style={{ color: "#6ee7b7" }}>{'"0.001 ETH"'}</span>
+                  <span style={{ color: "#6ee7b7" }}>{'"0.001 USDC"'}</span>
                   <span style={{ color: "#94a3b8" }}>{" },"}</span>
                   {"\n"}
                   <span style={{ color: "#94a3b8" }}>{"  input_schema:  "}</span>
@@ -1191,7 +1318,7 @@ export default async function HomePage() {
                     Typical job cost
                   </p>
                   <p className="font-mono-custom font-semibold text-[15px] mt-0.5" style={{ color: "#0A2540" }}>
-                    $0.001 – $0.01 USDC
+                    $1 – $50 USDC
                   </p>
                 </div>
               </div>
@@ -1274,18 +1401,18 @@ export default async function HomePage() {
             style={{ background: "#fff", border: "1px solid #E3E8EF" }}
           >
             <span style={{ color: "#9CA3AF" }}>Example:</span>
-            <span className="font-mono-custom font-semibold" style={{ color: "#0A2540" }}>Agent earns 0.01 ETH</span>
+            <span className="font-mono-custom font-semibold" style={{ color: "#0A2540" }}>Agent earns $10 USDC</span>
             <svg className="w-4 h-4 hidden sm:block" style={{ color: "#BFDBFE" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
             <span style={{ color: "#425466" }}>
               Builder receives{" "}
-              <span className="font-mono-custom font-semibold" style={{ color: "#2563EB" }}>0.0099 ETH</span>
+              <span className="font-mono-custom font-semibold" style={{ color: "#2563EB" }}>$9.90 USDC</span>
             </span>
             <span style={{ color: "#D1D5DB" }}>·</span>
             <span style={{ color: "#9CA3AF" }}>
               MilkyWay takes{" "}
-              <span className="font-mono-custom" style={{ color: "#9CA3AF" }}>0.0001 ETH</span>
+              <span className="font-mono-custom" style={{ color: "#9CA3AF" }}>$0.10 USDC</span>
             </span>
           </div>
 

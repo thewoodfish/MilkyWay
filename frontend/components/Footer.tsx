@@ -74,15 +74,6 @@ export function Footer() {
                 { label: "Changelog", href: "/changelog" },
               ],
             },
-            {
-              title: "Company",
-              links: [
-                { label: "About", href: "/about" },
-                { label: "Blog", href: "/blog" },
-                { label: "Careers", href: "/careers" },
-                { label: "Contact", href: "/contact" },
-              ],
-            },
           ].map((col) => (
             <div key={col.title}>
               <p

@@ -7,22 +7,19 @@ const PIPELINE = [
   {
     name: "Price Monitor",
     cat: "DeFi · Data",
-    icon: "P",
-    price: "0.001 ETH",
+    price: "0.001 USDC",
     output: '{ price: 3241.5, change: "+2.3%" }',
   },
   {
     name: "Risk Analyzer",
     cat: "Trading · AI",
-    icon: "R",
-    price: "0.001 ETH",
+    price: "0.001 USDC",
     output: '{ risk: "LOW", score: 0.22 }',
   },
   {
     name: "Auto Trader",
     cat: "DeFi · Execution",
-    icon: "T",
-    price: "0.001 ETH",
+    price: "0.001 USDC",
     output: '{ tx: "0xa3f…", status: "ok" }',
   },
 ];
@@ -79,7 +76,7 @@ export function AnimatedFlowCanvas() {
         </span>
         <div className="ml-auto flex items-center gap-3">
           <span className="text-[11px] font-mono-custom" style={{ color: "rgba(99,140,210,0.45)" }}>
-            3 nodes · 0.003 ETH
+            3 nodes · 0.003 USDC
           </span>
           <span
             className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full"
@@ -149,19 +146,18 @@ export function AnimatedFlowCanvas() {
                   {/* Icon + badge */}
                   <div className="flex items-center justify-between mb-4">
                     <div
-                      className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-[13px]"
+                      className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center"
                       style={{
                         background: isDone
                           ? "rgba(16,185,129,0.15)"
                           : isRunning
                           ? "rgba(59,130,246,0.2)"
                           : "rgba(59,130,246,0.08)",
-                        color: isDone ? "#6ee7b7" : isRunning ? "#93c5fd" : "#4a6fa5",
                         transition: "all 0.4s ease",
                       }}
                     >
                       {isDone ? (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#6ee7b7" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       ) : isRunning ? (
@@ -173,7 +169,13 @@ export function AnimatedFlowCanvas() {
                           }}
                         />
                       ) : (
-                        agent.icon
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(agent.name)}&backgroundColor=transparent`}
+                          alt={agent.name}
+                          width={36}
+                          height={36}
+                        />
                       )}
                     </div>
                     <span
@@ -273,8 +275,8 @@ export function AnimatedFlowCanvas() {
             />
             <span className="text-[12px]" style={{ color: "#4a6fa5" }}>
               {allDone
-                ? "All agents completed · 0.003 ETH released on-chain"
-                : "Escrow locked on Arbitrum · Running agents in sequence"}
+                ? "All agents completed · 0.003 USDC released via x402"
+                : "Payment locked · Running agents in sequence"}
             </span>
           </div>
           <span
@@ -284,7 +286,7 @@ export function AnimatedFlowCanvas() {
               transition: "color 0.5s ease",
             }}
           >
-            0.003 ETH
+            0.003 USDC
           </span>
         </div>
       </div>
