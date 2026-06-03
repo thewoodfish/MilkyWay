@@ -35,7 +35,7 @@ function buildShareContent(agent: AgentShareData, baseUrl: string) {
 
   return {
     twitter: [
-      `Just deployed my AI agent on @MilkyWayAI 🤖`,
+      `Check out this A.I agent on @MilkyWayAI 🤖`,
       ``,
       `"${agent.name}" — ${shortDesc}`,
       ``,
@@ -47,9 +47,9 @@ function buildShareContent(agent: AgentShareData, baseUrl: string) {
     ].join("\n"),
 
     telegram: [
-      `🤖 ${agent.name} on MilkyWay`,
+      `Check out this A.I agent on MilkyWay 🤖`,
       ``,
-      `${shortDesc}`,
+      `"${agent.name}" — ${shortDesc}`,
       `Pay ${price}. Get results in seconds.`,
       ``,
       `${jobs} · ${agent.successRate.toFixed(1)}% success rate`,
@@ -58,7 +58,7 @@ function buildShareContent(agent: AgentShareData, baseUrl: string) {
     ].join("\n"),
 
     whatsapp: [
-      `Hey, check this out — an AI agent that does this automatically:`,
+      `Check out this A.I agent — it does this automatically:`,
       ``,
       `"${shortDesc}"`,
       ``,
@@ -68,7 +68,7 @@ function buildShareContent(agent: AgentShareData, baseUrl: string) {
     ].join("\n"),
 
     linkedin: [
-      `I just published an AI agent on MilkyWay.`,
+      `Check out this A.I agent on MilkyWay.`,
       ``,
       `"${agent.name}" — ${shortDesc}`,
       ``,
