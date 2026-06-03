@@ -4,7 +4,7 @@
   "description": "Generates random words intelligently",
   "main": "dist/index.js",
   "scripts": {
-    "dev":      "milkyway dev",
+    "dev":      "milkyway dev --port 3099",
     "build":    "tsc",
     "start":    "node dist/index.js",
     "validate": "milkyway validate",
