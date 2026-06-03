@@ -84,6 +84,20 @@ export async function executeFlow(flow: {
 
       if (!result.success) throw new Error(`Agent ${agent.name} failed: ${result.error}`);
 
+      // Settle payment async — fire and forget, never await
+      const facilitatorUrl = process.env.X402_FACILITATOR_URL || "https://facilitator.usemilkyway.com";
+      fetch(`${facilitatorUrl}/settle`, {
+        method: "POST",
+        headers: {
+          "Content-Type":         "application/json",
+          "X-Facilitator-Secret": process.env.FACILITATOR_SECRET!,
+        },
+        body: JSON.stringify({
+          payment: paymentHeader,
+          network: process.env.X402_NETWORK || "eip155:421614",
+        }),
+      }).catch((err: Error) => console.error(`[engine] Settle failed for ${agent.name}:`, err.message));
+
       await prisma.flowAgent.update({
         where: { id: flowAgent.id },
         data: { status: "COMPLETED", output: result.output as object, executedAt: new Date() },

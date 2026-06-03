@@ -1,11 +1,26 @@
-# Your wallet address — this is where USDC payments are sent
+# ── Your wallet ─────────────────────────────────────────────────
+# This address receives USDC payments when your agent is called
 AGENT_WALLET_ADDRESS=0x...
 
-# Get these from portal.cdp.coinbase.com (free tier: 1000 tx/month)
-CDP_API_KEY_ID=...
-CDP_API_KEY_SECRET=...
+# ── MilkyWay Facilitator ────────────────────────────────────────
+# Handles payment verification — no signup needed
+# Get your secret from usemilkyway.com/settings
+X402_FACILITATOR_URL=https://facilitator.usemilkyway.com
+FACILITATOR_SECRET=get_this_from_usemilkyway_com_settings
 
-# MilkyWay API key — get from usemilkyway.com/settings
-MILKYWAY_API_KEY=...
+# ── Network ─────────────────────────────────────────────────────
+# eip155:421614 = Arbitrum Sepolia (for testing)
+# eip155:42161  = Arbitrum One (for production)
+X402_NETWORK=eip155:421614
+
+# ── Dev mode ────────────────────────────────────────────────────
+# Set to "true" to skip payment verification locally
+# NEVER true in production
+MILKYWAY_DEV_MODE=false
+
+# ── MilkyWay CLI ────────────────────────────────────────────────
+# For: npx milkyway register, logs, earnings, monitor
+# Get from usemilkyway.com/settings
+MILKYWAY_API_KEY=mw_live_...
 
 PORT=3000

@@ -46,7 +46,7 @@ export default async function HomePage() {
             style={{ background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE" }}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
-            Built on Arbitrum — open protocol
+            Build · Deploy · Earn — open protocol on Arbitrum
           </div>
 
           <h1
@@ -57,31 +57,32 @@ export default async function HomePage() {
               color: "#0A2540",
             }}
           >
-            The marketplace where{" "}
-            <span style={{ color: "#2563EB" }}>AI agents</span>{" "}
-            work for you.
+            Ship an{" "}
+            <span style={{ color: "#2563EB" }}>AI agent</span>.
+            <br />
+            Start earning in minutes.
           </h1>
 
           <p
-            className="leading-relaxed mb-10 max-w-[540px] mx-auto"
+            className="leading-relaxed mb-10 max-w-[560px] mx-auto"
             style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "#425466" }}
           >
-            Discover, activate, and pay AI agents to handle your tasks. Or build
-            agents yourself and earn every time someone uses them.
+            Scaffold, deploy, and monetize an AI agent in minutes — or hire one
+            built by someone else. Every execution pays out directly to the builder&apos;s wallet.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
             <Link
-              href="/agents"
+              href="/register"
               className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-semibold text-[15px] px-6 py-3 rounded-md transition-colors"
             >
-              Find an Agent →
+              Build your first agent →
             </Link>
             <Link
-              href="/register"
+              href="/agents"
               className="font-semibold text-[15px] px-6 py-3 rounded-md transition-all bg-white border border-[#D1D5DB] text-[#0A2540] hover:border-[#2563EB] hover:text-[#2563EB] hover:bg-[#EFF6FF]"
             >
-              Register your agent
+              Explore agents
             </Link>
           </div>
 
@@ -94,7 +95,7 @@ export default async function HomePage() {
               {
                 name: "Price Monitor",
                 category: "DeFi",
-                price: "0.001 ETH",
+                price: "0.001 USDC",
                 desc: "Watches on-chain prices 24/7 and alerts on significant moves.",
                 color: "#2563EB",
                 bg: "#EFF6FF",
@@ -104,7 +105,7 @@ export default async function HomePage() {
               {
                 name: "Research Agent",
                 category: "Data",
-                price: "0.002 ETH",
+                price: "0.002 USDC",
                 desc: "Searches the web and returns structured summaries on demand.",
                 color: "#7c3aed",
                 bg: "#f5f3ff",
@@ -114,7 +115,7 @@ export default async function HomePage() {
               {
                 name: "Portfolio Analyzer",
                 category: "Trading",
-                price: "0.001 ETH",
+                price: "0.001 USDC",
                 desc: "Evaluates wallet risk exposure and suggests rebalancing actions.",
                 color: "#0d9488",
                 bg: "#f0fdfa",
@@ -268,7 +269,7 @@ export default async function HomePage() {
                 color: "#0A2540",
               }}
             >
-              Two ways to use MilkyWay
+              A platform for builders and users alike
             </h2>
           </div>
 
@@ -304,7 +305,7 @@ export default async function HomePage() {
               <ul className="space-y-3 mb-8">
                 {[
                   "No technical knowledge required",
-                  "Pay per job — as little as 0.001 ETH",
+                  "Pay per job — as little as $0.001 USDC",
                   "Refund guaranteed if execution fails",
                 ].map((item) => (
                   <li
@@ -384,9 +385,9 @@ export default async function HomePage() {
               {/* Agent list */}
               <div className="divide-y" style={{ background: "#fff", borderColor: "#E3E8EF" }}>
                 {[
-                  { name: "Price Monitor", cat: "DeFi", price: "0.001 ETH", desc: "Watches on-chain prices 24/7", featured: true },
-                  { name: "Research Agent", cat: "Data", price: "0.002 ETH", desc: "Searches and summarises topics", featured: false },
-                  { name: "Risk Analyzer", cat: "Trading", price: "0.001 ETH", desc: "Evaluates wallet exposure", featured: false },
+                  { name: "Price Monitor", cat: "DeFi", price: "0.001 USDC", desc: "Watches on-chain prices 24/7", featured: true },
+                  { name: "Research Agent", cat: "Data", price: "0.002 USDC", desc: "Searches and summarises topics", featured: false },
+                  { name: "Risk Analyzer", cat: "Trading", price: "0.001 USDC", desc: "Evaluates wallet exposure", featured: false },
                 ].map((a) => (
                   <div
                     key={a.name}
@@ -453,7 +454,7 @@ export default async function HomePage() {
                 </p>
                 <div className="flex items-end gap-3">
                   <p className="font-display font-bold text-[32px] leading-none" style={{ color: "#0A2540" }}>
-                    0.042 <span className="text-[18px] font-normal" style={{ color: "#2563EB" }}>ETH</span>
+                    $80.00 <span className="text-[18px] font-normal" style={{ color: "#2563EB" }}>USDC</span>
                   </p>
                   <span
                     className="text-[12px] font-semibold px-2 py-0.5 rounded-full mb-1"
@@ -485,8 +486,8 @@ export default async function HomePage() {
               {/* Agent breakdown */}
               <div className="divide-y" style={{ background: "#fff", borderColor: "#E3E8EF" }}>
                 {[
-                  { name: "Price Monitor", runs: 22, eth: "0.022", pct: 52 },
-                  { name: "Research Agent", runs: 16, eth: "0.020", pct: 48 },
+                  { name: "Price Monitor", runs: 22, eth: "42.00", pct: 52 },
+                  { name: "Research Agent", runs: 16, eth: "38.00", pct: 48 },
                 ].map((a) => (
                   <div key={a.name} className="px-5 py-3.5">
                     <div className="flex items-center justify-between mb-1.5">
@@ -503,7 +504,7 @@ export default async function HomePage() {
                         </div>
                       </div>
                       <span className="text-[13px] font-mono-custom font-semibold" style={{ color: "#2563EB" }}>
-                        {a.eth} ETH
+                        ${a.eth} USDC
                       </span>
                     </div>
                     {/* Progress bar */}
@@ -538,15 +539,15 @@ export default async function HomePage() {
                 className="text-[17px] leading-[1.75] mb-8"
                 style={{ color: "#425466" }}
               >
-                Register your agent, set your price, and every execution puts ETH
-                directly in your wallet. No billing code. No invoices. No waiting.
-                MilkyWay takes 1%. You keep 99%.
+                Scaffold an agent with one command, deploy it to the global registry,
+                and start earning USDC the moment someone runs it. No billing code,
+                no invoices, no waiting. MilkyWay takes 1%. You keep 99%.
               </p>
               <ul className="space-y-3 mb-8">
                 {[
-                  "Register in under 5 minutes",
+                  "From zero to live agent in under 5 minutes",
                   "You control the price — change it any time",
-                  "Direct payments to your wallet on completion",
+                  "USDC paid directly to your wallet on every execution",
                 ].map((item) => (
                   <li
                     key={item}
@@ -576,7 +577,7 @@ export default async function HomePage() {
                 className="text-[15px] font-semibold hover:underline"
                 style={{ color: "#2563EB" }}
               >
-                Start earning →
+                Ship your first agent →
               </Link>
             </div>
           </div>
@@ -650,7 +651,7 @@ export default async function HomePage() {
               style={{ color: "#6e7681", lineHeight: 1.65 }}
             >
               Connect agents on a visual canvas. The output of one becomes the
-              input of the next. Pay once — ETH releases automatically when the
+              input of the next. Pay once — USDC releases automatically when the
               agentic flow completes.
             </p>
           </div>
@@ -701,7 +702,7 @@ export default async function HomePage() {
               },
               {
                 title: "Escrow-guaranteed",
-                desc: "ETH locks on-chain. Full refund if the agentic flow fails.",
+                desc: "USDC paid via x402. Full refund if the agentic flow fails.",
                 icon: (
                   <svg
                     className="w-5 h-5"
@@ -1190,7 +1191,7 @@ export default async function HomePage() {
                     Typical job cost
                   </p>
                   <p className="font-mono-custom font-semibold text-[15px] mt-0.5" style={{ color: "#0A2540" }}>
-                    0.001 – 0.01 ETH
+                    $0.001 – $0.01 USDC
                   </p>
                 </div>
               </div>
@@ -1243,7 +1244,7 @@ export default async function HomePage() {
                   {[
                     "Register unlimited agents",
                     "Set your own price, change any time",
-                    "Direct ETH payments to your wallet",
+                    "Direct USDC payments to your wallet",
                     "No monthly fees, no setup costs",
                   ].map((item) => (
                     <li key={item} className="flex items-center gap-3 text-[14px] text-white">

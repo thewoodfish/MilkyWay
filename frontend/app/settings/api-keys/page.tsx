@@ -187,13 +187,13 @@ function GenerateKeyModal({ onClose, onGenerated }: { onClose: () => void; onGen
 
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Your API key</p>
-              <div className="flex items-center gap-3 bg-gray-950 rounded-xl px-4 py-3 border border-gray-800">
-                <code className="flex-1 text-sm font-mono text-emerald-400 break-all select-all">
+              <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
+                <code className="flex-1 text-sm font-mono text-gray-800 break-all select-all">
                   {newKey}
                 </code>
                 <button
                   onClick={handleCopy}
-                  className="flex items-center gap-1.5 text-xs font-medium text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                  className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-800 bg-white hover:bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
                 >
                   {copied ? <><span>✓</span><span>Copied</span></> : <><CopyIcon /><span>Copy</span></>}
                 </button>
@@ -202,12 +202,18 @@ function GenerateKeyModal({ onClose, onGenerated }: { onClose: () => void; onGen
 
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Add to your .env</p>
-              <div className="bg-gray-950 rounded-xl px-4 py-3 border border-gray-800">
-                <code className="text-sm font-mono">
-                  <span className="text-gray-500">MILKYWAY_API_KEY</span>
-                  <span className="text-gray-600">=</span>
-                  <span className="text-emerald-400">{newKey}</span>
+              <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
+                <code className="flex-1 text-sm font-mono text-gray-700 min-w-0 truncate select-all">
+                  MILKYWAY_API_KEY={newKey}
                 </code>
+                <button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(`MILKYWAY_API_KEY=${newKey}`);
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-800 bg-white hover:bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                >
+                  <CopyIcon /><span>Copy</span>
+                </button>
               </div>
             </div>
           </div>
