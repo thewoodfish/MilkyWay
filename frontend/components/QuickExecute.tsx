@@ -149,6 +149,16 @@ export function QuickExecute({ agentId, agentName, logoUrl, badgeTier, aboutSche
   }, [selectedCap]);
 
   function handleExecuteClick() {
+    // Validate required fields before showing modal or executing
+    const missing = Object.entries(aboutSchema.input_schema ?? {})
+      .filter(([field, def]) => (def as FieldDef).required && (inputs[field] === undefined || inputs[field] === "" || inputs[field] === null))
+      .map(([field]) => field);
+    if (missing.length > 0) {
+      setError(`Required: ${missing.join(", ")}`);
+      setStatus("error");
+      return;
+    }
+    setError("");
     if (hasExecutePermission) {
       setShowActivation(true);
     } else {
@@ -351,11 +361,14 @@ export function QuickExecute({ agentId, agentName, logoUrl, badgeTier, aboutSche
 
       {/* Dynamic input fields */}
       <div className="space-y-4 mb-6">
-        {Object.entries(aboutSchema.input_schema ?? {}).map(([field, def]) => (
+        {Object.entries(aboutSchema.input_schema ?? {}).map(([field, def]) => {
+          const isEmpty = inputs[field] === undefined || inputs[field] === "" || inputs[field] === null;
+          const isMissing = def.required && isEmpty && status === "error";
+          return (
           <div key={field}>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold mb-1" style={{ color: isMissing ? "#ef4444" : "#334155" }}>
               {field}
-              {def.required && <span className="text-blue-600 ml-0.5">*</span>}
+              {def.required && <span style={{ color: isMissing ? "#ef4444" : "#2563EB" }} className="ml-0.5">*</span>}
             </label>
             {def.description && def.type !== "boolean" && (
               <p className="text-slate-400 text-xs mb-1.5">{def.description}</p>
@@ -378,7 +391,8 @@ export function QuickExecute({ agentId, agentName, logoUrl, badgeTier, aboutSche
                 onChange={(e) => setInputs((p) => ({ ...p, [field]: Number(e.target.value) }))}
                 placeholder={field}
                 disabled={isRunning}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-ink placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-slate-50"
+                className="w-full rounded-lg px-3 py-2 text-sm text-ink placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:bg-slate-50"
+                style={{ border: `1px solid ${isMissing ? "#ef4444" : "#e2e8f0"}` }}
               />
             ) : (
               <input
@@ -387,11 +401,13 @@ export function QuickExecute({ agentId, agentName, logoUrl, badgeTier, aboutSche
                 onChange={(e) => setInputs((p) => ({ ...p, [field]: e.target.value }))}
                 placeholder={field}
                 disabled={isRunning}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-ink placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-slate-50"
+                className="w-full rounded-lg px-3 py-2 text-sm text-ink placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:bg-slate-50"
+                style={{ border: `1px solid ${isMissing ? "#ef4444" : "#e2e8f0"}` }}
               />
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Cost row */}
