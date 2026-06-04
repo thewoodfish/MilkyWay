@@ -928,28 +928,60 @@ export default function DashboardPage() {
       {/* Deactivate modal */}
       {confirmDeactivate && (
         <Modal onClose={() => setConfirmDeactivate(null)}>
-          <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#0A2540", marginBottom: "8px" }}>
-            Deactivate {confirmDeactivate.name}?
-          </h3>
-          <div style={{ fontSize: "13px", color: "#64748b", marginBottom: "20px", lineHeight: 1.6 }}>
-            <p>This will:</p>
-            <ul style={{ paddingLeft: "16px", marginTop: "8px" }}>
-              <li>Remove the agent from the marketplace</li>
-              <li>Return your <strong style={{ color: "#0A2540" }}>0.01 ETH</strong> stake to your wallet</li>
-              <li>Cancel any scheduled agentic flows using this agent</li>
-            </ul>
-            <p style={{ marginTop: "10px", color: "#ef4444" }}>This cannot be undone.</p>
+          {/* Agent identity */}
+          <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "20px" }}>
+            <AgentAvatar
+              agentId={confirmDeactivate.agentId}
+              logoUrl={confirmDeactivate.logoUrl}
+              badgeTier={(confirmDeactivate.badgeTier ?? "NONE") as "NONE" | "BRONZE" | "SILVER" | "GOLD"}
+              size={52}
+              showTooltip={false}
+            />
+            <div>
+              <p style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", margin: "0 0 3px" }}>Deactivate agent</p>
+              <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#0A2540", margin: 0, letterSpacing: "-0.02em" }}>{confirmDeactivate.name}</h3>
+            </div>
           </div>
+
+          {/* Warning block */}
+          <div style={{ background: "#FFF8F8", border: "1px solid #FECACA", borderRadius: "12px", padding: "14px 16px", marginBottom: "20px" }}>
+            <p style={{ fontSize: "12px", fontWeight: 700, color: "#991b1b", margin: "0 0 10px", display: "flex", alignItems: "center", gap: "6px" }}>
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+              This action is permanent and cannot be undone
+            </p>
+            {[
+              { icon: "🏪", text: "Removed from the MilkyWay marketplace" },
+              { icon: "💰", text: <span>Your <strong style={{ color: "#0A2540" }}>0.01 ETH</strong> stake is returned to your wallet</span> },
+              { icon: "🔗", text: "Active flows using this agent will fail" },
+            ].map(({ icon, text }, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: i < 2 ? "8px" : 0 }}>
+                <span style={{ fontSize: "14px", lineHeight: 1, marginTop: "1px" }}>{icon}</span>
+                <p style={{ fontSize: "13px", color: "#64748b", margin: 0, lineHeight: 1.5 }}>{text}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Actions */}
           <div style={{ display: "flex", gap: "10px" }}>
-            <button onClick={() => setConfirmDeactivate(null)} style={{ flex: 1, padding: "11px", background: "#fff", border: "1px solid #E3E8EF", borderRadius: "10px", fontSize: "14px", fontWeight: 500, color: "#425466", cursor: "pointer" }}>
-              Cancel
+            <button
+              onClick={() => setConfirmDeactivate(null)}
+              style={{ flex: 1, padding: "12px", background: "#fff", border: "1px solid #E3E8EF", borderRadius: "10px", fontSize: "14px", fontWeight: 600, color: "#425466", cursor: "pointer" }}
+            >
+              Keep agent
             </button>
             <button
               onClick={() => startDeactivate(confirmDeactivate)}
               disabled={isTxPending}
-              style={{ flex: 1, padding: "11px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "10px", fontSize: "14px", fontWeight: 700, color: "#ef4444", cursor: "pointer", opacity: isTxPending ? 0.6 : 1 }}
+              style={{
+                flex: 1, padding: "12px", borderRadius: "10px", border: "none",
+                fontSize: "14px", fontWeight: 700, cursor: isTxPending ? "not-allowed" : "pointer",
+                background: isTxPending ? "#E2E8F0" : "#ef4444",
+                color: isTxPending ? "#94a3b8" : "#fff",
+                boxShadow: isTxPending ? "none" : "0 4px 12px rgba(239,68,68,0.35)",
+                transition: "all 0.15s",
+              }}
             >
-              {isTxPending ? "Check wallet…" : "Deactivate and refund"}
+              {isTxPending ? "Check wallet…" : "Deactivate & refund"}
             </button>
           </div>
         </Modal>
