@@ -635,10 +635,24 @@ export default function DashboardPage() {
                                   </span>
                                 </div>
                               </div>
-                              {/* Agent names */}
-                              <p style={{ fontSize: "12px", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                {f.agents.map((a) => a.agentName).join(" → ")}
-                              </p>
+                              {/* Agent avatars + names */}
+                              <div style={{ display: "flex", alignItems: "center", gap: "6px", overflow: "hidden" }}>
+                                {f.agents.map((a, i) => {
+                                  const dicebear = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(a.agentName)}`;
+                                  return (
+                                    <div key={a.id} style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: i < f.agents.length - 1 ? 0 : 1, minWidth: 0 }}>
+                                      <img
+                                        src={a.logoUrl || dicebear}
+                                        alt={a.agentName}
+                                        width={20} height={20}
+                                        style={{ borderRadius: "50%", border: "1px solid #E3E8EF", flexShrink: 0, background: "#F1F5F9" }}
+                                      />
+                                      <span style={{ fontSize: "12px", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.agentName}</span>
+                                      {i < f.agents.length - 1 && <span style={{ fontSize: "11px", color: "#CBD5E1", flexShrink: 0 }}>→</span>}
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
                           );
                         })}
