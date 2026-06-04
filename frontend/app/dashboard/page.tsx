@@ -429,10 +429,14 @@ export default function DashboardPage() {
     }
   }
 
-  const activeFlows = flows.filter((f) => f.status === "LOCKED" || f.status === "RUNNING");
+  const now = Date.now();
+  const activeFlows = flows.filter(
+    (f) => (f.status === "LOCKED" || f.status === "RUNNING") && new Date(f.deadline).getTime() > now
+  );
   const historyFlows = flows.filter((f) => {
-    if (f.status === "LOCKED" || f.status === "RUNNING") return false;
-    return historyFilter === "ALL" || f.status === historyFilter;
+    const expired = (f.status === "LOCKED" || f.status === "RUNNING") && new Date(f.deadline).getTime() <= now;
+    if (!expired && (f.status === "LOCKED" || f.status === "RUNNING")) return false;
+    return historyFilter === "ALL" || f.status === historyFilter || expired;
   });
 
   function buildChartData() {
