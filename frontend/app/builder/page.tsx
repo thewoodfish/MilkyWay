@@ -1482,8 +1482,8 @@ export default function BuilderPage() {
                   <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 700, margin: 0, letterSpacing: "-0.01em" }}>Order Summary</p>
                 </div>
 
-                {/* Per-agent rows — scrollable */}
                 <div style={{ flex: 1, overflowY: "auto", padding: "14px" }}>
+                  {/* Per-agent rows */}
                   {canvasAgents.map((a, i) => (
                     <div key={a.agentId} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
                       <span style={{ fontSize: "10px", color: "#94a3b8", width: "14px", flexShrink: 0 }}>{i + 1}</span>
@@ -1497,37 +1497,44 @@ export default function BuilderPage() {
                       </span>
                     </div>
                   ))}
-                </div>
 
-                {/* Subtotal / fee / total + confirm — pinned to bottom */}
-                <div style={{ padding: "12px 14px", borderTop: "1px solid #E3E8EF", flexShrink: 0 }}>
+                  <div style={{ height: "1px", background: "#E3E8EF", margin: "10px 0" }} />
+
+                  {/* Fee + total */}
                   {preview ? (
                     <>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
                         <span style={{ fontSize: "11px", color: "#64748b" }}>Subtotal</span>
                         <UsdcAmount amount={preview.subtotal} size={11} style={{ color: "#425466" }} />
                       </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                         <span style={{ fontSize: "11px", color: "#64748b" }}>Protocol fee (1%)</span>
                         <UsdcAmount amount={preview.protocolFee} size={11} style={{ color: "#425466" }} />
                       </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
-                        <span style={{ fontSize: "10px", color: "#94a3b8" }}>Deadline</span>
-                        <span style={{ fontSize: "10px", color: "#425466", fontWeight: 600 }}>{formatDeadline(deadlineSeconds)}</span>
-                      </div>
                       <div style={{
                         display: "flex", justifyContent: "space-between", alignItems: "center",
-                        padding: "10px 14px", borderRadius: "10px", background: "#EFF6FF",
-                        border: "1px solid #BFDBFE", marginBottom: "10px",
+                        padding: "11px 14px", borderRadius: "10px", background: "#EFF6FF",
+                        border: "1px solid #BFDBFE",
                       }}>
                         <span style={{ fontSize: "13px", fontWeight: 700, color: "#1e40af" }}>Total</span>
                         <UsdcAmount amount={preview.total} size={15} style={{ color: "#1e40af", fontWeight: 800 }} />
                       </div>
                     </>
                   ) : (
-                    <p style={{ fontSize: "11px", color: "#94a3b8", margin: "0 0 10px" }}>Calculating…</p>
+                    <p style={{ fontSize: "11px", color: "#94a3b8" }}>Calculating…</p>
                   )}
 
+                  {/* Deadline summary */}
+                  <div style={{ marginTop: "12px", padding: "10px 12px", background: "#F8FAFF", borderRadius: "8px", border: "1px solid #E3E8EF" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: "10px", color: "#94a3b8" }}>Deadline</span>
+                      <span style={{ fontSize: "10px", color: "#425466", fontWeight: 600 }}>{formatDeadline(deadlineSeconds)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Confirm button */}
+                <div style={{ padding: "12px 14px", borderTop: "1px solid #E3E8EF", flexShrink: 0 }}>
                   {error && <p style={{ fontSize: "11px", color: "#ef4444", margin: "0 0 8px", lineHeight: 1.4 }}>{error}</p>}
                   <button
                     onClick={activateFlow}
