@@ -63,11 +63,11 @@ router.get("/flows", authenticateJWT, async (req: AuthRequest, res: Response) =>
       allAgentIds.length > 0
         ? await prisma.agent.findMany({
             where: { agentId: { in: allAgentIds } },
-            select: { agentId: true, name: true },
+            select: { agentId: true, name: true, logoUrl: true, slug: true },
           })
         : [];
-    const nameMap: Record<number, string> = Object.fromEntries(
-      agentRecords.map((a) => [a.agentId!, a.name])
+    const agentMap = Object.fromEntries(
+      agentRecords.map((a) => [a.agentId!, a])
     );
 
     const result = flows.map((f) => ({
@@ -83,7 +83,9 @@ router.get("/flows", authenticateJWT, async (req: AuthRequest, res: Response) =>
       agents: f.agents.map((a) => ({
         id: a.id,
         agentId: a.agentId,
-        agentName: nameMap[a.agentId] ?? `Agent #${a.agentId}`,
+        agentName: agentMap[a.agentId]?.name ?? `Agent #${a.agentId}`,
+        agentSlug: agentMap[a.agentId]?.slug ?? null,
+        logoUrl: agentMap[a.agentId]?.logoUrl ?? null,
         orderIndex: a.orderIndex,
         status: a.status,
         amountUsdc: a.amountUsdc,

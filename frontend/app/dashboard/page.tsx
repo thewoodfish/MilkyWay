@@ -35,6 +35,8 @@ interface FlowAgent {
   id: string;
   agentId: number;
   agentName: string;
+  agentSlug: string | null;
+  logoUrl: string | null;
   orderIndex: number;
   status: "PENDING" | "RUNNING" | "COMPLETED" | "FAILED";
   amountUsdc: string;
@@ -188,30 +190,63 @@ function StatusChip({ status }: { status: string }) {
   );
 }
 
-function PipelineMini({ agents }: { agents: FlowAgent[] }) {
+const AGENT_STATUS_COLOR: Record<string, string> = {
+  PENDING:   "#CBD5E1",
+  RUNNING:   "#f59e0b",
+  COMPLETED: "#10b981",
+  FAILED:    "#ef4444",
+};
+
+function AgentNode({ agent }: { agent: FlowAgent }) {
+  const color = AGENT_STATUS_COLOR[agent.status] ?? "#CBD5E1";
+  const isDone    = agent.status === "COMPLETED";
+  const isFailed  = agent.status === "FAILED";
+  const isRunning = agent.status === "RUNNING";
+
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-      {agents.map((a, i) => {
-        const icon = AGENT_STATUS_ICON[a.status] ?? "○";
-        const isDone = a.status === "COMPLETED";
-        const isFailed = a.status === "FAILED";
-        const isRunning = a.status === "RUNNING";
-        return (
-          <Fragment key={a.id}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-              <span style={{ fontSize: "14px", color: isDone ? "#10b981" : isFailed ? "#ef4444" : isRunning ? "#f59e0b" : "#94a3b8" }}>
-                {icon}
-              </span>
-              <span style={{ fontSize: "10px", color: "#64748b", maxWidth: "72px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {a.agentName}
-              </span>
-            </div>
-            {i < agents.length - 1 && (
-              <span style={{ fontSize: "12px", color: "#CBD5E1", marginBottom: "14px" }}>→</span>
-            )}
-          </Fragment>
-        );
-      })}
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", minWidth: 0 }}>
+      {/* Avatar with status ring */}
+      <div style={{ position: "relative" }}>
+        <AgentAvatar
+          agentId={agent.agentId}
+          logoUrl={agent.logoUrl}
+          badgeTier="NONE"
+          size={44}
+          showTooltip={false}
+        />
+        {/* Status dot */}
+        <span style={{
+          position: "absolute", bottom: 0, right: 0,
+          width: "14px", height: "14px", borderRadius: "50%",
+          background: color, border: "2px solid #fff",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          {isDone    && <svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+          {isFailed  && <svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M3 3l4 4M7 3l-4 4" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/></svg>}
+          {isRunning && <svg width="8" height="8" viewBox="0 0 10 10" fill="none" style={{ animation: "spin 1s linear infinite" }}><circle cx="5" cy="5" r="3.5" stroke="#fff" strokeWidth="1.5" strokeDasharray="8 4"/></svg>}
+        </span>
+      </div>
+      {/* Name */}
+      <span style={{ fontSize: "11px", fontWeight: 600, color: "#475569", maxWidth: "72px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+        {agent.agentName}
+      </span>
+    </div>
+  );
+}
+
+function FlowPipeline({ agents }: { agents: FlowAgent[] }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+      {agents.map((a, i) => (
+        <Fragment key={a.id}>
+          <AgentNode agent={a} />
+          {i < agents.length - 1 && (
+            <svg width="20" height="16" viewBox="0 0 20 16" fill="none" style={{ flexShrink: 0, marginBottom: "20px" }}>
+              <path d="M0 8h16M12 4l4 4-4 4" stroke="#CBD5E1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+        </Fragment>
+      ))}
     </div>
   );
 }
@@ -511,19 +546,26 @@ export default function DashboardPage() {
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                         {activeFlows.map((f) => (
-                          <div key={f.id} style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", padding: "20px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <div key={f.id} style={{ background: "#fff", border: "1px solid #BFDBFE", borderRadius: "14px", padding: "20px", boxShadow: "0 2px 12px rgba(37,99,235,0.07)" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px", gap: "8px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: f.status === "RUNNING" ? "#f59e0b" : "#2563EB", flexShrink: 0, boxShadow: "0 0 0 3px rgba(245,158,11,0.2)" }} />
                                 <StatusChip status={f.status} />
-                                <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#94a3b8" }}>{f.jobId.slice(0, 18)}…</span>
+                                <span style={{ fontSize: "11px", color: "#94a3b8" }}>started {timeAgo(f.createdAt)}</span>
                               </div>
-                              <Link href={`/flows/${f.jobId}`} style={{ fontSize: "12px", color: "#2563EB", fontWeight: 600, textDecoration: "none" }}>
-                                View details →
-                              </Link>
+                              <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+                                <UsdcAmount amount={fmt(f.totalAmountUsdc)} size={13} />
+                                <Link href={`/flows/${f.jobId}`} style={{ fontSize: "12px", color: "#2563EB", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>
+                                  Details →
+                                </Link>
+                              </div>
                             </div>
-                            <PipelineMini agents={f.agents} />
-                            <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "12px" }}>
-                              Started {timeAgo(f.createdAt)} · <span style={{ color: "#0A2540", fontWeight: 600 }}>{f.agents.filter((a) => a.status === "COMPLETED").length} of {f.agents.length}</span> agents complete
+                            <FlowPipeline agents={f.agents} />
+                            <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "14px", borderTop: "1px solid #F1F5F9", paddingTop: "12px" }}>
+                              <span style={{ color: "#10b981", fontWeight: 600 }}>{f.agents.filter((a) => a.status === "COMPLETED").length}</span>
+                              {" of "}
+                              <span style={{ fontWeight: 600, color: "#0A2540" }}>{f.agents.length}</span>
+                              {" agents complete"}
                             </p>
                           </div>
                         ))}
@@ -562,34 +604,38 @@ export default function DashboardPage() {
                         href="/builder"
                       />
                     ) : (
-                      <div style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "12px", overflow: "hidden" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
-                          <thead>
-                            <tr style={{ borderBottom: "1px solid #DBEAFE", background: "#EFF6FF" }}>
-                              {["When", "Agents", "Cost", "Status"].map((h, i) => (
-                                <th key={h} style={{ padding: "12px 16px", textAlign: i >= 2 ? "right" : "left", fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                                  {h}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {historyFlows.map((f) => (
-                              <tr
-                                key={f.id}
-                                style={{ borderBottom: "1px solid #F1F5F9", cursor: "pointer" }}
-                                onClick={() => (window.location.href = `/flows/${f.jobId}`)}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F8FF")}
-                                onMouseLeave={(e) => (e.currentTarget.style.background = "")}
-                              >
-                                <td style={{ padding: "12px 16px", color: "#64748b", fontSize: "12px" }}>{timeAgo(f.createdAt)}</td>
-                                <td style={{ padding: "12px 16px", color: "#0A2540", fontWeight: 500 }}>{f.agents.map((a) => a.agentName).join(" → ")}</td>
-                                <td style={{ padding: "12px 16px", textAlign: "right", color: "#0A2540", fontWeight: 700, fontFamily: "monospace" }}><UsdcAmount amount={fmt(f.totalAmountUsdc)} size={12} /></td>
-                                <td style={{ padding: "12px 16px", textAlign: "right" }}><StatusChip status={f.status} /></td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                        {historyFlows.map((f) => {
+                          const sc = STATUS_COLOR[f.status] ?? STATUS_COLOR.LOCKED;
+                          const isCompleted = f.status === "COMPLETED";
+                          return (
+                            <div
+                              key={f.id}
+                              onClick={() => (window.location.href = `/flows/${f.jobId}`)}
+                              style={{ background: "#fff", border: "1px solid #E3E8EF", borderRadius: "14px", padding: "16px 20px", cursor: "pointer", transition: "border-color 0.15s, box-shadow 0.15s" }}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#BFDBFE"; (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 12px rgba(37,99,235,0.07)"; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#E3E8EF"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+                            >
+                              {/* Top row */}
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", gap: "8px" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                  <StatusChip status={f.status} />
+                                  <span style={{ fontSize: "11px", color: "#94a3b8" }}>{timeAgo(f.createdAt)}</span>
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                  <span style={{ fontSize: "13px", fontWeight: 700, color: isCompleted ? "#10b981" : "#64748b", fontFamily: "monospace", display: "flex", alignItems: "center", gap: "3px" }}>
+                                    <UsdcAmount amount={fmt(f.totalAmountUsdc)} size={12} />
+                                  </span>
+                                  <span style={{ fontSize: "11px", color: sc.text, background: sc.bg, padding: "2px 8px", borderRadius: "6px", fontWeight: 600 }}>
+                                    {f.agents.length} agent{f.agents.length !== 1 ? "s" : ""}
+                                  </span>
+                                </div>
+                              </div>
+                              {/* Pipeline */}
+                              <FlowPipeline agents={f.agents} />
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
 
