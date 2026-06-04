@@ -275,17 +275,19 @@ export default function FlowPage() {
             Agent Pipeline
           </p>
 
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", flexWrap: "wrap" }}>
             {flow.agents.map((agent, i) => (
-              <div key={agent.id} style={{ display: "flex", alignItems: "flex-start", gap: "10px", flex: "1 1 0" }}>
+              // display:contents makes AgentCard and arrow direct flex children
+              <div key={agent.id} style={{ display: "contents" }}>
                 <AgentCard
                   agent={agent}
                   expanded={expanded === agent.id}
                   onToggle={() => setExpanded(expanded === agent.id ? null : agent.id)}
                 />
                 {i < flow.agents.length - 1 && (
-                  <div style={{ paddingTop: "26px", flexShrink: 0 }}>
-                    <svg width="24" height="16" viewBox="0 0 24 16" fill="none">
+                  // paddingTop = card border(1.5) + card padding(16) + half avatar(20) - half svg(7) ≈ 30px
+                  <div style={{ flexShrink: 0, paddingTop: "30px" }}>
+                    <svg width="20" height="14" viewBox="0 0 24 16" fill="none">
                       <path d="M0 8h20M16 4l4 4-4 4" stroke="#CBD5E1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
