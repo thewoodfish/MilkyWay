@@ -884,10 +884,7 @@ export default function DashboardPage() {
                                   </td>
                                   <td style={{ padding: "12px 16px", textAlign: "right", color: "#10b981", fontWeight: 700, fontFamily: "monospace" }}><UsdcAmount amount={fmt(p.amountUsdc)} size={12} /></td>
                                   <td style={{ padding: "12px 16px", textAlign: "right" }}>
-                                    {p.txHash
-                                      ? <a href={`${ARBISCAN}/tx/${p.txHash}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "#64748b", textDecoration: "none", fontWeight: 600 }}>↗ Tx</a>
-                                      : <span style={{ color: "#94a3b8" }}>—</span>
-                                    }
+                                    <Link href={`/flows/${p.flowJobId}`} style={{ fontSize: "12px", color: "#2563EB", textDecoration: "none", fontWeight: 600 }}>↗ View</Link>
                                   </td>
                                 </tr>
                               ))}
@@ -1117,11 +1114,9 @@ export default function DashboardPage() {
                               style={{ display: "grid", gridTemplateColumns: "1fr 90px 90px 90px", padding: "10px 14px", borderBottom: i < analyticsAgent.recentJobs.length - 1 ? "1px solid #F1F5F9" : "none", alignItems: "center" }}
                             >
                               <span style={{ fontSize: "12px", color: "#64748b", fontFamily: "monospace" }}>
-                                {job.paymentTxHash ? (
-                                  <a href={`${ARBISCAN}/tx/${job.paymentTxHash}`} target="_blank" rel="noreferrer" style={{ color: "#2563EB", textDecoration: "none" }}>
-                                    {job.flowJobId.slice(0, 10)}…
-                                  </a>
-                                ) : `${job.flowJobId.slice(0, 10)}…`}
+                                <Link href={`/flows/${job.flowJobId}`} style={{ color: "#2563EB", textDecoration: "none" }}>
+                                  {job.flowJobId.slice(0, 10)}…
+                                </Link>
                               </span>
                               <span style={{ textAlign: "right" }}>
                                 <span style={{ fontSize: "11px", fontWeight: 600, padding: "2px 7px", borderRadius: "5px", background: sc.bg, color: sc.text }}>{job.status}</span>
