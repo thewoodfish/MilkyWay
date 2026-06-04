@@ -9,6 +9,8 @@ contract AgentRegistry is ERC721URIStorage, Ownable, ReentrancyGuard {
 
     // ── State ──────────────────────────────────────────────────────────
 
+    string public constant ERC8004_VERSION = "1.0";
+
     uint256 private _nextAgentId;
     uint256 public minimumStake = 0.01 ether;
 
@@ -91,6 +93,8 @@ contract AgentRegistry is ERC721URIStorage, Ownable, ReentrancyGuard {
         agents[agentId].active = false;
         agents[agentId].stake = 0;
 
+        _burn(agentId);
+
         (bool sent,) = msg.sender.call{value: stakeToReturn}("");
         require(sent, "Stake return failed");
 
@@ -125,8 +129,11 @@ contract AgentRegistry is ERC721URIStorage, Ownable, ReentrancyGuard {
     // ── Admin ──────────────────────────────────────────────────────────
 
     function setMinimumStake(uint256 newMinimum) external onlyOwner {
+        require(newMinimum >= 0.001 ether, "Minimum too low");
         minimumStake = newMinimum;
     }
+
+    receive() external payable {}
 
     // ERC-721 transfer clears verification status
     function _update(

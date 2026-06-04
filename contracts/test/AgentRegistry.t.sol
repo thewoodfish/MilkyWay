@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
 import "../src/AgentRegistry.sol";
+import "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 contract AgentRegistryTest is Test {
     AgentRegistry registry;
@@ -117,7 +118,8 @@ contract AgentRegistryTest is Test {
         vm.startPrank(alice);
         registry.registerAgent{value: 0.01 ether}(HASH_A);
         registry.deactivateAgent(0);
-        vm.expectRevert("Agent not active");
+        // NFT is burned — ownerOf reverts with ERC721NonexistentToken before our check
+        vm.expectRevert(abi.encodeWithSelector(IERC721Errors.ERC721NonexistentToken.selector, 0));
         registry.updateMetadata(0, HASH_B);
         vm.stopPrank();
     }
@@ -168,7 +170,8 @@ contract AgentRegistryTest is Test {
         vm.startPrank(alice);
         registry.registerAgent{value: 0.01 ether}(HASH_A);
         registry.deactivateAgent(0);
-        vm.expectRevert("Already inactive");
+        // NFT is burned — ownerOf reverts with ERC721NonexistentToken before our check
+        vm.expectRevert(abi.encodeWithSelector(IERC721Errors.ERC721NonexistentToken.selector, 0));
         registry.deactivateAgent(0);
         vm.stopPrank();
     }
