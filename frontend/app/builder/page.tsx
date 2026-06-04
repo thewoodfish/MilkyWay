@@ -1513,14 +1513,15 @@ export default function BuilderPage() {
                       </div>
                       <div style={{
                         display: "flex", justifyContent: "space-between", alignItems: "center",
-                        padding: "11px 14px", borderRadius: "10px", background: "#0A2540",
+                        padding: "11px 14px", borderRadius: "10px", background: "#EFF6FF",
+                        border: "1px solid #BFDBFE",
                       }}>
-                        <span style={{ fontSize: "13px", fontWeight: 700, color: "#94a3b8" }}>Total</span>
-                        <UsdcAmount amount={preview.total} size={15} style={{ color: "#fff", fontWeight: 800 }} />
+                        <span style={{ fontSize: "13px", fontWeight: 700, color: "#1e40af" }}>Total</span>
+                        <UsdcAmount amount={preview.total} size={15} style={{ color: "#1e40af", fontWeight: 800 }} />
                       </div>
                     </>
                   ) : (
-                    <p style={{ fontSize: "11px", color: "#CBD5E1" }}>Calculating…</p>
+                    <p style={{ fontSize: "11px", color: "#94a3b8" }}>Calculating…</p>
                   )}
 
                   {/* Deadline summary */}
