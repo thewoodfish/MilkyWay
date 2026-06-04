@@ -17,6 +17,7 @@ import { authFetch } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { AuthGate } from "@/components/AuthGate";
 import { UsdcAmount } from "@/components/UsdcAmount";
+import { ActivationModal } from "@/components/ActivationModal";
 import type { Agent } from "@/lib/types";
 
 // Arbitrum Sepolia — swap both lines for mainnet post-hackathon
@@ -45,14 +46,17 @@ function formatDeadline(s: number): string {
 }
 
 type FieldSchema = Record<string, { type: string; required?: boolean; description?: string }>;
+type PermissionDef = { type: string; reason?: string; token?: string; max_per_transaction?: string; max_lifetime?: string };
 type CapabilityDef = {
   description?: string;
+  permissions?: PermissionDef[];
   pricing:      { model: string; amount: string; currency: string };
   input_schema:  FieldSchema;
   output_schema: FieldSchema;
 };
 type AboutSchema = {
   milkyway_version?: string;
+  wallet?: string;
   capabilities?: Record<string, CapabilityDef>;
   max_deadline_seconds?: number;
   // legacy flat-schema support
@@ -496,6 +500,7 @@ export default function BuilderPage() {
   const [preview, setPreview] = useState<{ subtotal: string; protocolFee: string; total: string } | null>(null);
   const [activating, setActivating] = useState(false);
   const [error, setError] = useState("");
+  const [activationQueue, setActivationQueue] = useState<Agent[]>([]);
 
   const { signTypedDataAsync } = useSignTypedData();
 
@@ -545,6 +550,32 @@ export default function BuilderPage() {
     };
     setNodes((ns) => [...ns, newNode]);
     setCanvasAgents((prev) => [...prev, agent]);
+  }
+
+  function getExecAgents(agents: Agent[]): Agent[] {
+    return agents.filter((a) => {
+      const caps = (a.aboutSchema as AboutSchema | null)?.capabilities;
+      return caps && Object.values(caps).some((c) => c?.permissions?.some((p) => p.type === "EXECUTE_TRANSACTIONS"));
+    });
+  }
+
+  function handleActivateClick() {
+    const execAgents = getExecAgents(canvasAgents);
+    if (execAgents.length > 0) {
+      setActivationQueue(execAgents);
+    } else {
+      activateFlow();
+    }
+  }
+
+  function handleActivationConfirm() {
+    const remaining = activationQueue.slice(1);
+    if (remaining.length > 0) {
+      setActivationQueue(remaining);
+    } else {
+      setActivationQueue([]);
+      activateFlow();
+    }
   }
 
   async function activateFlow() {
@@ -1583,7 +1614,7 @@ export default function BuilderPage() {
                     </p>
                   )}
                   <button
-                    onClick={activateFlow}
+                    onClick={handleActivateClick}
                     disabled={!canActivate}
                     style={{
                       width: "100%", padding: "12px", borderRadius: "10px", border: "none",
@@ -1612,6 +1643,25 @@ export default function BuilderPage() {
           </div>
         </div>
       </div>
+      {activationQueue.length > 0 && (() => {
+        const agent = activationQueue[0];
+        const about = agent.aboutSchema as AboutSchema | null;
+        const caps = about?.capabilities ? Object.values(about.capabilities) : [];
+        const permissions = caps.flatMap((c) => c?.permissions ?? []) as PermissionDef[];
+        return (
+          <ActivationModal
+            agentId={agent.agentId}
+            agentName={agent.name}
+            logoUrl={agent.logoUrl}
+            badgeTier={agent.badgeTier}
+            priceUsdc={agent.priceUsdc}
+            agentWallet={about?.wallet ?? agent.ownerAddress}
+            permissions={permissions as import("@/components/PermissionsList").PermissionDeclaration[]}
+            onConfirm={handleActivationConfirm}
+            onClose={() => setActivationQueue([])}
+          />
+        );
+      })()}
     </AuthGate>
   );
 }

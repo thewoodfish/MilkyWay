@@ -241,7 +241,7 @@ export default function FlowPage() {
           {/* Metrics row */}
           <div style={{ display: "flex", gap: "32px", marginTop: "20px", flexWrap: "wrap" }}>
             {[
-              { label: "Total paid",  value: <UsdcAmount amount={flow.totalAmountUsdc} size={15} /> },
+              { label: flow.status === "COMPLETED" ? "Total paid" : "Total payable",  value: <UsdcAmount amount={flow.totalAmountUsdc} size={15} /> },
               { label: "Agents",      value: `${completedCount} / ${flow.agents.length} done` },
               { label: "Started",     value: timeAgo(flow.createdAt) },
               ...(flow.completedAt ? [{ label: "Completed", value: timeAgo(flow.completedAt) }] : []),
