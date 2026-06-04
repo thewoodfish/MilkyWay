@@ -98,10 +98,9 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
       include: { agents: { orderBy: { orderIndex: "asc" } } },
     });
 
-    // One EIP-3009 auth per agent: full amount to agent wallet.
-    // The agent SDK verifies the amount matches its price exactly — splitting 99%/1%
-    // causes verification to fail. Protocol fee is tracked off-chain for now.
-    const eip3009Params = agentDetails.map((a) => {
+    // One EIP-3009 auth per agent (full price) + one treasury auth for the 1% protocol fee.
+    // Agent SDK checks value >= agent price exactly, so each agent auth carries the full amount.
+    const agentParams = agentDetails.map((a) => {
       const totalRaw = Math.round(parseFloat(a.amount) * 1_000_000);
       return {
         from: req.user!.address,
@@ -114,11 +113,24 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
       };
     });
 
+    const feeRaw = Math.round(subtotal * 1_000_000 * 0.01);
+    const treasuryParam = {
+      from: req.user!.address,
+      to: treasury,
+      value: feeRaw.toString(),
+      validAfter: "0",
+      validBefore: deadline.toString(),
+      agentOrderIndex: -1, // sentinel: treasury auth, not tied to any agent
+      nonce: ethers.hexlify(ethers.randomBytes(32)),
+    };
+
+    const eip3009Params = [...agentParams, treasuryParam];
+
     res.json({
       jobId,
       internalId: flow.id,
       eip3009Params,
-      totalUsdc: subtotal.toFixed(6),
+      totalUsdc: (subtotal + subtotal * 0.01).toFixed(6),
       deadline,
     });
   } catch (err) {

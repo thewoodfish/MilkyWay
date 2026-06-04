@@ -1,7 +1,7 @@
 import { prisma } from "../lib/db";
 
 type StoredAuth = {
-  agentOrderIndex: number;
+  agentOrderIndex: number; // -1 = treasury fee auth
   from: string; to: string; value: string;
   validAfter: string; validBefore: string; nonce: string; signature: string;
 };
@@ -86,6 +86,25 @@ export async function executeFlow(flow: {
 
       previousOutput = result.output ?? null;
       console.log(`[engine] Agent ${agent.name} completed`);
+    }
+
+    // Settle treasury protocol fee (agentOrderIndex === -1)
+    const facilitatorUrl = process.env.X402_FACILITATOR_URL || "https://facilitator.usemilkyway.com";
+    const authorizations = parseAuthorizations(flow.paymentTxHash);
+    const treasuryAuth = authorizations.find((a) => a.agentOrderIndex === -1);
+    if (treasuryAuth) {
+      const treasuryResource = `${facilitatorUrl}/treasury`;
+      fetch(`${facilitatorUrl}/settle`, {
+        method: "POST",
+        headers: {
+          "Content-Type":         "application/json",
+          "X-Facilitator-Secret": process.env.FACILITATOR_SECRET!,
+        },
+        body: JSON.stringify({
+          payment: buildPaymentHeader(treasuryAuth, treasuryResource),
+          network: process.env.X402_NETWORK || "eip155:421614",
+        }),
+      }).catch((err: Error) => console.error("[engine] Treasury settle failed:", err.message));
     }
 
     await prisma.flow.update({
