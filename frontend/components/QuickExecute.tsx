@@ -53,6 +53,7 @@ interface Props {
 type Status = "idle" | "creating" | "signing" | "confirming" | "polling" | "done" | "error";
 
 interface Eip3009Param {
+  agentOrderIndex: number;
   from: string;
   to: string;
   value: string;
@@ -160,30 +161,31 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
       const flow: PendingFlow = await res.json();
       if (!res.ok) throw new Error((flow as { error?: string }).error ?? "Failed to create flow");
 
-      // Step 2: sign EIP-3009 authorizations (gasless — no on-chain tx)
+      // Step 2: sign EIP-3009 authorizations sequentially (gasless — no on-chain tx)
+      // Two per agent: 99% to agent wallet, 1% protocol fee to treasury
       setStatus("signing");
-      const signatures = await Promise.all(
-        flow.eip3009Params.map((auth) =>
-          signTypedDataAsync({
-            domain: {
-              name: "USD Coin",
-              version: "2",
-              chainId: CHAIN_ID,
-              verifyingContract: USDC_ADDRESS,
-            },
-            types: EIP3009_TYPES,
-            primaryType: "TransferWithAuthorization",
-            message: {
-              from:        auth.from        as `0x${string}`,
-              to:          auth.to          as `0x${string}`,
-              value:       BigInt(auth.value),
-              validAfter:  BigInt(auth.validAfter),
-              validBefore: BigInt(auth.validBefore),
-              nonce:       auth.nonce       as `0x${string}`,
-            },
-          })
-        )
-      );
+      const signatures: `0x${string}`[] = [];
+      for (const auth of flow.eip3009Params) {
+        const sig = await signTypedDataAsync({
+          domain: {
+            name: "USD Coin",
+            version: "2",
+            chainId: CHAIN_ID,
+            verifyingContract: USDC_ADDRESS,
+          },
+          types: EIP3009_TYPES,
+          primaryType: "TransferWithAuthorization",
+          message: {
+            from:        auth.from        as `0x${string}`,
+            to:          auth.to          as `0x${string}`,
+            value:       BigInt(auth.value),
+            validAfter:  BigInt(auth.validAfter),
+            validBefore: BigInt(auth.validBefore),
+            nonce:       auth.nonce       as `0x${string}`,
+          },
+        });
+        signatures.push(sig);
+      }
 
       // Step 3: confirm with signatures → engine starts executing
       setStatus("confirming");

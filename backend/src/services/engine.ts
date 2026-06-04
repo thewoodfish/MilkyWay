@@ -1,5 +1,11 @@
 import { prisma } from "../lib/db";
 
+type StoredAuth = {
+  agentOrderIndex: number;
+  from: string; to: string; value: string;
+  validAfter: string; validBefore: string; nonce: string; signature: string;
+};
+
 export async function executeFlow(flow: {
   id: string;
   jobId: string;
@@ -36,8 +42,11 @@ export async function executeFlow(flow: {
       await prisma.flowAgent.update({ where: { id: flowAgent.id }, data: { status: "RUNNING" } });
 
       const resource = `${agent.endpoint.replace(/\/$/, "")}/execute`;
-      const paymentHeader = getPaymentHeader(
+
+      // Agent payment header (99% slice going to agent wallet)
+      const agentPaymentHeader = getPaymentHeader(
         flow.paymentTxHash,
+        flowAgent.orderIndex,
         flowAgent.agentAddress,
         resource
       );
@@ -48,24 +57,27 @@ export async function executeFlow(flow: {
         flow.callerAddress,
         taskInput,
         flow.deadline,
-        paymentHeader
+        agentPaymentHeader
       );
 
       if (!result.success) throw new Error(`Agent ${agent.name} failed: ${result.error}`);
 
-      // Settle payment async — fire and forget, never await
+      // Settle all authorizations for this agent (agent 99% + protocol fee 1%)
+      const allHeaders = getAllPaymentHeaders(flow.paymentTxHash, flowAgent.orderIndex, resource);
       const facilitatorUrl = process.env.X402_FACILITATOR_URL || "https://facilitator.usemilkyway.com";
-      fetch(`${facilitatorUrl}/settle`, {
-        method: "POST",
-        headers: {
-          "Content-Type":         "application/json",
-          "X-Facilitator-Secret": process.env.FACILITATOR_SECRET!,
-        },
-        body: JSON.stringify({
-          payment: paymentHeader,
-          network: process.env.X402_NETWORK || "eip155:421614",
-        }),
-      }).catch((err: Error) => console.error(`[engine] Settle failed for ${agent.name}:`, err.message));
+      for (const header of allHeaders) {
+        fetch(`${facilitatorUrl}/settle`, {
+          method: "POST",
+          headers: {
+            "Content-Type":         "application/json",
+            "X-Facilitator-Secret": process.env.FACILITATOR_SECRET!,
+          },
+          body: JSON.stringify({
+            payment: header,
+            network: process.env.X402_NETWORK || "eip155:421614",
+          }),
+        }).catch((err: Error) => console.error(`[engine] Settle failed for ${agent.name}:`, err.message));
+      }
 
       await prisma.flowAgent.update({
         where: { id: flowAgent.id },
@@ -88,26 +100,40 @@ export async function executeFlow(flow: {
   }
 }
 
-// Build x402 payment header from the user-signed EIP-3009 authorization stored at flow creation
+// Agent's payment header — finds the auth for this orderIndex going to agentAddress
 function getPaymentHeader(
   storedPaymentData: string | null,
+  agentOrderIndex: number,
   agentAddress: string,
   resource: string
 ): string {
-  if (!storedPaymentData) throw new Error("No payment authorization stored for this flow");
-
-  const { authorizations } = JSON.parse(storedPaymentData) as {
-    authorizations: Array<{
-      from: string; to: string; value: string;
-      validAfter: string; validBefore: string; nonce: string; signature: string;
-    }>;
-  };
-
+  const authorizations = parseAuthorizations(storedPaymentData);
   const auth = authorizations.find(
-    (a) => a.to.toLowerCase() === agentAddress.toLowerCase()
+    (a) => a.agentOrderIndex === agentOrderIndex && a.to.toLowerCase() === agentAddress.toLowerCase()
   );
-  if (!auth) throw new Error(`No authorization found for agent address ${agentAddress}`);
+  if (!auth) throw new Error(`No authorization found for agent ${agentAddress} at orderIndex ${agentOrderIndex}`);
+  return buildPaymentHeader(auth, resource);
+}
 
+// All payment headers for an agent's orderIndex (agent slice + protocol fee slice)
+function getAllPaymentHeaders(
+  storedPaymentData: string | null,
+  agentOrderIndex: number,
+  resource: string
+): string[] {
+  const authorizations = parseAuthorizations(storedPaymentData);
+  return authorizations
+    .filter((a) => a.agentOrderIndex === agentOrderIndex)
+    .map((auth) => buildPaymentHeader(auth, resource));
+}
+
+function parseAuthorizations(storedPaymentData: string | null): StoredAuth[] {
+  if (!storedPaymentData) throw new Error("No payment authorization stored for this flow");
+  const { authorizations } = JSON.parse(storedPaymentData) as { authorizations: StoredAuth[] };
+  return authorizations;
+}
+
+function buildPaymentHeader(auth: StoredAuth, resource: string): string {
   const payment = {
     x402Version: 1,
     scheme: "exact",
@@ -125,7 +151,6 @@ function getPaymentHeader(
       resource,
     },
   };
-
   return Buffer.from(JSON.stringify(payment)).toString("base64");
 }
 
@@ -161,8 +186,8 @@ async function callAgent(
     const res = await fetch(resource, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "MilkyWay-Engine/1.0",
+        "Content-Type":     "application/json",
+        "User-Agent":       "MilkyWay-Engine/1.0",
         "payment-signature": paymentHeader,
       },
       signal: controller.signal,

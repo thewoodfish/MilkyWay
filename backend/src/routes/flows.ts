@@ -71,15 +71,16 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
       )
     );
 
+    const treasury = process.env.TREASURY_ADDRESS || process.env.ORCHESTRATOR_ADDRESS;
+    if (!treasury) throw new Error("TREASURY_ADDRESS not configured");
+
     const subtotal = agentDetails.reduce((s, a) => s + parseFloat(a.amount), 0);
-    const fee = subtotal * 0.01;
-    const total = subtotal + fee;
 
     const flow = await prisma.flow.create({
       data: {
         jobId,
         callerAddress: req.user!.address,
-        totalAmountUsdc: total.toFixed(6),
+        totalAmountUsdc: subtotal.toFixed(6),
         deadline: new Date(deadline * 1000),
         trigger,
         triggerValue: triggerValue?.toString() ?? null,
@@ -97,21 +98,23 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
       include: { agents: { orderBy: { orderIndex: "asc" } } },
     });
 
-    // Build per-agent EIP-3009 signing params — user signs these gaslessly in their wallet
-    const eip3009Params = agentDetails.map((a) => ({
-      from: req.user!.address,
-      to: a.wallet,
-      value: Math.round(parseFloat(a.amount) * 1_000_000).toString(),
-      validAfter: "0",
-      validBefore: deadline.toString(),
-      nonce: ethers.hexlify(ethers.randomBytes(32)),
-    }));
+    // Two EIP-3009 params per agent: 99% to agent, 1% protocol fee to treasury
+    const eip3009Params = agentDetails.flatMap((a) => {
+      const totalRaw = Math.round(parseFloat(a.amount) * 1_000_000);
+      const agentRaw = Math.floor(totalRaw * 99 / 100);
+      const feeRaw   = totalRaw - agentRaw;
+      const base = { from: req.user!.address, validAfter: "0", validBefore: deadline.toString(), agentOrderIndex: a.orderIndex };
+      return [
+        { ...base, to: a.wallet,  value: agentRaw.toString(), nonce: ethers.hexlify(ethers.randomBytes(32)) },
+        { ...base, to: treasury,  value: feeRaw.toString(),   nonce: ethers.hexlify(ethers.randomBytes(32)) },
+      ];
+    });
 
     res.json({
       jobId,
       internalId: flow.id,
       eip3009Params,
-      totalUsdc: total.toFixed(6),
+      totalUsdc: subtotal.toFixed(6),
       deadline,
     });
   } catch (err) {
