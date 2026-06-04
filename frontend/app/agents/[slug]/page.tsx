@@ -333,6 +333,31 @@ export default async function AgentProfilePage({
                   </div>
                 </div>
               )}
+
+              {/* Permissions */}
+              <div className="mt-4 pt-4" style={{ borderTop: "1px solid #F1F5F9" }}>
+                <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: "#94a3b8" }}>Permissions</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: "Internet access",        granted: true,                                  icon: "🌐" },
+                    { label: "Accepts USDC payment",   granted: agent.pricingModel !== "FREE",         icon: "💵" },
+                    { label: "External API calls",     granted: true,                                  icon: "🔌" },
+                    { label: "Reads your wallet",      granted: false,                                 icon: "👛" },
+                    { label: "Stores your data",       granted: false,                                 icon: "🗄️" },
+                    { label: "Sends messages",         granted: agent.category === "SOCIAL",           icon: "✉️" },
+                  ].map(({ label, granted, icon }) => (
+                    <div
+                      key={label}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px]"
+                      style={{ background: granted ? "#F0FDF4" : "#F8FAFF", border: `1px solid ${granted ? "#BBF7D0" : "#E3E8EF"}` }}
+                    >
+                      <span style={{ fontSize: "13px", flexShrink: 0 }}>{icon}</span>
+                      <span style={{ color: granted ? "#166534" : "#94a3b8", fontWeight: granted ? 600 : 400 }}>{label}</span>
+                      <span className="ml-auto text-[10px] font-bold" style={{ color: granted ? "#16a34a" : "#cbd5e1" }}>{granted ? "YES" : "NO"}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </Card>
 
             {/* 2b — What you give it */}
