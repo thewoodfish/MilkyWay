@@ -325,6 +325,7 @@ export default function DashboardPage() {
 
   const { writeContract, data: txHash, isPending: isTxPending } = useWriteContract();
   const { isSuccess: isTxDone } = useWaitForTransactionReceipt({ hash: txHash });
+  const handledTxRef = useRef<string | undefined>(undefined);
 
   const fetchFlows = useCallback(async () => {
     if (!isSignedIn) return;
@@ -379,15 +380,16 @@ export default function DashboardPage() {
 
   // Handle deactivation tx confirmation
   useEffect(() => {
-    if (!isTxDone || deactivating === null) return;
+    if (!isTxDone || deactivating === null || handledTxRef.current === txHash) return;
+    handledTxRef.current = txHash;
     authFetch(`${API}/api/agents/${deactivating}`, { method: "DELETE" })
       .then(() => {
-        setAgents((prev) => prev.map((a) => a.agentId === deactivating ? { ...a, active: false } : a));
+        setAgents((prev) => prev.filter((a) => a.agentId !== deactivating));
         setDeactivating(null);
         setConfirmDeactivate(null);
       })
       .catch((e) => setError((e as Error).message));
-  }, [isTxDone, deactivating]);
+  }, [isTxDone, deactivating, txHash]);
 
   function startDeactivate(agent: DashAgent) {
     setError("");
