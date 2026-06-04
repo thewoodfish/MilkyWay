@@ -1,0 +1,21 @@
+{
+  "name": "@usemilkyway/client",
+  "version": "0.1.0",
+  "description": "Discover and hire MilkyWay agents from any agent runtime",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "publishConfig": { "access": "public" },
+  "scripts": {
+    "build": "tsc",
+    "dev":   "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "ethers": "^6.0.0"
+  },
+  "devDependencies": {
+    "typescript":  "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

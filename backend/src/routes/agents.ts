@@ -160,6 +160,107 @@ router.post("/:agentIdOrSlug/refresh-schema", async (req: Request, res: Response
   }
 });
 
+// GET /api/agents/discover — public, no auth, for agent-to-agent discovery
+router.get("/discover", async (req: Request, res: Response) => {
+  try {
+    const {
+      capability,
+      category,
+      min_badge,
+      max_price,
+      limit  = "10",
+      sort   = "rating",
+    } = req.query as Record<string, string>;
+
+    const where: Record<string, unknown> = { active: true, phase2Ready: true, agentId: { not: null } };
+    if (category)  where.category = category;
+    if (max_price) where.priceUsdc = { lte: max_price };
+    if (min_badge) {
+      const tiers: Record<string, number> = { BRONZE: 1, SILVER: 2, GOLD: 3 };
+      const minTier = tiers[min_badge] ?? 0;
+      where.badgeTier = { in: Object.entries(tiers).filter(([, v]) => v >= minTier).map(([k]) => k) };
+    }
+
+    const orderBy: Record<string, unknown> =
+      sort === "price_asc"  ? { priceUsdc: "asc" }  :
+      sort === "price_desc" ? { priceUsdc: "desc" } :
+      sort === "jobs"       ? { id: "desc" }         :
+      /* rating default */    { verifiedAt: "desc" };
+
+    const agents = await prisma.agent.findMany({
+      where,
+      orderBy,
+      take: Math.min(Number(limit), 50),
+      select: {
+        agentId: true, name: true, description: true, endpoint: true,
+        ownerAddress: true, priceUsdc: true, pricingModel: true,
+        badgeTier: true, aboutSchema: true, verifiedAt: true,
+      },
+    });
+
+    // Filter by capability name if requested
+    const filtered = capability
+      ? agents.filter((a) => {
+          const schema = a.aboutSchema as Record<string, unknown> | null;
+          const caps = schema?.capabilities as Record<string, unknown> | undefined;
+          return caps && (capability in caps);
+        })
+      : agents;
+
+    // Attach 30-day success rate
+    const now = Date.now();
+    const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+    const agentIds = filtered.map((a) => a.agentId!);
+
+    const logs = agentIds.length
+      ? await prisma.verificationLog.findMany({
+          where: { agentId: { in: agentIds }, checkedAt: { gte: thirtyDaysAgo } },
+          select: { agentId: true, success: true },
+        })
+      : [];
+
+    const logsByAgent = new Map<number, { total: number; succeeded: number }>();
+    for (const l of logs) {
+      const entry = logsByAgent.get(l.agentId) ?? { total: 0, succeeded: 0 };
+      entry.total++;
+      if (l.success) entry.succeeded++;
+      logsByAgent.set(l.agentId, entry);
+    }
+
+    const result = filtered.map((a) => {
+      const schema    = a.aboutSchema as Record<string, unknown> | null;
+      const caps      = schema?.capabilities as Record<string, Record<string, unknown>> | undefined;
+      const capName   = capability || (caps ? Object.keys(caps)[0] : undefined);
+      const capSchema = caps && capName ? caps[capName] : undefined;
+      const stats     = logsByAgent.get(a.agentId!) ?? { total: 0, succeeded: 0 };
+      const rate      = stats.total > 0 ? Math.round((stats.succeeded / stats.total) * 1000) / 10 : 0;
+      const isLive    = a.verifiedAt && now - new Date(a.verifiedAt).getTime() < 26 * 3600 * 1000;
+
+      return {
+        agentId:     a.agentId,
+        name:        a.name,
+        description: a.description,
+        endpoint:    a.endpoint,
+        agentWallet: a.ownerAddress,
+        capability:  capName ?? null,
+        priceUsdc:   a.priceUsdc,
+        pricingModel: a.pricingModel,
+        badgeTier:   a.badgeTier,
+        successRate: rate,
+        totalJobs:   stats.total,
+        status:      isLive ? "live" : "degraded",
+        inputSchema:  (capSchema as Record<string, unknown> | undefined)?.input_schema  ?? {},
+        outputSchema: (capSchema as Record<string, unknown> | undefined)?.output_schema ?? {},
+      };
+    });
+
+    res.json({ agents: result, total: result.length, limit: Number(limit) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // GET /api/agents/:agentIdOrSlug — accepts numeric agentId or slug
 router.get("/:agentIdOrSlug", async (req: Request, res: Response) => {
   try {
