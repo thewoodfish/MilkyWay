@@ -7,6 +7,7 @@
   "capabilities": {
     "run": {
       "description": "Generate a random gem based on the given topic",
+      "permissions": [],
       "pricing": {
         "model":    "per_job",
         "amount":   "0.10",

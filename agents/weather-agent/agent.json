@@ -7,6 +7,12 @@
   "capabilities": {
     "run": {
       "description": "Fetch current weather for a given city",
+      "permissions": [
+        {
+          "type":   "ACCESS_EXTERNAL_APIS",
+          "reason": "Open-Meteo for live weather and geocoding data"
+        }
+      ],
       "pricing": {
         "model":    "per_job",
         "amount":   "0.10",

@@ -335,50 +335,58 @@ export default async function AgentProfilePage({
               )}
 
               {/* Permissions */}
-              <div className="mt-4 pt-4" style={{ borderTop: "1px solid #F1F5F9" }}>
-                <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: "#94a3b8" }}>Permissions</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    {
-                      label: "Read wallet balance",
-                      granted: ["DEFI", "TRADING"].includes(agent.category),
-                      icon: (
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                      ),
-                    },
-                    {
-                      label: "Execute transactions",
-                      granted: ["DEFI", "TRADING"].includes(agent.category),
-                      icon: (
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                      ),
-                    },
-                    {
-                      label: "Access external APIs",
-                      granted: true,
-                      icon: (
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
-                      ),
-                    },
-                    {
-                      label: "Manage other agents",
-                      granted: false,
-                      icon: (
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
-                      ),
-                    },
-                  ].map(({ label, granted, icon }) => (
-                    <div
-                      key={label}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg"
-                      style={{ background: granted ? "#F0FDF4" : "#F8FAFF", border: `1px solid ${granted ? "#BBF7D0" : "#E3E8EF"}` }}
-                    >
-                      <span style={{ color: granted ? "#16a34a" : "#cbd5e1", flexShrink: 0 }}>{icon}</span>
-                      <span className="text-[12px]" style={{ color: granted ? "#166534" : "#94a3b8", fontWeight: granted ? 600 : 400 }}>{label}</span>
+              {(() => {
+                // Collect all declared permission types across capabilities
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const declared = new Set<string>();
+                if (aboutSchema?.capabilities && typeof aboutSchema.capabilities === "object" && !Array.isArray(aboutSchema.capabilities)) {
+                  for (const cap of Object.values(aboutSchema.capabilities as Record<string, { permissions?: { type: string }[] }>)) {
+                    for (const p of cap?.permissions ?? []) declared.add(p.type);
+                  }
+                }
+                const PERMS = [
+                  {
+                    type: "READ_WALLET_BALANCE",
+                    label: "Read wallet balance",
+                    icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>,
+                  },
+                  {
+                    type: "EXECUTE_TRANSACTIONS",
+                    label: "Execute transactions",
+                    icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>,
+                  },
+                  {
+                    type: "ACCESS_EXTERNAL_APIS",
+                    label: "Access external APIs",
+                    icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>,
+                  },
+                  {
+                    type: "MANAGE_AGENTS",
+                    label: "Manage other agents",
+                    icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>,
+                  },
+                ];
+                return (
+                  <div className="mt-4 pt-4" style={{ borderTop: "1px solid #F1F5F9" }}>
+                    <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: "#94a3b8" }}>Permissions</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {PERMS.map(({ type, label, icon }) => {
+                        const granted = declared.has(type);
+                        return (
+                          <div
+                            key={type}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                            style={{ background: granted ? "#F0FDF4" : "#F8FAFF", border: `1px solid ${granted ? "#BBF7D0" : "#E3E8EF"}` }}
+                          >
+                            <span style={{ color: granted ? "#16a34a" : "#cbd5e1", flexShrink: 0 }}>{icon}</span>
+                            <span className="text-[12px]" style={{ color: granted ? "#166534" : "#94a3b8", fontWeight: granted ? 600 : 400 }}>{label}</span>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                );
+              })()}
             </Card>
 
             {/* 2b — What you give it */}
