@@ -66,10 +66,16 @@ function RevokeModal({
 
   useEffect(() => {
     if (confirmed && step === "revoking") {
-      authFetch(`${API}/api/permissions/revoke`, {
+      // On-chain revoke is done — update UI immediately, don't block on backend
+      setStep("done");
+      onRevoked();
+
+      // Sync DB in background; retry once if first attempt fails
+      const sync = () => authFetch(`${API}/api/permissions/revoke`, {
         method: "POST",
         body: JSON.stringify({ agentId: limit.agentId }),
-      }).finally(() => { setStep("done"); onRevoked(); });
+      });
+      sync().catch(() => setTimeout(() => sync().catch(console.error), 3000));
     }
   }, [confirmed, step, limit.agentId, onRevoked]);
 
