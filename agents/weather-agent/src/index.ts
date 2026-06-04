@@ -1,84 +1,89 @@
+import "dotenv/config";
 import { createAgent } from "@usemilkyway/agent-sdk";
-import dotenv from "dotenv";
-dotenv.config();
 
-// WMO weather interpretation codes → human-readable condition
-const WMO_CODES: Record<number, string> = {
-  0:  "Clear sky",
-  1:  "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
-  45: "Fog", 48: "Icy fog",
-  51: "Light drizzle", 53: "Drizzle", 55: "Heavy drizzle",
-  61: "Light rain", 63: "Rain", 65: "Heavy rain",
-  71: "Light snow", 73: "Snow", 75: "Heavy snow",
-  77: "Snow grains",
-  80: "Light rain showers", 81: "Rain showers", 82: "Violent rain showers",
-  85: "Snow showers", 86: "Heavy snow showers",
-  95: "Thunderstorm",
-  96: "Thunderstorm with hail", 99: "Thunderstorm with heavy hail",
-};
-
-function wmoCondition(code: number): string {
-  return WMO_CODES[code] ?? `Weather code ${code}`;
-}
-
-function toFahrenheit(c: number): number {
-  return Math.round((c * 9) / 5 + 32);
-}
-
-async function geocode(city: string): Promise<{ name: string; country: string; lat: number; lon: number }> {
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Geocoding failed: HTTP ${res.status}`);
-  const data = await res.json() as { results?: { name: string; country_code: string; latitude: number; longitude: number }[] };
-  if (!data.results?.length) throw new Error(`City not found: "${city}"`);
-  const r = data.results[0];
-  return { name: r.name, country: r.country_code, lat: r.latitude, lon: r.longitude };
-}
-
-async function fetchWeather(lat: number, lon: number) {
-  const params = new URLSearchParams({
-    latitude:  lat.toString(),
-    longitude: lon.toString(),
-    current:   "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code",
-    wind_speed_unit: "kmh",
-  });
-  const url = `https://api.open-meteo.com/v1/forecast?${params}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Weather fetch failed: HTTP ${res.status}`);
-  const data = await res.json() as {
-    current: {
-      temperature_2m: number;
-      apparent_temperature: number;
-      relative_humidity_2m: number;
-      wind_speed_10m: number;
-      weather_code: number;
-    };
-  };
-  return data.current;
-}
-
-createAgent(
-  require("../agent.json"),
+const agent = createAgent(
   {
-    run: async (input: Record<string, unknown>) => {
-      const city = String(input.city ?? "").trim();
-      if (!city) throw new Error("city is required");
-
-      const geo     = await geocode(city);
-      const weather = await fetchWeather(geo.lat, geo.lon);
-
-      const temp_c = Math.round(weather.temperature_2m * 10) / 10;
-
-      return {
-        city:            geo.name,
-        country:         geo.country,
-        temperature_c:   temp_c,
-        temperature_f:   toFahrenheit(temp_c),
-        feels_like_c:    Math.round(weather.apparent_temperature * 10) / 10,
-        humidity_pct:    weather.relative_humidity_2m,
-        wind_speed_kmh:  Math.round(weather.wind_speed_10m * 10) / 10,
-        condition:       wmoCondition(weather.weather_code),
-      };
+    milkyway_version: "1.0",
+    name: "Weather Agent",
+    description: "Returns current weather conditions for any city using Open-Meteo (no API key required).",
+    wallet: process.env.AGENT_WALLET_ADDRESS!,
+    max_deadline_seconds: 15,
+    capabilities: {
+      get_weather: {
+        description: "Fetch current weather for a city.",
+        pricing: {
+          model: "per_job",
+          amount: process.env.NODE_ENV === "production" ? "0.05" : "0.001",
+          currency: "USDC",
+        },
+        input_schema: {
+          city:    { type: "string",  required: true,  description: "City name" },
+          country: { type: "string",  required: false, description: "ISO country code, e.g. US" },
+        },
+        output_schema: {
+          city:        { type: "string", description: "Resolved city name" },
+          temperature: { type: "number", description: "Temperature in Celsius" },
+          humidity:    { type: "number", description: "Relative humidity %" },
+          wind_speed:  { type: "number", description: "Wind speed km/h" },
+          condition:   { type: "string", description: "Weather condition summary" },
+          timestamp:   { type: "number", description: "Unix timestamp of reading" },
+        },
+      },
     },
-  }
-).listen(Number(process.env.PORT) || 3100);
+  },
+  async (input) => {
+    const city = input.city as string;
+    const country = input.country as string | undefined;
+
+    // Geocode
+    const geoQuery = country ? `${city},${country}` : city;
+    const geoRes = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(geoQuery)}&count=1&language=en&format=json`
+    );
+    const geoData = await geoRes.json() as { results?: Array<{ latitude: number; longitude: number; name: string }> };
+    if (!geoData.results?.length) throw new Error(`City not found: ${city}`);
+
+    const { latitude, longitude, name } = geoData.results[0];
+
+    // Fetch weather
+    const wxRes = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
+      `&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto`
+    );
+    const wxData = await wxRes.json() as {
+      current: {
+        temperature_2m: number;
+        relative_humidity_2m: number;
+        wind_speed_10m: number;
+        weather_code: number;
+      };
+    };
+
+    const c = wxData.current;
+    return {
+      city:        name,
+      temperature: c.temperature_2m,
+      humidity:    c.relative_humidity_2m,
+      wind_speed:  c.wind_speed_10m,
+      condition:   wmoDescription(c.weather_code),
+      timestamp:   Math.floor(Date.now() / 1000),
+    };
+  },
+  { devMode: process.env.MILKYWAY_DEV_MODE === "true" }
+);
+
+function wmoDescription(code: number): string {
+  if (code === 0)              return "Clear sky";
+  if (code <= 3)               return "Partly cloudy";
+  if (code <= 48)              return "Foggy";
+  if (code <= 57)              return "Drizzle";
+  if (code <= 67)              return "Rain";
+  if (code <= 77)              return "Snow";
+  if (code <= 82)              return "Rain showers";
+  if (code <= 86)              return "Snow showers";
+  if (code <= 99)              return "Thunderstorm";
+  return "Unknown";
+}
+
+const PORT = parseInt(process.env.PORT ?? "3002");
+agent.listen(PORT);

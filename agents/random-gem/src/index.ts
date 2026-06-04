@@ -1,69 +1,56 @@
+import "dotenv/config";
 import { createAgent } from "@usemilkyway/agent-sdk";
-import dotenv from "dotenv";
-dotenv.config();
 
-const GEM_TYPES = [
-  "Sapphire", "Ruby", "Emerald", "Diamond", "Amethyst",
-  "Topaz", "Opal", "Garnet", "Obsidian", "Citrine",
-  "Aquamarine", "Onyx", "Jade", "Pearl", "Tourmaline",
+const GEMS = [
+  "Ruby", "Emerald", "Sapphire", "Diamond", "Amethyst",
+  "Topaz", "Opal", "Garnet", "Aquamarine", "Onyx",
+  "Jade", "Peridot", "Tourmaline", "Tanzanite", "Citrine",
 ];
 
-const PREFIXES = [
-  "Ancient", "Cursed", "Glowing", "Fractured", "Prismatic",
-  "Void", "Celestial", "Corrupted", "Radiant", "Ethereal",
-  "Frozen", "Blazing", "Storm", "Shadow", "Lunar",
-];
+const RARITIES = ["Common", "Uncommon", "Rare", "Epic", "Legendary"];
+const QUALITIES = ["Flawless", "Fine", "Good", "Fair", "Rough"];
 
-const ADJECTIVES = [
-  "whispering secrets of forgotten realms",
-  "pulsing with untamed energy",
-  "carved from the heart of a dying star",
-  "resonating at frequencies beyond human hearing",
-  "formed where two timelines collided",
-  "absorbing light and releasing memories",
-  "warm to the touch despite its icy appearance",
-  "said to grant visions to those who dare hold it",
-  "shifting colour with every passing thought",
-  "humming softly with stored knowledge",
-];
-
-const RARITIES: { tier: string; min: number; max: number }[] = [
-  { tier: "Common",    min: 1,  max: 30  },
-  { tier: "Uncommon",  min: 31, max: 55  },
-  { tier: "Rare",      min: 56, max: 75  },
-  { tier: "Epic",      min: 76, max: 92  },
-  { tier: "Legendary", min: 93, max: 100 },
-];
-
-function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function randInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function rarityFromScore(score: number) {
-  return RARITIES.find((r) => score >= r.min && score <= r.max)!;
-}
-
-createAgent(
-  require("../agent.json"),
-
+const agent = createAgent(
   {
-    run: async (input: Record<string, unknown>) => {
-      const topic = String(input.topic ?? "");
-      const score      = randInt(1, 100);
-      const rarity     = rarityFromScore(score);
-      const gemType    = pick(GEM_TYPES);
-      const prefix     = pick(PREFIXES);
-      const adjective  = pick(ADJECTIVES);
-
-      const gem        = `${prefix} ${gemType} of ${topic}`;
-      const descriptor = `A ${rarity.tier.toLowerCase()} gem ${adjective}. Tied to the essence of "${topic}".`;
-
-      return { gem, rarity: rarity.tier, rarity_score: score, descriptor };
+    milkyway_version: "1.0",
+    name: "Random Gem",
+    description: "Generates a random gem with rarity and quality attributes. A simple example of a paid MilkyWay agent.",
+    wallet: process.env.AGENT_WALLET_ADDRESS!,
+    max_deadline_seconds: 5,
+    capabilities: {
+      generate: {
+        description: "Generate a random gem.",
+        pricing: {
+          model: "per_job",
+          amount: process.env.NODE_ENV === "production" ? "0.01" : "0.001",
+          currency: "USDC",
+        },
+        input_schema: {
+          seed: { type: "number", required: false, description: "Optional seed for deterministic output" },
+        },
+        output_schema: {
+          gem:     { type: "string", description: "Gem name" },
+          rarity:  { type: "string", description: "Rarity tier" },
+          quality: { type: "string", description: "Quality grade" },
+          value:   { type: "number", description: "Estimated value in USDC" },
+        },
+      },
     },
-  }
+  },
+  async (input) => {
+    const seed = typeof input.seed === "number" ? input.seed : Math.random() * 1e9;
+    const pick = (arr: string[], s: number) => arr[Math.floor((Math.sin(s) * 0.5 + 0.5) * arr.length)];
 
-).listen(Number(process.env.PORT) || 3000);
+    const gem     = pick(GEMS,      seed);
+    const rarity  = pick(RARITIES,  seed * 1.7);
+    const quality = pick(QUALITIES, seed * 3.1);
+    const rarityMultiplier = { Common: 1, Uncommon: 3, Rare: 10, Epic: 50, Legendary: 250 }[rarity] ?? 1;
+    const value   = parseFloat((Math.abs(Math.sin(seed * 2.3)) * rarityMultiplier * 10).toFixed(2));
+
+    return { gem, rarity, quality, value };
+  },
+  { devMode: process.env.MILKYWAY_DEV_MODE === "true" }
+);
+
+const PORT = parseInt(process.env.PORT ?? "3003");
+agent.listen(PORT);
