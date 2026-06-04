@@ -11,7 +11,7 @@ export function UsdcAmount({ amount, size = 13, className = "", style }: Props) 
   return (
     <span
       className={className}
-      style={{ display: "inline-flex", alignItems: "center", gap: "3px", ...style }}
+      style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: `${size}px`, ...style }}
     >
       <UsdcIcon size={size} />
       {amount} USDC
