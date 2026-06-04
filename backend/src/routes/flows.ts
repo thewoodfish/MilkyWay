@@ -98,16 +98,20 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
       include: { agents: { orderBy: { orderIndex: "asc" } } },
     });
 
-    // Two EIP-3009 params per agent: 99% to agent, 1% protocol fee to treasury
-    const eip3009Params = agentDetails.flatMap((a) => {
+    // One EIP-3009 auth per agent: full amount to agent wallet.
+    // The agent SDK verifies the amount matches its price exactly — splitting 99%/1%
+    // causes verification to fail. Protocol fee is tracked off-chain for now.
+    const eip3009Params = agentDetails.map((a) => {
       const totalRaw = Math.round(parseFloat(a.amount) * 1_000_000);
-      const agentRaw = Math.floor(totalRaw * 99 / 100);
-      const feeRaw   = totalRaw - agentRaw;
-      const base = { from: req.user!.address, validAfter: "0", validBefore: deadline.toString(), agentOrderIndex: a.orderIndex };
-      return [
-        { ...base, to: a.wallet,  value: agentRaw.toString(), nonce: ethers.hexlify(ethers.randomBytes(32)) },
-        { ...base, to: treasury,  value: feeRaw.toString(),   nonce: ethers.hexlify(ethers.randomBytes(32)) },
-      ];
+      return {
+        from: req.user!.address,
+        to: a.wallet,
+        value: totalRaw.toString(),
+        validAfter: "0",
+        validBefore: deadline.toString(),
+        agentOrderIndex: a.orderIndex,
+        nonce: ethers.hexlify(ethers.randomBytes(32)),
+      };
     });
 
     res.json({
