@@ -323,9 +323,10 @@ export default function DashboardPage() {
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { writeContract, data: txHash, isPending: isTxPending } = useWriteContract();
-  const { isSuccess: isTxDone } = useWaitForTransactionReceipt({ hash: txHash });
+  const { writeContract, data: txHash, isPending: isTxPending, error: writeError } = useWriteContract();
+  const { isSuccess: isTxDone, isError: isTxReverted } = useWaitForTransactionReceipt({ hash: txHash });
   const handledTxRef = useRef<string | undefined>(undefined);
+  const [deactivateError, setDeactivateError] = useState<string | null>(null);
 
   const fetchFlows = useCallback(async () => {
     if (!isSignedIn) return;
@@ -378,21 +379,34 @@ export default function DashboardPage() {
       .catch(() => {});
   }, [tab, address, isSignedIn, earningsPeriod]);
 
-  // Handle deactivation tx confirmation
+  // Handle wallet rejection or submission error
+  useEffect(() => {
+    if (!writeError || deactivating === null) return;
+    setDeactivateError(writeError.message?.split("\n")[0] ?? "Wallet rejected the transaction");
+    setDeactivating(null);
+  }, [writeError, deactivating]);
+
+  // Handle on-chain revert
+  useEffect(() => {
+    if (!isTxReverted || deactivating === null) return;
+    setDeactivateError("Transaction reverted on-chain. Nothing was changed.");
+    setDeactivating(null);
+  }, [isTxReverted, deactivating]);
+
+  // Handle on-chain success → sync backend → remove from list
   useEffect(() => {
     if (!isTxDone || deactivating === null || handledTxRef.current === txHash) return;
     handledTxRef.current = txHash;
-    authFetch(`${API}/api/agents/${deactivating}`, { method: "DELETE" })
-      .then(() => {
-        setAgents((prev) => prev.filter((a) => a.agentId !== deactivating));
-        setDeactivating(null);
-        setConfirmDeactivate(null);
-      })
-      .catch((e) => setError((e as Error).message));
+    const id = deactivating;
+    authFetch(`${API}/api/agents/${id}`, { method: "DELETE" }).catch(() => {});
+    setAgents((prev) => prev.filter((a) => a.agentId !== id));
+    setDeactivating(null);
+    setConfirmDeactivate(null);
+    setDeactivateError(null);
   }, [isTxDone, deactivating, txHash]);
 
   function startDeactivate(agent: DashAgent) {
-    setError("");
+    setDeactivateError(null);
     setDeactivating(agent.agentId);
     writeContract({
       address: REGISTRY,
@@ -400,7 +414,7 @@ export default function DashboardPage() {
       functionName: "deactivateAgent",
       args: [BigInt(agent.agentId)],
     });
-    setConfirmDeactivate(null);
+    // Modal stays open — closes only on success or explicit cancel
   }
 
   async function saveEdit() {
@@ -928,66 +942,95 @@ export default function DashboardPage() {
       </div>
 
       {/* Deactivate modal */}
-      {confirmDeactivate && (
-        <Modal onClose={() => setConfirmDeactivate(null)}>
-          {/* Agent identity */}
-          <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "20px" }}>
-            <AgentAvatar
-              agentId={confirmDeactivate.agentId}
-              logoUrl={confirmDeactivate.logoUrl}
-              badgeTier={(confirmDeactivate.badgeTier ?? "NONE") as "NONE" | "BRONZE" | "SILVER" | "GOLD"}
-              size={52}
-              showTooltip={false}
-            />
-            <div>
-              <p style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", margin: "0 0 3px" }}>Deactivate agent</p>
-              <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#0A2540", margin: 0, letterSpacing: "-0.02em" }}>{confirmDeactivate.name}</h3>
-            </div>
-          </div>
+      {confirmDeactivate && (() => {
+        const isPending = deactivating === confirmDeactivate.agentId;
+        const isMining  = isPending && !!txHash && !isTxDone && !isTxReverted;
+        const isWaiting = isPending && isTxPending;
+        const showSpinner = isWaiting || isMining;
 
-          {/* Warning block */}
-          <div style={{ background: "#FFF8F8", border: "1px solid #FECACA", borderRadius: "12px", padding: "14px 16px", marginBottom: "20px" }}>
-            <p style={{ fontSize: "12px", fontWeight: 700, color: "#991b1b", margin: "0 0 10px", display: "flex", alignItems: "center", gap: "6px" }}>
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-              This action is permanent and cannot be undone
-            </p>
-            {[
-              { icon: "🏪", text: "Removed from the MilkyWay marketplace" },
-              { icon: "💰", text: <span>Your <strong style={{ color: "#0A2540" }}>0.01 ETH</strong> stake is returned to your wallet</span> },
-              { icon: "🔗", text: "Active flows using this agent will fail" },
-            ].map(({ icon, text }, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: i < 2 ? "8px" : 0 }}>
-                <span style={{ fontSize: "14px", lineHeight: 1, marginTop: "1px" }}>{icon}</span>
-                <p style={{ fontSize: "13px", color: "#64748b", margin: 0, lineHeight: 1.5 }}>{text}</p>
+        return (
+          <Modal onClose={() => { if (!isPending) { setConfirmDeactivate(null); setDeactivateError(null); } }}>
+            {/* Agent identity */}
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "20px" }}>
+              <AgentAvatar
+                agentId={confirmDeactivate.agentId}
+                logoUrl={confirmDeactivate.logoUrl}
+                badgeTier={(confirmDeactivate.badgeTier ?? "NONE") as "NONE" | "BRONZE" | "SILVER" | "GOLD"}
+                size={52}
+                showTooltip={false}
+              />
+              <div>
+                <p style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", margin: "0 0 3px" }}>Deactivate agent</p>
+                <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#0A2540", margin: 0, letterSpacing: "-0.02em" }}>{confirmDeactivate.name}</h3>
               </div>
-            ))}
-          </div>
+            </div>
 
-          {/* Actions */}
-          <div style={{ display: "flex", gap: "10px" }}>
-            <button
-              onClick={() => setConfirmDeactivate(null)}
-              style={{ flex: 1, padding: "12px", background: "#fff", border: "1px solid #E3E8EF", borderRadius: "10px", fontSize: "14px", fontWeight: 600, color: "#425466", cursor: "pointer" }}
-            >
-              Keep agent
-            </button>
-            <button
-              onClick={() => startDeactivate(confirmDeactivate)}
-              disabled={isTxPending}
-              style={{
-                flex: 1, padding: "12px", borderRadius: "10px", border: "none",
-                fontSize: "14px", fontWeight: 700, cursor: isTxPending ? "not-allowed" : "pointer",
-                background: isTxPending ? "#E2E8F0" : "#ef4444",
-                color: isTxPending ? "#94a3b8" : "#fff",
-                boxShadow: isTxPending ? "none" : "0 4px 12px rgba(239,68,68,0.35)",
-                transition: "all 0.15s",
-              }}
-            >
-              {isTxPending ? "Check wallet…" : "Deactivate & refund"}
-            </button>
-          </div>
-        </Modal>
-      )}
+            {/* Spinner state */}
+            {showSpinner ? (
+              <div style={{ textAlign: "center", padding: "20px 0 28px" }}>
+                <svg style={{ display: "block", margin: "0 auto 14px", animation: "spin 1s linear infinite" }} width="32" height="32" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="#E3E8EF" strokeWidth="3"/>
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke="#2563EB" strokeWidth="3" strokeLinecap="round"/>
+                </svg>
+                <p style={{ fontSize: "14px", fontWeight: 700, color: "#0A2540", margin: "0 0 4px" }}>
+                  {isWaiting ? "Confirm in your wallet…" : "Processing on-chain…"}
+                </p>
+                <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0 }}>
+                  {isWaiting ? "Check your wallet app or extension" : "Waiting for the transaction to mine"}
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Warning block */}
+                <div style={{ background: "#FFF8F8", border: "1px solid #FECACA", borderRadius: "12px", padding: "14px 16px", marginBottom: "20px" }}>
+                  <p style={{ fontSize: "12px", fontWeight: 700, color: "#991b1b", margin: "0 0 10px", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                    This action is permanent and cannot be undone
+                  </p>
+                  {[
+                    { icon: "🏪", text: "Removed from the MilkyWay marketplace" },
+                    { icon: "💰", text: <span>Your <strong style={{ color: "#0A2540" }}>0.01 ETH</strong> stake is returned to your wallet</span> },
+                    { icon: "🔗", text: "Active flows using this agent will fail" },
+                  ].map(({ icon, text }, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: i < 2 ? "8px" : 0 }}>
+                      <span style={{ fontSize: "14px", lineHeight: 1, marginTop: "1px" }}>{icon}</span>
+                      <p style={{ fontSize: "13px", color: "#64748b", margin: 0, lineHeight: 1.5 }}>{text}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Error message */}
+                {deactivateError && (
+                  <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "10px", padding: "10px 14px", marginBottom: "16px", fontSize: "13px", color: "#ef4444" }}>
+                    {deactivateError}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    onClick={() => { setConfirmDeactivate(null); setDeactivateError(null); }}
+                    style={{ flex: 1, padding: "12px", background: "#fff", border: "1px solid #E3E8EF", borderRadius: "10px", fontSize: "14px", fontWeight: 600, color: "#425466", cursor: "pointer" }}
+                  >
+                    Keep agent
+                  </button>
+                  <button
+                    onClick={() => startDeactivate(confirmDeactivate)}
+                    style={{
+                      flex: 1, padding: "12px", borderRadius: "10px", border: "none",
+                      fontSize: "14px", fontWeight: 700, cursor: "pointer",
+                      background: "#ef4444", color: "#fff",
+                      boxShadow: "0 4px 12px rgba(239,68,68,0.35)",
+                    }}
+                  >
+                    {deactivateError ? "Try again" : "Deactivate & refund"}
+                  </button>
+                </div>
+              </>
+            )}
+          </Modal>
+        );
+      })()}
 
       {/* Edit modal */}
       {editAgent && (
