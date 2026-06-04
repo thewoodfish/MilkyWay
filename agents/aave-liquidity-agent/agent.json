@@ -1,0 +1,97 @@
+{
+  "milkyway_version": "1.0",
+  "name": "Aave Liquidity Agent",
+  "description": "Manages Aave V3 liquidity positions on Arbitrum. Supply, withdraw, and repay assets on your behalf with configurable safety limits.",
+  "wallet": "0x3656ABd007AED9B9A572a63c58447044D69f8DAf",
+  "max_deadline_seconds": 30,
+  "capabilities": {
+    "run": {
+      "description": "Execute a supply, withdraw, or repay action on Aave V3",
+      "permissions": [
+        {
+          "type":   "READ_WALLET_BALANCE",
+          "reason": "Check your current token balances and collateral ratio before acting"
+        },
+        {
+          "type":   "ACCESS_EXTERNAL_APIS",
+          "reason": "Aave V3 subgraph for live position data and health factor"
+        },
+        {
+          "type":              "EXECUTE_TRANSACTIONS",
+          "reason":            "Submit supply, withdraw, or repay transactions to Aave V3 on your behalf",
+          "token":             "USDC",
+          "max_per_transaction": "500",
+          "max_lifetime":      "2000"
+        }
+      ],
+      "pricing": {
+        "model":    "per_job",
+        "amount":   "0.50",
+        "currency": "USDC"
+      },
+      "input_schema": {
+        "action": {
+          "type":        "string",
+          "required":    true,
+          "description": "Action to perform: supply | withdraw | repay",
+          "enum":        ["supply", "withdraw", "repay"]
+        },
+        "token": {
+          "type":        "string",
+          "required":    true,
+          "description": "Token symbol to act on (e.g. USDC, ETH, WBTC)"
+        },
+        "amount": {
+          "type":        "string",
+          "required":    true,
+          "description": "Amount to supply/withdraw/repay as a decimal string (e.g. '100.00')"
+        },
+        "wallet_address": {
+          "type":        "string",
+          "required":    true,
+          "description": "Wallet address of the position owner"
+        },
+        "min_health_factor": {
+          "type":        "number",
+          "required":    false,
+          "default":     1.5,
+          "description": "Minimum health factor to maintain — agent refuses if action would drop below this"
+        }
+      },
+      "output_schema": {
+        "action": {
+          "type":        "string",
+          "description": "The action that was executed"
+        },
+        "token": {
+          "type":        "string",
+          "description": "Token that was acted upon"
+        },
+        "amount": {
+          "type":        "string",
+          "description": "Amount executed"
+        },
+        "tx_hash": {
+          "type":        "string",
+          "description": "On-chain transaction hash"
+        },
+        "health_factor_before": {
+          "type":        "number",
+          "description": "Aave health factor before the action"
+        },
+        "health_factor_after": {
+          "type":        "number",
+          "description": "Estimated Aave health factor after the action"
+        },
+        "status": {
+          "type":        "string",
+          "description": "Execution status: success | skipped"
+        },
+        "reason": {
+          "type":        "string",
+          "description": "Human-readable explanation of the result"
+        }
+      }
+    }
+  }
+}
