@@ -352,7 +352,7 @@ const AgentNode = memo(function AgentNode({
         <div style={{ width: "30px", height: "30px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, border: "1px solid #DBEAFE" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${agent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
+            src={agent.logoUrl || `https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${agent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
             alt={agent.name}
             width={30}
             height={30}
@@ -762,7 +762,7 @@ export default function BuilderPage() {
                         <div style={{ width: "72px", height: "72px", borderRadius: "20px", overflow: "hidden", margin: "0 auto 14px", border: "2px solid #DBEAFE", boxShadow: "0 6px 20px rgba(37,99,235,0.15)" }}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${libraryAgent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
+                            src={libraryAgent.logoUrl || `https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${libraryAgent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
                             alt={libraryAgent.name} width={72} height={72}
                             style={{ display: "block", width: "100%", height: "100%" }}
                           />
@@ -929,7 +929,7 @@ export default function BuilderPage() {
                               <div style={{ width: "40px", height: "40px", borderRadius: "11px", overflow: "hidden", flexShrink: 0, border: "1px solid #DBEAFE" }}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
-                                  src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${agent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
+                                  src={agent.logoUrl || `https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${agent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`}
                                   alt={agent.name} width={40} height={40}
                                   style={{ display: "block", width: "100%", height: "100%" }}
                                 />
@@ -1141,7 +1141,7 @@ export default function BuilderPage() {
                                 </span>
                                 <div style={{ width: "24px", height: "24px", borderRadius: "7px", overflow: "hidden", flexShrink: 0, border: "1px solid #DBEAFE" }}>
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${a.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`} alt={a.name} width={24} height={24} style={{ display: "block", width: "100%", height: "100%" }} />
+                                  <img src={a.logoUrl || `https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${a.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`} alt={a.name} width={24} height={24} style={{ display: "block", width: "100%", height: "100%" }} />
                                 </div>
                                 <span style={{ fontSize: "11px", color: "#0A2540", fontWeight: 600, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                   {a.name}
@@ -1251,7 +1251,7 @@ export default function BuilderPage() {
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                       <div style={{ width: "36px", height: "36px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, border: "1px solid #DBEAFE" }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${selectedAgent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`} alt={selectedAgent.name} width={36} height={36} style={{ display: "block", width: "100%", height: "100%" }} />
+                        <img src={selectedAgent.logoUrl || `https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${selectedAgent.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`} alt={selectedAgent.name} width={36} height={36} style={{ display: "block", width: "100%", height: "100%" }} />
                       </div>
                       <div style={{ minWidth: 0 }}>
                         <p style={{ color: "#0A2540", fontSize: "13px", fontWeight: 700, margin: "0 0 1px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selectedAgent.name}</p>
@@ -1489,7 +1489,7 @@ export default function BuilderPage() {
                       <span style={{ fontSize: "10px", color: "#94a3b8", width: "14px", flexShrink: 0 }}>{i + 1}</span>
                       <div style={{ width: "22px", height: "22px", borderRadius: "6px", overflow: "hidden", flexShrink: 0, border: "1px solid #DBEAFE" }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={`https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${a.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`} alt={a.name} width={22} height={22} style={{ display: "block", width: "100%", height: "100%" }} />
+                        <img src={a.logoUrl || `https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${a.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`} alt={a.name} width={22} height={22} style={{ display: "block", width: "100%", height: "100%" }} />
                       </div>
                       <span style={{ fontSize: "11px", color: "#425466", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</span>
                       <span style={{ fontSize: "11px", color: "#0A2540", fontWeight: 600, flexShrink: 0 }}>
