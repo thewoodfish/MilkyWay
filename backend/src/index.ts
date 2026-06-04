@@ -70,9 +70,13 @@ app.get("/api/stats", async (_req, res) => {
   }
 });
 
-// ── Verification cron — every 24h ─────────────────────────────────────
+// ── Verification cron — every 2h + once at startup ───────────────────
 
-cron.schedule("0 0 * * *", async () => {
+runVerificationCycle().catch((err) =>
+  console.error("Startup verification error:", err)
+);
+
+cron.schedule("0 */2 * * *", async () => {
   try {
     await runVerificationCycle();
   } catch (err) {

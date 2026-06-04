@@ -107,7 +107,7 @@ router.get("/agents", authenticateJWT, async (req: AuthRequest, res: Response) =
     const address = req.user!.address;
 
     const myAgents = await prisma.agent.findMany({
-      where: { ownerAddress: address },
+      where: { ownerAddress: address, agentId: { not: null } },
       orderBy: { registeredAt: "desc" },
     });
 
