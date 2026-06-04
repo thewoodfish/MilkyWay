@@ -1,0 +1,58 @@
+{
+  "milkyway_version": "1.0",
+  "name": "Weather Agent",
+  "description": "Returns real-time weather conditions for any city. No API key required — powered by Open-Meteo.",
+  "wallet": "0x3656ABd007AED9B9A572a63c58447044D69f8DAf",
+  "max_deadline_seconds": 15,
+  "capabilities": {
+    "run": {
+      "description": "Fetch current weather for a given city",
+      "pricing": {
+        "model":    "per_job",
+        "amount":   "0.10",
+        "currency": "USDC"
+      },
+      "input_schema": {
+        "city": {
+          "type":        "string",
+          "required":    true,
+          "description": "City name to fetch weather for (e.g. Lagos, London, Tokyo)"
+        }
+      },
+      "output_schema": {
+        "city": {
+          "type":        "string",
+          "description": "Resolved city name"
+        },
+        "country": {
+          "type":        "string",
+          "description": "Country code"
+        },
+        "temperature_c": {
+          "type":        "number",
+          "description": "Current temperature in Celsius"
+        },
+        "temperature_f": {
+          "type":        "number",
+          "description": "Current temperature in Fahrenheit"
+        },
+        "feels_like_c": {
+          "type":        "number",
+          "description": "Apparent temperature in Celsius"
+        },
+        "humidity_pct": {
+          "type":        "number",
+          "description": "Relative humidity percentage"
+        },
+        "wind_speed_kmh": {
+          "type":        "number",
+          "description": "Wind speed in km/h"
+        },
+        "condition": {
+          "type":        "string",
+          "description": "Human-readable weather condition (e.g. Clear sky, Rain showers)"
+        }
+      }
+    }
+  }
+}

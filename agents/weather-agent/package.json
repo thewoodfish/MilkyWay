@@ -1,0 +1,23 @@
+{
+  "name": "weather-agent",
+  "version": "1.0.0",
+  "description": "Real-time weather agent powered by Open-Meteo",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev":      "milkyway dev --port 3100",
+    "build":    "tsc",
+    "start":    "node dist/index.js",
+    "validate": "milkyway validate",
+    "register": "milkyway register"
+  },
+  "dependencies": {
+    "@usemilkyway/agent-sdk": "latest",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@usemilkyway/cli": "latest",
+    "typescript":    "^5.0.0",
+    "@types/node":   "^20.0.0",
+    "tsx":           "^4.0.0"
+  }
+}
