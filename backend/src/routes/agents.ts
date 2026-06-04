@@ -473,9 +473,21 @@ router.post("/confirm", authenticateJWT, async (req: AuthRequest, res: Response)
       return res.status(403).json({ error: "Not your agent" });
     }
 
+    const now = new Date();
     const agent = await prisma.agent.update({
       where: { id: profileId },
-      data: { agentId, txHash, active: true, badgeTier: "BRONZE" },
+      data: { agentId, txHash, active: true, badgeTier: "BRONZE", verifiedAt: now },
+    });
+
+    // Write a verification log entry so lastCheckSuccess is immediately "live"
+    await prisma.verificationLog.create({
+      data: {
+        agentId,
+        endpoint: agent.endpoint,
+        success: true,
+        statusCode: 200,
+        checkedAt: now,
+      },
     });
 
     await prisma.builder.update({
