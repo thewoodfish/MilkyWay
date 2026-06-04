@@ -153,7 +153,7 @@ router.post("/confirm", authenticateJWT, async (req: AuthRequest, res: Response)
   }
 });
 
-// GET /api/flows/:jobId — flow status
+// GET /api/flows/:jobId — flow status with agent details
 router.get("/:jobId", async (req: AuthRequest, res: Response) => {
   try {
     const flow = await prisma.flow.findUnique({
@@ -161,7 +161,32 @@ router.get("/:jobId", async (req: AuthRequest, res: Response) => {
       include: { agents: { orderBy: { orderIndex: "asc" } } },
     });
     if (!flow) return res.status(404).json({ error: "Flow not found" });
-    res.json(flow);
+
+    const agentIds = flow.agents.map((a) => a.agentId);
+    const agentRecords = agentIds.length > 0
+      ? await prisma.agent.findMany({
+          where: { agentId: { in: agentIds } },
+          select: { agentId: true, name: true, logoUrl: true, slug: true },
+        })
+      : [];
+    const agentMap = Object.fromEntries(agentRecords.map((a) => [a.agentId!, a]));
+
+    res.json({
+      ...flow,
+      paymentTxHash: undefined, // never expose signed authorizations
+      agents: flow.agents.map((a) => ({
+        id: a.id,
+        agentId: a.agentId,
+        agentName: agentMap[a.agentId]?.name ?? `Agent #${a.agentId}`,
+        agentSlug: agentMap[a.agentId]?.slug ?? null,
+        logoUrl:   agentMap[a.agentId]?.logoUrl ?? null,
+        orderIndex: a.orderIndex,
+        amountUsdc: a.amountUsdc,
+        status: a.status,
+        output: a.output,
+        executedAt: a.executedAt,
+      })),
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
