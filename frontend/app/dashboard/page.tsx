@@ -631,8 +631,10 @@ export default function DashboardPage() {
                                   </span>
                                 </div>
                               </div>
-                              {/* Pipeline */}
-                              <FlowPipeline agents={f.agents} />
+                              {/* Agent names */}
+                              <p style={{ fontSize: "12px", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {f.agents.map((a) => a.agentName).join(" → ")}
+                              </p>
                             </div>
                           );
                         })}
