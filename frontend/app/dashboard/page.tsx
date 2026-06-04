@@ -638,7 +638,7 @@ export default function DashboardPage() {
                               {/* Agent avatars + names */}
                               <div style={{ display: "flex", alignItems: "center", gap: "6px", overflow: "hidden" }}>
                                 {f.agents.map((a, i) => {
-                                  const dicebear = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(a.agentName)}`;
+                                  const dicebear = `https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${a.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`;
                                   return (
                                     <div key={a.id} style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: i < f.agents.length - 1 ? 0 : 1, minWidth: 0 }}>
                                       <img
