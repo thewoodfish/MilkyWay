@@ -263,10 +263,8 @@ export default function FlowPage() {
 
           {flow.status === "FAILED" && (
             <div style={{ marginTop: "16px", padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "10px" }}>
-              <p style={{ fontSize: "13px", color: "#991b1b", fontWeight: 600, marginBottom: "2px" }}>Flow failed</p>
-              <p style={{ fontSize: "12px", color: "#64748b" }}>
-                Contact <a href="mailto:support@milkyway.fi" style={{ color: "#2563EB" }}>support@milkyway.fi</a> with job ID for a refund.
-              </p>
+              <p style={{ fontSize: "13px", color: "#991b1b", fontWeight: 600, marginBottom: "2px" }}>Execution failed</p>
+              <p style={{ fontSize: "12px", color: "#64748b" }}>Please try again.</p>
             </div>
           )}
         </div>
