@@ -114,7 +114,7 @@ router.get("/agents", authenticateJWT, async (req: AuthRequest, res: Response) =
     const agentIds = myAgents.map((a) => a.agentId!).filter(Boolean);
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const [completedJobs, verificationLogs] = await Promise.all([
+    const [completedJobs, verificationLogs, latestChecks] = await Promise.all([
       agentIds.length > 0
         ? prisma.flowAgent.findMany({
             where: { agentId: { in: agentIds }, status: "COMPLETED" },
@@ -126,6 +126,14 @@ router.get("/agents", authenticateJWT, async (req: AuthRequest, res: Response) =
         ? prisma.verificationLog.findMany({
             where: { agentId: { in: agentIds }, checkedAt: { gte: sevenDaysAgo } },
             select: { agentId: true, checkedAt: true, success: true },
+          })
+        : Promise.resolve([]),
+      agentIds.length > 0
+        ? prisma.verificationLog.findMany({
+            where: { agentId: { in: agentIds } },
+            orderBy: { checkedAt: "desc" },
+            distinct: ["agentId"],
+            select: { agentId: true, success: true },
           })
         : Promise.resolve([]),
     ]);
@@ -152,6 +160,8 @@ router.get("/agents", authenticateJWT, async (req: AuthRequest, res: Response) =
         });
       }
 
+      const lastCheck = latestChecks.find((l) => l.agentId === agent.agentId);
+
       return {
         agentId: agent.agentId,
         name: agent.name,
@@ -161,6 +171,7 @@ router.get("/agents", authenticateJWT, async (req: AuthRequest, res: Response) =
         active: agent.active,
         verifiedAt: agent.verifiedAt,
         failedChecks: agent.failedChecks,
+        lastCheckSuccess: lastCheck?.success ?? null,
         priceUsdc: agent.priceUsdc,
         pricingModel: agent.pricingModel,
         phase2Ready: agent.phase2Ready,

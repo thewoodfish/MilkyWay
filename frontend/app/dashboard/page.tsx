@@ -66,6 +66,7 @@ interface DashAgent {
   active: boolean;
   verifiedAt: string | null;
   failedChecks: number;
+  lastCheckSuccess: boolean | null;
   priceUsdc: string;
   pricingModel: string;
   aboutSchema: unknown;
@@ -140,6 +141,9 @@ function shortAddr(addr: string) {
 function agentHealth(a: DashAgent): "live" | "degraded" | "down" {
   if (!a.active) return "down";
   if (!a.verifiedAt) return "down";
+  if (a.lastCheckSuccess === false) return "down";
+  if (a.lastCheckSuccess === true) return "live";
+  // fallback when no log exists yet
   const hrs = (Date.now() - new Date(a.verifiedAt).getTime()) / 3_600_000;
   if (hrs < 2) return "live";
   if (hrs < 24) return "degraded";
