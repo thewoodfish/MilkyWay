@@ -70,6 +70,33 @@ export async function validateCommand(options: { config: string }) {
           }
         }
       }
+
+      const validPermTypes = [
+        "READ_WALLET_BALANCE",
+        "ACCESS_EXTERNAL_APIS",
+        "EXECUTE_TRANSACTIONS",
+        "MANAGE_AGENTS",
+      ];
+      if (cap.permissions) {
+        for (const perm of cap.permissions) {
+          if (!validPermTypes.includes(perm.type)) {
+            errors.push(`capability "${name}": unknown permission type "${perm.type}"`);
+          }
+          if (!perm.reason) {
+            warnings.push(`capability "${name}" permission "${perm.type}": missing reason`);
+          }
+          if (perm.type === "EXECUTE_TRANSACTIONS") {
+            if (!perm.token) {
+              errors.push(`capability "${name}" EXECUTE_TRANSACTIONS: token is required`);
+            } else if (perm.token !== "USDC") {
+              errors.push(`capability "${name}" EXECUTE_TRANSACTIONS: only USDC supported`);
+            }
+            if (!perm.max_per_transaction) {
+              warnings.push(`capability "${name}" EXECUTE_TRANSACTIONS: max_per_transaction not set`);
+            }
+          }
+        }
+      }
     }
   }
 

@@ -149,6 +149,26 @@ enum BadgeTier {
   GOLD
 }
 
+model SpendLimit {
+  id           String    @id @default(cuid())
+  userAddress  String
+  agentId      Int
+  agentAddress String
+  token        String    @default("USDC")
+  maxPerTx     String
+  maxLifetime  String
+  spentToDate  String    @default("0")
+  grantTxHash  String?
+  revokedAt    DateTime?
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([userAddress, agentId])
+  @@index([userAddress])
+  @@index([agentId])
+}
+
 model Notification {
   id        String   @id @default(cuid())
   address   String

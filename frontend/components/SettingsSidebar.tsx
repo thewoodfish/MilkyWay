@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
-  { label: "API Keys", href: "/settings/api-keys" },
+  { label: "API Keys",     href: "/settings/api-keys" },
+  { label: "Spend Limits", href: "/settings/spend-limits" },
 ];
 
 export function SettingsSidebar() {

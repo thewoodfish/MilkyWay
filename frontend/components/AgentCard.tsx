@@ -34,11 +34,22 @@ interface AgentCardProps {
   agent: Agent;
 }
 
+function hasExecutePermission(agent: Agent): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const about = agent.aboutSchema as Record<string, any> | null | undefined;
+  if (!about?.capabilities || typeof about.capabilities !== "object") return false;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return Object.values(about.capabilities as Record<string, any>).some((cap) =>
+    cap?.permissions?.some((p: { type: string }) => p.type === "EXECUTE_TRANSACTIONS")
+  );
+}
+
 export function AgentCard({ agent }: AgentCardProps) {
   const status = agentStatus(agent);
   const sm = STATUS_META[status];
   const cm = CATEGORY_META[agent.category] ?? BLUE;
   const bm = agent.badgeTier && agent.badgeTier !== "NONE" ? BADGE_META[agent.badgeTier] : null;
+  const canExecute = hasExecutePermission(agent);
 
   return (
     <Link
@@ -95,6 +106,14 @@ export function AgentCard({ agent }: AgentCardProps) {
                   style={{ background: bm.bg, color: bm.color }}
                 >
                   {bm.label}
+                </span>
+              )}
+              {canExecute && (
+                <span
+                  className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                  style={{ background: "#FFFBEB", color: "#92400E", border: "1px solid #FDE68A" }}
+                >
+                  ⚡ Can execute
                 </span>
               )}
             </div>

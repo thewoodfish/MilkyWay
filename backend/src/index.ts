@@ -9,6 +9,7 @@ import earningsRouter from "./routes/earnings";
 import dashboardRouter from "./routes/dashboard";
 import notificationsRouter from "./routes/notifications";
 import uploadRouter from "./routes/upload";
+import permissionsRouter from "./routes/permissions";
 import { prisma } from "./lib/db";
 import { runVerificationCycle } from "./services/verification";
 
@@ -28,6 +29,7 @@ app.use("/api/earnings", earningsRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/upload", uploadRouter);
+app.use("/api/permissions", permissionsRouter);
 
 // GET /api/builders/:address
 app.get("/api/builders/:address", async (req, res) => {

@@ -1285,6 +1285,25 @@ export default function BuilderPage() {
                   </div>
 
                   <div style={{ flex: 1, overflowY: "auto" }}>
+                    {/* Execute transactions warning */}
+                    {(() => {
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      const caps = agentAbout?.capabilities as Record<string, any> | undefined;
+                      const hasExec = caps && Object.values(caps).some(
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (c: any) => c?.permissions?.some((p: any) => p.type === "EXECUTE_TRANSACTIONS")
+                      );
+                      if (!hasExec) return null;
+                      return (
+                        <div style={{ margin: "12px 14px 0", padding: "10px 12px", background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: "10px" }}>
+                          <p style={{ fontSize: "12px", fontWeight: 700, color: "#92400E", margin: "0 0 3px" }}>⚡ This agent can execute transactions</p>
+                          <p style={{ fontSize: "11px", color: "#B45309", margin: 0, lineHeight: 1.4 }}>
+                            When you activate this flow, you&apos;ll be asked to set a spend limit for this agent.
+                          </p>
+                        </div>
+                      );
+                    })()}
+
                     {/* What it needs */}
                     {Object.keys(agentInputSchema).length > 0 && (
                       <div style={{ padding: "12px 14px", borderBottom: "1px solid #E3E8EF" }}>

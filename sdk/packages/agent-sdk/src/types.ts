@@ -27,8 +27,24 @@ export interface AgentPricing {
   currency: "USDC";
 }
 
+export type PermissionType =
+  | "READ_WALLET_BALANCE"
+  | "ACCESS_EXTERNAL_APIS"
+  | "EXECUTE_TRANSACTIONS"
+  | "MANAGE_AGENTS";
+
+export interface PermissionDeclaration {
+  type:                 PermissionType;
+  reason:               string;
+  // EXECUTE_TRANSACTIONS only:
+  token?:               string;   // "USDC"
+  max_per_transaction?: string;
+  max_lifetime?:        string;
+}
+
 export interface CapabilityDef {
   description:   string;
+  permissions?:  PermissionDeclaration[];
   pricing:       AgentPricing;
   input_schema:  AgentSchema;
   output_schema: AgentSchema;
