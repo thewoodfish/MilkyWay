@@ -6,6 +6,8 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAuth } from "@/context/AuthContext";
 import { authFetch } from "@/lib/auth";
 import { SignInButton } from "./SignInButton";
+import { ActivationModal } from "./ActivationModal";
+import type { PermissionDeclaration } from "./PermissionsList";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -44,7 +46,10 @@ interface AboutSchema {
 }
 
 interface Props {
-  agentId: number;
+  agentId:   number;
+  agentName: string;
+  logoUrl?:  string | null;
+  badgeTier: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   aboutSchema: any;
   priceUsdc: string;
@@ -103,7 +108,7 @@ function extractCapabilities(raw: any): { name: string; schema: AboutSchema }[] 
   return [];
 }
 
-export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Props) {
+export function QuickExecute({ agentId, agentName, logoUrl, badgeTier, aboutSchema: rawSchema, priceUsdc }: Props) {
   const capabilities = extractCapabilities(rawSchema);
   const [selectedCap, setSelectedCap] = useState(0);
   const aboutSchema = capabilities[selectedCap]?.schema ?? ({} as AboutSchema);
@@ -124,6 +129,15 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError]   = useState("");
   const [result, setResult] = useState<unknown>(null);
+  const [showActivation, setShowActivation] = useState(false);
+
+  // Collect EXECUTE_TRANSACTIONS permissions across all capabilities
+  const allPermissions: PermissionDeclaration[] = rawSchema?.capabilities
+    ? Object.values(rawSchema.capabilities as Record<string, { permissions?: PermissionDeclaration[] }>)
+        .flatMap((c) => c?.permissions ?? [])
+    : (rawSchema?.permissions ?? []);
+  const hasExecutePermission = allPermissions.some((p) => p.type === "EXECUTE_TRANSACTIONS");
+  const agentWallet: string = rawSchema?.wallet ?? "";
 
   // Pre-fill defaults when capability changes
   useEffect(() => {
@@ -133,6 +147,14 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
     }
     setInputs(defaults);
   }, [selectedCap]);
+
+  function handleExecuteClick() {
+    if (hasExecutePermission) {
+      setShowActivation(true);
+    } else {
+      handleExecute();
+    }
+  }
 
   async function handleExecute() {
     setError("");
@@ -398,12 +420,26 @@ export function QuickExecute({ agentId, aboutSchema: rawSchema, priceUsdc }: Pro
       )}
 
       <button
-        onClick={handleExecute}
+        onClick={handleExecuteClick}
         disabled={isRunning}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm py-3 rounded-lg transition-colors shadow-btn"
       >
         {isRunning ? statusLabel[status] : "Execute Now →"}
       </button>
+
+      {showActivation && (
+        <ActivationModal
+          agentId={agentId}
+          agentName={agentName}
+          logoUrl={logoUrl}
+          badgeTier={badgeTier}
+          priceUsdc={priceUsdc}
+          agentWallet={agentWallet}
+          permissions={allPermissions}
+          onConfirm={() => { setShowActivation(false); handleExecute(); }}
+          onClose={() => setShowActivation(false)}
+        />
+      )}
     </div>
   );
 }

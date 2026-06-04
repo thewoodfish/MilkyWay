@@ -594,6 +594,9 @@ export default async function AgentProfilePage({
             {showQuickExecute ? (
               <QuickExecute
                 agentId={agent.agentId!}
+                agentName={agent.name}
+                logoUrl={agent.logoUrl}
+                badgeTier={agent.badgeTier}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 aboutSchema={agent.aboutSchema as any}
                 priceUsdc={agent.priceUsdc}
