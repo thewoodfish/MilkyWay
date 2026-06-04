@@ -1558,6 +1558,11 @@ export default function BuilderPage() {
                 {/* Confirm button */}
                 <div style={{ padding: "12px 14px", borderTop: "1px solid #E3E8EF", flexShrink: 0 }}>
                   {error && <p style={{ fontSize: "11px", color: "#ef4444", margin: "0 0 8px", lineHeight: 1.4 }}>{error}</p>}
+                  {canActivate && !activating && (
+                    <p style={{ fontSize: "11px", color: "#64748b", margin: "0 0 8px", lineHeight: 1.4, textAlign: "center" }}>
+                      Your wallet will prompt you {canvasAgents.length + 1} time{canvasAgents.length + 1 !== 1 ? "s" : ""} to sign — once per agent, plus a small platform fee.
+                    </p>
+                  )}
                   <button
                     onClick={activateFlow}
                     disabled={!canActivate}
