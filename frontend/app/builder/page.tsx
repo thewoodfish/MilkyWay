@@ -11,7 +11,7 @@ import ReactFlow, {
   BackgroundVariant,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
+import { useSignTypedData, useAccount } from "wagmi";
 import { apiFetch, CATEGORY_LABELS } from "@/lib/utils";
 import { authFetch } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
@@ -19,12 +19,21 @@ import { AuthGate } from "@/components/AuthGate";
 import { UsdcAmount } from "@/components/UsdcAmount";
 import type { Agent } from "@/lib/types";
 
-const USDC_ADDRESS = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" as `0x${string}`;
-const USDC_TRANSFER_ABI = [
-  { name: "transfer", type: "function", stateMutability: "nonpayable",
-    inputs: [{ name: "to", type: "address" }, { name: "amount", type: "uint256" }],
-    outputs: [{ name: "", type: "bool" }] },
-] as const;
+// Arbitrum Sepolia — swap both lines for mainnet post-hackathon
+const CHAIN_ID = 421614;
+const USDC_ADDRESS = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d" as `0x${string}`;
+
+const EIP3009_TYPES = {
+  TransferWithAuthorization: [
+    { name: "from",        type: "address" },
+    { name: "to",          type: "address" },
+    { name: "value",       type: "uint256" },
+    { name: "validAfter",  type: "uint256" },
+    { name: "validBefore", type: "uint256" },
+    { name: "nonce",       type: "bytes32" },
+  ],
+} as const;
+
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -485,12 +494,10 @@ export default function BuilderPage() {
   const [deadlineSeconds, setDeadlineSeconds] = useState(300);
 
   const [preview, setPreview] = useState<{ subtotal: string; protocolFee: string; total: string } | null>(null);
-  const [flowInternalId, setFlowInternalId] = useState("");
   const [activating, setActivating] = useState(false);
   const [error, setError] = useState("");
 
-  const { writeContract, data: txHash, isPending } = useWriteContract();
-  const { isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  const { signTypedDataAsync } = useSignTypedData();
 
   useEffect(() => {
     apiFetch<{ agents: Agent[] }>("/api/agents?limit=100")
@@ -505,17 +512,6 @@ export default function BuilderPage() {
       body: JSON.stringify({ agents: canvasAgents.map((a) => ({ agentId: a.agentId })) }),
     }).then(setPreview).catch(() => {});
   }, [canvasAgents]);
-
-  useEffect(() => {
-    if (!isSuccess || !txHash || !flowInternalId) return;
-    authFetch(`${API}/api/flows/confirm`, {
-      method: "POST",
-      body: JSON.stringify({ internalId: flowInternalId, paymentTxHash: txHash }),
-    })
-      .then((r) => r.json())
-      .then((data) => router.push(`/flows/${encodeURIComponent(data.jobId)}`))
-      .catch((e) => setError((e as Error).message));
-  }, [isSuccess, txHash, flowInternalId]);
 
   const removeFromCanvas = useCallback((agentId: number) => {
     setNodes((ns) => ns.filter((n) => n.id !== `agent-${agentId}`));
@@ -562,6 +558,8 @@ export default function BuilderPage() {
         staticInputs: staticInputs[String(a.agentId)] ?? {},
         inputMapping: inputMappings[String(a.agentId)] ?? {},
       }));
+
+      // 1. Create flow — backend returns EIP-3009 params to sign
       const res = await authFetch(`${API}/api/flows/create`, {
         method: "POST",
         body: JSON.stringify({ agents: agentsPayload, trigger: "IMMEDIATE", deadlineSeconds }),
@@ -569,16 +567,40 @@ export default function BuilderPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to create flow");
 
-      setFlowInternalId(data.internalId);
-      writeContract({
-        address: USDC_ADDRESS,
-        abi: USDC_TRANSFER_ABI,
-        functionName: "transfer",
-        args: [
-          data.milkywayPaymentAddress as `0x${string}`,
-          BigInt(data.rawAmountUsdc),
-        ],
+      const { internalId, eip3009Params, jobId } = data as {
+        internalId: string;
+        jobId: string;
+        eip3009Params: { from: string; to: string; value: string; validAfter: string; validBefore: string; nonce: string }[];
+      };
+
+      // 2. Sign each EIP-3009 authorization sequentially (wallet can't handle concurrent prompts)
+      const signatures: `0x${string}`[] = [];
+      for (const auth of eip3009Params) {
+        const sig = await signTypedDataAsync({
+          domain: { name: "USD Coin", version: "2", chainId: CHAIN_ID, verifyingContract: USDC_ADDRESS },
+          types: EIP3009_TYPES,
+          primaryType: "TransferWithAuthorization",
+          message: {
+            from:        auth.from as `0x${string}`,
+            to:          auth.to as `0x${string}`,
+            value:       BigInt(auth.value),
+            validAfter:  BigInt(auth.validAfter),
+            validBefore: BigInt(auth.validBefore),
+            nonce:       auth.nonce as `0x${string}`,
+          },
+        });
+        signatures.push(sig);
+      }
+
+      // 3. Confirm — engine runs the flow and settles via facilitator
+      const confirmRes = await authFetch(`${API}/api/flows/confirm`, {
+        method: "POST",
+        body: JSON.stringify({ internalId, signatures, eip3009Params }),
       });
+      const confirmData = await confirmRes.json();
+      if (!confirmRes.ok) throw new Error(confirmData.error ?? "Failed to confirm flow");
+
+      router.push(`/flows/${encodeURIComponent(jobId)}`);
     } catch (e) {
       setError((e as Error).message);
       setActivating(false);
@@ -618,7 +640,7 @@ export default function BuilderPage() {
     ? (canvasAgents.find((a) => `agent-${a.agentId}` === selectedEdge.target) ?? null)
     : null;
 
-  const canActivate = isConnected && isSignedIn && !isPending && !activating && canvasAgents.length > 0;
+  const canActivate = isConnected && isSignedIn && !activating && canvasAgents.length > 0;
 
   // Shared label style for right panel sections
   const sectionLabel: React.CSSProperties = {
@@ -1551,7 +1573,7 @@ export default function BuilderPage() {
                     onMouseEnter={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#1d4ed8"; }}
                     onMouseLeave={(e) => { if (canActivate) (e.currentTarget as HTMLButtonElement).style.background = "#2563EB"; }}
                   >
-                    {isPending ? "Check wallet…" : activating ? "Locking payment…" : "Confirm & Lock Payment"}
+                    {activating ? "Sign in wallet…" : "Approve & Execute"}
                   </button>
                 </div>
               </div>
