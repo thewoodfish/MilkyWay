@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSignMessage, useChainId, useSwitchChain } from "wagmi";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSignMessage, useChainId, useSwitchChain, usePublicClient } from "wagmi";
 import { arbitrumSepolia } from "wagmi/chains";
 import { parseEther, parseEventLogs } from "viem";
 import { REGISTRY_ABI } from "@/lib/registry-abi";
@@ -121,6 +121,7 @@ export default function RegisterPage() {
   const { isLoading: isConfirming, isSuccess: isTxConfirmed, data: receipt } =
     useWaitForTransactionReceipt({ hash: txHash });
   const { switchChainAsync } = useSwitchChain();
+  const publicClient = usePublicClient();
 
   async function testEndpoint() {
     setPingLoading(true);
@@ -164,12 +165,20 @@ export default function RegisterPage() {
       );
       setProfileId(data.profileId);
 
+      // Fetch live base fee and add 50% buffer so the tx is never rejected
+      // for maxFeePerGas < baseFee during a slight fee tick-up
+      const block = await publicClient!.getBlock({ blockTag: "latest" });
+      const baseFee = block.baseFeePerGas ?? BigInt(20_000_000);
+      const maxFeePerGas = (baseFee * BigInt(15)) / BigInt(10); // 1.5x buffer
+
       writeContract({
         address: REGISTRY,
         abi: REGISTRY_ABI,
         functionName: "registerAgent",
         args: [data.metadataHash as `0x${string}`],
         value: STAKE,
+        maxFeePerGas,
+        maxPriorityFeePerGas: BigInt(1_000_000), // 0.001 gwei tip
       });
     } catch (e: unknown) {
       setError((e as Error).message);
