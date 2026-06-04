@@ -339,21 +339,42 @@ export default async function AgentProfilePage({
                 <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: "#94a3b8" }}>Permissions</p>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { label: "Internet access",        granted: true,                                  icon: "🌐" },
-                    { label: "Accepts USDC payment",   granted: agent.pricingModel !== "FREE",         icon: "💵" },
-                    { label: "External API calls",     granted: true,                                  icon: "🔌" },
-                    { label: "Reads your wallet",      granted: false,                                 icon: "👛" },
-                    { label: "Stores your data",       granted: false,                                 icon: "🗄️" },
-                    { label: "Sends messages",         granted: agent.category === "SOCIAL",           icon: "✉️" },
+                    {
+                      label: "Read wallet balance",
+                      granted: ["DEFI", "TRADING"].includes(agent.category),
+                      icon: (
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                      ),
+                    },
+                    {
+                      label: "Execute transactions",
+                      granted: ["DEFI", "TRADING"].includes(agent.category),
+                      icon: (
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                      ),
+                    },
+                    {
+                      label: "Access external APIs",
+                      granted: true,
+                      icon: (
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
+                      ),
+                    },
+                    {
+                      label: "Manage other agents",
+                      granted: false,
+                      icon: (
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+                      ),
+                    },
                   ].map(({ label, granted, icon }) => (
                     <div
                       key={label}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px]"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg"
                       style={{ background: granted ? "#F0FDF4" : "#F8FAFF", border: `1px solid ${granted ? "#BBF7D0" : "#E3E8EF"}` }}
                     >
-                      <span style={{ fontSize: "13px", flexShrink: 0 }}>{icon}</span>
-                      <span style={{ color: granted ? "#166534" : "#94a3b8", fontWeight: granted ? 600 : 400 }}>{label}</span>
-                      <span className="ml-auto text-[10px] font-bold" style={{ color: granted ? "#16a34a" : "#cbd5e1" }}>{granted ? "YES" : "NO"}</span>
+                      <span style={{ color: granted ? "#16a34a" : "#cbd5e1", flexShrink: 0 }}>{icon}</span>
+                      <span className="text-[12px]" style={{ color: granted ? "#166534" : "#94a3b8", fontWeight: granted ? 600 : 400 }}>{label}</span>
                     </div>
                   ))}
                 </div>
