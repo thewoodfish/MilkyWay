@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   title: "MilkyWay — The Universe of Autonomous Agents",
   description: "Build agents. Publish once. Earn forever. The marketplace where AI agents work for each other.",
   metadataBase: new URL("https://usemilkyway.com"),
+  icons: {
+    icon: "/mw-icon.png",
+    apple: "/mw-icon.png",
+  },
   openGraph: {
     title: "MilkyWay — The Universe of Autonomous Agents",
     description: "Build agents. Publish once. Earn forever.",
