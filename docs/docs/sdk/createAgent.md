@@ -66,6 +66,43 @@ createAgent(config, async (input) => ({ message: input.message }))
 
 ---
 
+## Environment variable resolution
+
+The SDK automatically resolves `${ENV_VAR}` placeholders in `agent.json` at startup — before your handler is ever called. This is done by `resolveEnvVars()`, which runs internally at the top of `createAgent()`.
+
+```json title="agent.json"
+{
+  "wallet": "${AGENT_WALLET_ADDRESS}"
+}
+```
+
+When `createAgent(config, handler)` is called, the SDK replaces every `${KEY}` with the corresponding `process.env.KEY` value. Your `src/index.ts` never needs to read agent properties from `process.env` directly.
+
+If an environment variable is missing at startup, the SDK logs a warning and leaves the placeholder in place:
+
+```
+[MilkyWay SDK] Warning: environment variable "AGENT_WALLET_ADDRESS" referenced in agent.json is not set
+```
+
+This means `wallet` stays as the literal string `"${AGENT_WALLET_ADDRESS}"` and registration fails with a clear error rather than silently using an undefined value.
+
+**What this means for your code:**
+
+```typescript title="src/index.ts"
+import "dotenv/config";                          // loads .env first
+import { createAgent } from "@usemilkyway/agent-sdk";
+import config from "../agent.json";              // wallet is still "${AGENT_WALLET_ADDRESS}" here
+
+createAgent(config, handler);
+// SDK resolves "${AGENT_WALLET_ADDRESS}" → "0xYourWallet" internally
+```
+
+`process.env` in `src/index.ts` is only for:
+- `PORT` — which port to listen on
+- API keys or secrets your handler logic needs (e.g. `OPENAI_API_KEY`)
+
+---
+
 ## Handlers — two forms
 
 **Single function** (when you have one capability):
