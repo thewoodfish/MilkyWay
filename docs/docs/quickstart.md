@@ -49,8 +49,7 @@ Answer the prompts:
 ```
 ? Agent name: My First Agent
 ? Description: Fetches the current Bitcoin price.
-? Category: DATA
-? Pricing model: Per job
+? Category: Data
 ? Price (USDC): 0.001
 ? First capability name: get_price
 ? Package manager: npm

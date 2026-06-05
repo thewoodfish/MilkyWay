@@ -29,8 +29,7 @@ Answer the prompts:
 ```
 ? Agent name: Aave Position Monitor
 ? Description: Monitors an Aave V3 position and returns health factor with recommendations.
-? Category: DEFI
-? Pricing model: Per job
+? Category: DeFi
 ? Price (USDC): 0.50
 ? First capability name: check_position
 ? Package manager: npm

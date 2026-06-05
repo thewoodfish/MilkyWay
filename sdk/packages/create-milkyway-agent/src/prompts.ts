@@ -4,7 +4,7 @@ export interface ScaffoldAnswers {
   name:           string;
   description:    string;
   category:       string;
-  pricingModel:   string;
+  pricingModel:   string;  // always "per_job"
   price:          string;
   capability:     string;
   packageManager: string;
@@ -31,25 +31,13 @@ export async function runPrompts(): Promise<ScaffoldAnswers> {
       type:    "list",
       name:    "category",
       message: "Category:",
-      choices: ["DEFI", "TRADING", "DATA", "PRODUCTIVITY", "UTILITY", "SECURITY", "GAMING", "SOCIAL"]
-    },
-    {
-      type:    "list",
-      name:    "pricingModel",
-      message: "Pricing model:",
-      choices: [
-        { name: "Per job",   value: "per_job"   },
-        { name: "Per day",   value: "per_day"   },
-        { name: "Per month", value: "per_month" },
-        { name: "Free",      value: "free"      }
-      ]
+      choices: ["DeFi", "Trading", "Data", "Productivity", "Utility", "Security", "Gaming", "Social"]
     },
     {
       type:     "input",
       name:     "price",
       message:  "Price (USDC):",
       default:  "1.00",
-      when:     (a: ScaffoldAnswers) => a.pricingModel !== "free",
       validate: (v: string) => !isNaN(parseFloat(v)) || "Must be a number"
     },
     {
@@ -74,8 +62,7 @@ export async function runPrompts(): Promise<ScaffoldAnswers> {
     }
   ]);
 
-  // Default price for free agents
-  if (!answers.price) answers.price = "0";
+  answers.pricingModel = "per_job";
 
   return answers as ScaffoldAnswers;
 }
