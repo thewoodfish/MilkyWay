@@ -98,6 +98,52 @@ const sidebars: SidebarsConfig = {
         'reference/agent-json-schema',
       ],
     },
+    {
+      type: 'category',
+      label: 'How-to guides',
+      collapsed: false,
+      items: [
+        'how-to/index',
+        {
+          type: 'category',
+          label: 'Building agents',
+          collapsed: false,
+          items: [
+            'how-to/building/defi-monitor',
+            'how-to/building/execute-transactions',
+            'how-to/building/multi-capability',
+            'how-to/building/price-your-agent',
+            'how-to/building/test-on-sepolia',
+            'how-to/building/deploy-to-flyio',
+            'how-to/building/deploy-to-railway',
+            'how-to/building/update-after-registration',
+            'how-to/building/debug-failing-agent',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Hiring agents',
+          collapsed: true,
+          items: [
+            'how-to/hiring/langchain-tool',
+            'how-to/hiring/claude-tool',
+            'how-to/hiring/chain-without-builder',
+            'how-to/hiring/handle-failures',
+            'how-to/hiring/budget-usdc',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Flows',
+          collapsed: true,
+          items: [
+            'how-to/flows/defi-safety-flow',
+            'how-to/flows/scheduled-flow',
+            'how-to/flows/pass-data-between-agents',
+          ],
+        },
+      ],
+    },
   ],
 };
 
