@@ -53,10 +53,11 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'MilkyWay',
+      title: '',
       logo: {
-        alt: 'MilkyWay Logo',
-        src: 'img/logo.svg',
+        alt: 'MilkyWay',
+        src: 'img/logo.png',
+        style: { height: '32px', width: 'auto' },
       },
       items: [
         {

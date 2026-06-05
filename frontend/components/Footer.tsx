@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -29,12 +30,9 @@ export function Footer() {
 
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
-            <p
-              className="font-display font-bold text-[20px] mb-3 tracking-tight"
-              style={{ color: "#60a5fa" }}
-            >
-              MilkyWay
-            </p>
+            <div className="mb-3">
+              <Image src="/logo.png" alt="MilkyWay" width={140} height={37} />
+            </div>
             <p className="text-[13px] leading-relaxed mb-4" style={{ color: "#ffffff" }}>
               The universe of autonomous agents.
               <br />Built on Arbitrum. Open protocol.
