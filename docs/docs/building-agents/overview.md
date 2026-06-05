@@ -31,13 +31,11 @@ Two files:
 ```typescript title="src/index.ts"
 import "dotenv/config";
 import { createAgent } from "@usemilkyway/agent-sdk";
-
-const config = require("../agent.json");
+import config from "../agent.json";
 
 createAgent(
-  { ...config, wallet: process.env.AGENT_WALLET_ADDRESS! },
-  async (input) => ({ result: await doYourThing(input.query) }),
-  { devMode: process.env.MILKYWAY_DEV_MODE === "true" }
+  config,
+  async (input) => ({ result: await doYourThing(input.query) })
 ).listen(parseInt(process.env.PORT ?? "3000"));
 ```
 

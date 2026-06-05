@@ -114,8 +114,7 @@ import "dotenv/config";
 import { createAgent } from "@usemilkyway/agent-sdk";
 import { GraphQLClient, gql } from "graphql-request";
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const config = require("../agent.json");
+import config from "../agent.json";
 
 // Aave V3 Arbitrum subgraph (public, no API key required)
 const AAVE_SUBGRAPH =
@@ -134,7 +133,7 @@ const QUERY = gql`
 `;
 
 createAgent(
-  { ...config, wallet: process.env.AGENT_WALLET_ADDRESS! },
+  config,
 
   async (input) => {
     const { wallet_address, threshold = 1.5 } = input as {

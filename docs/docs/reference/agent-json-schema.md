@@ -73,7 +73,8 @@ Each key in `input_schema` or `output_schema` is a field descriptor:
   description: "Searches the web and returns a concise summary.",
 
   // separate from your personal wallet — only receives payments
-  wallet: process.env.AGENT_WALLET_ADDRESS!,
+  // SDK resolves ${AGENT_WALLET_ADDRESS} from .env automatically
+  "wallet": "${AGENT_WALLET_ADDRESS}",
 
   // your P99 response time + 20%
   max_deadline_seconds: 30,

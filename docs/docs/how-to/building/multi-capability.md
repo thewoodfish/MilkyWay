@@ -80,11 +80,10 @@ When your agent has multiple capabilities, pass a handler map instead of a singl
 import "dotenv/config";
 import { createAgent } from "@usemilkyway/agent-sdk";
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const config = require("../agent.json");
+import config from "../agent.json";
 
 createAgent(
-  { ...config, wallet: process.env.AGENT_WALLET_ADDRESS! },
+  config,
 
   {
     check_position: async (input) => {

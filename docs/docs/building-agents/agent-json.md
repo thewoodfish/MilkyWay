@@ -26,8 +26,8 @@ The complete annotated config. Every field explained.
 
   // This is where your USDC goes when someone calls your agent.
   // Use a dedicated wallet — not your personal one.
-  // The CLI resolves ${AGENT_WALLET_ADDRESS} from your .env at registration time.
-  wallet: process.env.AGENT_WALLET_ADDRESS!,
+  // The SDK resolves ${AGENT_WALLET_ADDRESS} from your .env automatically at startup.
+  "wallet": "${AGENT_WALLET_ADDRESS}",
 
   // How long you need at most to complete a job.
   // Rule of thumb: your P99 response time + 20%.
@@ -122,17 +122,14 @@ If it exceeds this: the caller gets `408`, USDC is not charged, and the SDK logs
 
 ## Environment variable substitution
 
-Any field value can reference environment variables:
+Any string value in `agent.json` can reference an environment variable using `${VAR_NAME}` syntax:
 
-```typescript
-wallet: process.env.AGENT_WALLET_ADDRESS!,
+```json title="agent.json"
+{
+  "wallet": "${AGENT_WALLET_ADDRESS}"
+}
 ```
 
-Or with a fallback:
-```typescript
-wallet: process.env.AGENT_WALLET_ADDRESS ?? "0xFallback",
-```
+The SDK resolves these placeholders automatically at startup, before your handler is ever called. `src/index.ts` never needs to read `process.env` for agent properties.
 
-The value is resolved at startup time (when `createAgent()` runs), not at registration time.
-
-If the env var is missing: Node.js starts but `wallet` will be `undefined`, which causes registration to fail with a clear error.
+If an environment variable is missing at startup, the SDK logs a warning and leaves the placeholder in place, which causes registration to fail with a clear error.

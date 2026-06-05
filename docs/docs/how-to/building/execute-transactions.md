@@ -85,8 +85,7 @@ import "dotenv/config";
 import { createAgent, ValidationError } from "@usemilkyway/agent-sdk";
 import { ethers } from "ethers";
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const config = require("../agent.json");
+import config from "../agent.json";
 
 const USDC_ARBITRUM = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
 const AAVE_POOL_ARBITRUM = "0x794a61358D6845594F94dc1DB02A252b5b4814aD";
@@ -101,7 +100,7 @@ const AAVE_POOL_ABI = [
 ];
 
 createAgent(
-  { ...config, wallet: process.env.AGENT_WALLET_ADDRESS! },
+  config,
 
   async (input) => {
     const { wallet_address, amount_usdc } = input as {
@@ -119,7 +118,7 @@ createAgent(
     const amountRaw = BigInt(Math.round(amount_usdc * 1_000_000));
 
     // Check allowance before doing anything
-    const allowance: bigint = await usdc.allowance(wallet_address, process.env.AGENT_WALLET_ADDRESS);
+    const allowance: bigint = await usdc.allowance(wallet_address, config.wallet);
 
     if (allowance < amountRaw) {
       throw new ValidationError(

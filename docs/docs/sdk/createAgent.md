@@ -24,30 +24,31 @@ function createAgent(
 
 ## The simplest possible agent
 
-```typescript
+```json title="agent.json"
+{
+  "milkyway_version": "1.0",
+  "name": "Echo",
+  "description": "Returns whatever you send it.",
+  "wallet": "${AGENT_WALLET_ADDRESS}",
+  "max_deadline_seconds": 5,
+  "capabilities": {
+    "echo": {
+      "description": "Echo the input back.",
+      "pricing": { "model": "per_job", "amount": "0.001", "currency": "USDC" },
+      "input_schema": { "message": { "type": "string", "required": true } },
+      "output_schema": { "message": { "type": "string" } }
+    }
+  }
+}
+```
+
+```typescript title="src/index.ts"
 import "dotenv/config";
 import { createAgent } from "@usemilkyway/agent-sdk";
+import config from "../agent.json";
 
-const agent = createAgent(
-  {
-    milkyway_version: "1.0",
-    name: "Echo",
-    description: "Returns whatever you send it.",
-    wallet: process.env.AGENT_WALLET_ADDRESS!,
-    max_deadline_seconds: 5,
-    capabilities: {
-      echo: {
-        description: "Echo the input back.",
-        pricing: { model: "per_job", amount: "0.001", currency: "USDC" },
-        input_schema: { message: { type: "string", required: true } },
-        output_schema: { message: { type: "string" } },
-      },
-    },
-  },
-  async (input) => ({ message: input.message })
-);
-
-agent.listen(parseInt(process.env.PORT ?? "3000"));
+createAgent(config, async (input) => ({ message: input.message }))
+  .listen(parseInt(process.env.PORT ?? "3000"));
 ```
 
 ---
@@ -121,45 +122,48 @@ listen(3000);
 
 A full agent with two capabilities, constraints, and real logic:
 
+```json title="agent.json"
+{
+  "milkyway_version": "1.0",
+  "name": "Data Agent",
+  "description": "Converts and validates data formats.",
+  "wallet": "${AGENT_WALLET_ADDRESS}",
+  "max_deadline_seconds": 10,
+  "capabilities": {
+    "convert": {
+      "description": "Convert a number from one unit to another.",
+      "pricing": { "model": "per_job", "amount": "0.005", "currency": "USDC" },
+      "input_schema": {
+        "value": { "type": "number", "required": true,  "description": "Value to convert" },
+        "from":  { "type": "string", "required": true,  "enum": ["km", "miles", "kg", "lbs"] },
+        "to":    { "type": "string", "required": true,  "enum": ["km", "miles", "kg", "lbs"] }
+      },
+      "output_schema": {
+        "result":  { "type": "number", "description": "Converted value" },
+        "formula": { "type": "string", "description": "Conversion formula used" }
+      }
+    },
+    "validate": {
+      "description": "Check if a string is a valid email address.",
+      "pricing": { "model": "per_job", "amount": "0.001", "currency": "USDC" },
+      "input_schema": {
+        "email": { "type": "string", "required": true, "description": "Email to validate" }
+      },
+      "output_schema": {
+        "valid":  { "type": "boolean", "description": "Whether the email is valid" },
+        "reason": { "type": "string",  "description": "Why it's invalid (if not valid)" }
+      }
+    }
+  }
+}
+```
+
 ```typescript title="src/index.ts"
 import "dotenv/config";
 import { createAgent, ValidationError } from "@usemilkyway/agent-sdk";
+import config from "../agent.json";
 
-const agent = createAgent(
-  {
-    milkyway_version: "1.0",
-    name: "Data Agent",
-    description: "Converts and validates data formats.",
-    wallet: process.env.AGENT_WALLET_ADDRESS!,
-    max_deadline_seconds: 10,
-    capabilities: {
-      convert: {
-        description: "Convert a number from one unit to another.",
-        pricing: { model: "per_job", amount: "0.005", currency: "USDC" },
-        input_schema: {
-          value:    { type: "number",  required: true,  description: "Value to convert" },
-          from:     { type: "string",  required: true,  enum: ["km", "miles", "kg", "lbs"] },
-          to:       { type: "string",  required: true,  enum: ["km", "miles", "kg", "lbs"] },
-        },
-        output_schema: {
-          result:   { type: "number",  description: "Converted value" },
-          formula:  { type: "string",  description: "Conversion formula used" },
-        },
-      },
-      validate: {
-        description: "Check if a string is a valid email address.",
-        pricing: { model: "per_job", amount: "0.001", currency: "USDC" },
-        input_schema: {
-          email: { type: "string", required: true, description: "Email to validate" },
-        },
-        output_schema: {
-          valid:   { type: "boolean", description: "Whether the email is valid" },
-          reason:  { type: "string",  description: "Why it's invalid (if not valid)" },
-        },
-      },
-    },
-  },
-  {
+createAgent(config, {
     convert: async ({ value, from, to }) => {
       const rates: Record<string, number> = { km: 1, miles: 0.621371, kg: 1, lbs: 2.20462 };
       if (!(from in rates) || !(to in rates)) {
@@ -172,9 +176,6 @@ const agent = createAgent(
       const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
       return { valid, reason: valid ? "" : "Missing @ or domain" };
     },
-  },
-  { devMode: process.env.MILKYWAY_DEV_MODE === "true" }
-);
-
-agent.listen(parseInt(process.env.PORT ?? "3000"));
+  }
+).listen(parseInt(process.env.PORT ?? "3000"));
 ```

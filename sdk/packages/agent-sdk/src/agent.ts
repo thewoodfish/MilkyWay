@@ -13,11 +13,32 @@ interface AgentInstance {
   listen: (port: number, callback?: () => void) => void;
 }
 
+// Resolves ${ENV_VAR} placeholders in agent.json values at startup
+function resolveEnvVars(config: AgentConfig): AgentConfig {
+  const json     = JSON.stringify(config);
+  const resolved = json.replace(
+    /\$\{([^}]+)\}/g,
+    (match, key) => {
+      const val = process.env[key];
+      if (!val) {
+        console.warn(
+          `[MilkyWay SDK] Warning: environment variable "${key}" ` +
+          `referenced in agent.json is not set`
+        );
+        return match;
+      }
+      return val;
+    }
+  );
+  return JSON.parse(resolved) as AgentConfig;
+}
+
 export function createAgent(
   config:   AgentConfig,
   handlers: Handlers,
   options:  CreateAgentOptions = {}
 ): AgentInstance {
+  const resolvedConfig = resolveEnvVars(config);
   const app = express();
   app.use(express.json());
 
@@ -45,33 +66,33 @@ export function createAgent(
   // ── Standard endpoints ─────────────────────────────────────────────────────
 
   app.get("/health", (_req, res) => {
-    res.json({ name: config.name, version: "1.0.0", status: "ok", ...(devMode && { devMode: true }) });
+    res.json({ name: resolvedConfig.name, version: "1.0.0", status: "ok", ...(devMode && { devMode: true }) });
   });
 
   app.get("/about", (_req, res) => {
     const about: MilkyWayAbout = {
       milkyway_version:     "1.0",
-      name:                 config.name,
-      description:          config.description,
-      wallet:               config.wallet,
-      max_deadline_seconds: config.max_deadline_seconds || 30,
-      capabilities:         config.capabilities,
+      name:                 resolvedConfig.name,
+      description:          resolvedConfig.description,
+      wallet:               resolvedConfig.wallet,
+      max_deadline_seconds: resolvedConfig.max_deadline_seconds || 30,
+      capabilities:         resolvedConfig.capabilities,
     };
     res.json(about);
   });
 
   app.post("/execute", async (req, res) => {
     const capabilityName =
-      req.body?.task?.capability || Object.keys(config.capabilities)[0];
-    const capability = config.capabilities[capabilityName];
+      req.body?.task?.capability || Object.keys(resolvedConfig.capabilities)[0];
+    const capability = resolvedConfig.capabilities[capabilityName];
 
     if (!capability) {
-      return buildExecuteHandler(config, handlers)(req, res);
+      return buildExecuteHandler(resolvedConfig, handlers)(req, res);
     }
 
-    requirePayment(config.wallet, capability.pricing, devMode)(
+    requirePayment(resolvedConfig.wallet, capability.pricing, devMode)(
       req, res,
-      () => buildExecuteHandler(config, handlers)(req, res)
+      () => buildExecuteHandler(resolvedConfig, handlers)(req, res)
     );
   });
 
@@ -81,21 +102,21 @@ export function createAgent(
     const DRAIN_TIMEOUT_MS = 30_000;
 
     async function shutdown(signal: string) {
-      console.log(`\n[${config.name}] ${signal} received — shutting down gracefully`);
+      console.log(`\n[${resolvedConfig.name}] ${signal} received — shutting down gracefully`);
       isShuttingDown = true;
       server.close();
 
       const start = Date.now();
       while (inFlightCount > 0) {
         if (Date.now() - start > DRAIN_TIMEOUT_MS) {
-          console.warn(`[${config.name}] Drain timeout — ${inFlightCount} request(s) still in flight. Forcing exit.`);
+          console.warn(`[${resolvedConfig.name}] Drain timeout — ${inFlightCount} request(s) still in flight. Forcing exit.`);
           break;
         }
-        console.log(`[${config.name}] Draining — ${inFlightCount} request(s) in flight...`);
+        console.log(`[${resolvedConfig.name}] Draining — ${inFlightCount} request(s) in flight...`);
         await new Promise((r) => setTimeout(r, 500));
       }
 
-      console.log(`[${config.name}] Shutdown complete`);
+      console.log(`[${resolvedConfig.name}] Shutdown complete`);
       process.exit(0);
     }
 
@@ -107,7 +128,7 @@ export function createAgent(
     app,
     listen: (port: number, callback?: () => void) => {
       const server = app.listen(port, callback || (() => {
-        logStartup(config.name, port, Object.keys(config.capabilities));
+        logStartup(resolvedConfig.name, port, Object.keys(resolvedConfig.capabilities));
       }));
       setupGracefulShutdown(server);
     },

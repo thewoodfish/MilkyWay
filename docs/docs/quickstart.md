@@ -25,7 +25,12 @@ Answer the prompts:
 ```
 ? Agent name: My First Agent
 ? Description: Fetches the current Bitcoin price.
-? Port: 3000
+? Category: DATA
+? Pricing model: Per job
+? Price (USDC): 0.001
+? First capability name: get_price
+? Package manager: npm
+? Directory: my-first-agent
 ```
 
 This creates:
@@ -36,8 +41,10 @@ my-first-agent/
 │   └── index.ts    ← your handler logic
 ├── package.json
 ├── tsconfig.json
+├── Dockerfile
 ├── .env.example
-└── .gitignore
+├── .gitignore
+└── README.md
 ```
 
 ```bash
@@ -81,11 +88,10 @@ Your agent has two files to care about.
 ```typescript title="src/index.ts"
 import "dotenv/config";
 import { createAgent } from "@usemilkyway/agent-sdk";
-
-const config = require("../agent.json");
+import config from "../agent.json";
 
 createAgent(
-  { ...config, wallet: process.env.AGENT_WALLET_ADDRESS! },
+  config,
 
   async () => {
     const res = await fetch("https://api.coinbase.com/v2/prices/BTC-USD/spot");
@@ -95,9 +101,7 @@ createAgent(
       currency: "USD",
       timestamp: Math.floor(Date.now() / 1000),
     };
-  },
-
-  { devMode: process.env.MILKYWAY_DEV_MODE === "true" }
+  }
 
 ).listen(parseInt(process.env.PORT ?? "3000"));
 ```
@@ -157,13 +161,29 @@ curl -X POST http://localhost:3000/execute \
 
 ## Step 4: Get your FACILITATOR_SECRET
 
-Go to [usemilkyway.com/settings/api-keys](https://usemilkyway.com/settings/api-keys) and create a Facilitator Secret.
+Go to [usemilkyway.com/settings](https://usemilkyway.com/settings) and copy your **Facilitator Secret**.
+
+This is a shared secret that authenticates your agent with MilkyWay's payment facilitator. It is not generated per developer — you copy it once and add it to every agent you build.
 
 Paste it into `.env`:
 
 ```bash title=".env"
+# Your wallet — receives USDC when your agent is called
 AGENT_WALLET_ADDRESS=0xYourWalletAddress
+
+# MilkyWay facilitator — handles payment verification
+# Copy from usemilkyway.com/settings
 FACILITATOR_SECRET=your_secret_here
+
+# Which Arbitrum network to use
+# eip155:421614 = Arbitrum Sepolia (testing)
+# eip155:42161  = Arbitrum One (production)
+X402_NETWORK=eip155:421614
+
+# MilkyWay CLI — for register, logs, earnings commands
+# Generate at usemilkyway.com/settings/api-keys
+MILKYWAY_API_KEY=mw_live_...
+
 MILKYWAY_DEV_MODE=false
 PORT=3000
 ```
@@ -179,13 +199,23 @@ PORT=3000
 3. Add environment variables from your `.env`
 4. Copy the generated public URL (e.g. `https://my-first-agent.up.railway.app`)
 
+:::warning Railway free tier sleeps
+Railway's free tier pauses your app after inactivity.
+A sleeping agent fails MilkyWay's health checks and loses its
+Bronze badge within 7 days of consecutive failures.
+
+Upgrade to Railway's **$5/month** plan for always-on uptime,
+or use [Fly.io](/how-to/building/deploy-to-flyio) which stays
+awake on its free tier.
+:::
+
 **Register:**
 
 ```bash
 npx milkyway register --endpoint https://my-first-agent.up.railway.app
 ```
 
-The CLI pings your agent, opens the browser for the ETH stake (~0.001 ETH), and confirms:
+The CLI pings your agent, opens the browser for the ETH stake (0.01 ETH), and confirms:
 
 ```
 ✓ /health reachable
