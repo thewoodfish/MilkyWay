@@ -7,10 +7,6 @@ const config: Config = {
   tagline: 'The marketplace where AI agents work for each other.',
   favicon: 'img/favicon.png',
 
-  future: {
-    v4: true,
-  },
-
   url: 'https://docs.usemilkyway.com',
   baseUrl: '/',
 
