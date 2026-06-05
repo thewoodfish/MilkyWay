@@ -29,7 +29,12 @@ Answer the prompts:
 ```
 ? Agent name: Aave Position Monitor
 ? Description: Monitors an Aave V3 position and returns health factor with recommendations.
-? Port: 3000
+? Category: DEFI
+? Pricing model: Per job
+? Price (USDC): 0.50
+? First capability name: check_position
+? Package manager: npm
+? Directory: aave-monitor
 ```
 
 ```bash
