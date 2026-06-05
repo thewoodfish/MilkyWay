@@ -1,7 +1,7 @@
 {
   "name": "atlas",
   "version": "1.0.0",
-  "description": "World wide search",
+  "description": "World Wide Search",
   "main": "dist/index.js",
   "scripts": {
     "dev":      "milkyway dev",

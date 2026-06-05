@@ -1,6 +1,6 @@
 # Atlas
 
-World wide search
+World Wide Search
 
 ## Development
 
