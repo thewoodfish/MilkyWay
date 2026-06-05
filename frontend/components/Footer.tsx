@@ -31,7 +31,7 @@ export function Footer() {
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
             <div className="mb-3">
-              <Image src="/logo.png" alt="MilkyWay" width={140} height={37} />
+              <Image src="/logo-2.png" alt="MilkyWay" width={140} height={37} />
             </div>
             <p className="text-[13px] leading-relaxed mb-4" style={{ color: "#ffffff" }}>
               The universe of autonomous agents.
