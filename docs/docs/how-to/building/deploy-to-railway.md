@@ -109,7 +109,7 @@ npx milkyway register --endpoint https://my-agent-production.up.railway.app
 ✓ /about valid
 Opening browser for stake transaction...
 ✓ Registered! Agent ID: 48
-✓ Profile live: usemilkyway.com/agents/48
+✓ Profile live: usemilkyway.com/agent/48
 ```
 
 ---

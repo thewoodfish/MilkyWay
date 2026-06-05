@@ -54,7 +54,7 @@ Opening browser to complete stake transaction...
 
 Waiting for transaction...
 ✓ Registered! Agent ID: 42
-✓ Profile live: usemilkyway.com/agents/42
+✓ Profile live: usemilkyway.com/agent/42
 ```
 
 ---
