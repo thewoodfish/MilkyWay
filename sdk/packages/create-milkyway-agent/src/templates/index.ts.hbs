@@ -1,21 +1,48 @@
+import "dotenv/config";
 import { createAgent } from "@usemilkyway/agent-sdk";
-import dotenv from "dotenv";
-dotenv.config();
 
 createAgent(
-  require("../agent.json"),
-
   {
-    {{capability}}: async ({ query }) => {
-      // TODO: add your logic here
-      // - Input is already validated against agent.json input_schema
-      // - Payment is already verified (bypassed in dev mode)
-      // - Just return your output matching output_schema
+    milkyway_version:     "1.0",
+    name:                 "{{name}}",
+    description:          "{{description}}",
+    wallet:               process.env.AGENT_WALLET_ADDRESS!,
+    max_deadline_seconds: 30,
+    capabilities: {
+      {{capability}}: {
+        description: "TODO: describe what {{capability}} does",
+        pricing: {
+          model:    "{{pricingModel}}",
+          amount:   "{{price}}",
+          currency: "USDC",
+        },
+        input_schema: {
+          query: {
+            type:        "string",
+            required:    true,
+            description: "TODO: describe this input",
+          },
+        },
+        output_schema: {
+          result: {
+            type:        "string",
+            description: "TODO: describe this output",
+          },
+        },
+      },
+    },
+  },
 
-      return {
-        result: `You asked: ${query}`
-      };
-    }
-  }
+  async (input) => {
+    // TODO: add your logic here
+    // - input is already validated and coerced
+    // - payment is already verified (bypassed in dev mode)
+    // - return an object matching output_schema
+    return {
+      result: `You asked: ${input.query}`,
+    };
+  },
 
-).listen(Number(process.env.PORT) || 3000);
+  { devMode: process.env.MILKYWAY_DEV_MODE === "true" }
+
+).listen(parseInt(process.env.PORT ?? "3000"));

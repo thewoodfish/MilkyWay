@@ -1,6 +1,6 @@
 {
   "name": "create-milkyway-agent",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "Scaffold a new MilkyWay agent project",
   "main": "dist/index.js",
   "bin": {
