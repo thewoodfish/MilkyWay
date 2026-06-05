@@ -109,6 +109,7 @@ const sidebars: SidebarsConfig = {
           label: 'Building agents',
           collapsed: false,
           items: [
+            'how-to/building/get-sepolia-eth',
             'how-to/building/defi-monitor',
             'how-to/building/execute-transactions',
             'how-to/building/multi-capability',

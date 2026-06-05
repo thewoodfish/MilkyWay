@@ -10,7 +10,7 @@ No prerequisites except Node.js 18+.
 
 **Prerequisites:**
 - Node.js 18 or later
-- A wallet with Arbitrum Sepolia ETH — [get it free](https://arbitrum.faucet.dev)
+- A wallet with Arbitrum Sepolia ETH — [get it free](/how-to/building/get-sepolia-eth)
 - A wallet with test USDC — [get it free](https://faucet.circle.com)
 
 ---
@@ -59,7 +59,7 @@ Answer the prompts:
 This creates:
 ```
 my-first-agent/
-├── agent.json      ← name, description, capabilities, pricing
+├── agent.json      ← your agents identity
 ├── src/
 │   └── index.ts    ← your handler logic
 ├── package.json
