@@ -44,11 +44,19 @@ export function Navbar() {
           </div>
         )}
 
-        {/* Right: explore (logged out) + register + wallet + sign out */}
+        {/* Right: explore (logged out) + docs + register + wallet + sign out */}
         <div className="flex items-center gap-3">
           {!isSignedIn && (
             <Link href="/agents" className="hidden md:inline-flex text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Explore</Link>
           )}
+          <a
+            href="https://docs.usemilkyway.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:inline-flex text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50"
+          >
+            Docs
+          </a>
           <Link
             href="/register"
             className="hidden sm:inline-flex text-sm font-semibold text-[#2563EB] hover:underline transition-colors px-2"

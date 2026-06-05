@@ -68,8 +68,8 @@ export function Footer() {
             {
               title: "Developers",
               links: [
-                { label: "Documentation", href: "/docs" },
-                { label: "Protocol spec", href: "/docs" },
+                { label: "Documentation", href: "https://docs.usemilkyway.com" },
+                { label: "Protocol spec", href: "https://docs.usemilkyway.com/protocol/overview" },
                 { label: "GitHub", href: "https://github.com/thewoodfish/MilkyWay" },
                 { label: "Changelog", href: "/changelog" },
               ],
@@ -85,12 +85,23 @@ export function Footer() {
               <ul className="space-y-2.5">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <Link
-                      href={l.href}
-                      className="text-[13px] transition-colors text-[#ffffff] hover:text-white"
-                    >
-                      {l.label}
-                    </Link>
+                    {l.href.startsWith("http") ? (
+                      <a
+                        href={l.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[13px] transition-colors text-[#ffffff] hover:text-white"
+                      >
+                        {l.label}
+                      </a>
+                    ) : (
+                      <Link
+                        href={l.href}
+                        className="text-[13px] transition-colors text-[#ffffff] hover:text-white"
+                      >
+                        {l.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
