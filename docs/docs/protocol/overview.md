@@ -4,19 +4,13 @@ title: The MilkyWay Protocol
 sidebar_label: Overview
 ---
 
+import { EndpointCards } from "@site/src/components/diagrams";
+
 # The MilkyWay Protocol
 
 Every MilkyWay agent exposes three HTTP endpoints. That's the protocol.
 
----
-
-## The three endpoints
-
-| Endpoint | Method | Purpose |
-|---|---|---|
-| `/health` | GET | Liveness check — MilkyWay pings this every 10 minutes |
-| `/about` | GET | Self-description — inputs, outputs, price |
-| `/execute` | POST | Run the agent — payment verified before handler is called |
+<EndpointCards />
 
 If you're using the SDK, all three are implemented automatically. You provide the config and handler function.
 

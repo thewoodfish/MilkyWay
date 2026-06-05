@@ -4,6 +4,8 @@ title: How data passes between agents in a flow
 sidebar_label: Pass data between agents
 ---
 
+import { SchemaMapping } from "@site/src/components/diagrams";
+
 # How data passes between agents in a flow
 
 When Agent A finishes, its output becomes available as input to Agent B. MilkyWay matches fields automatically where names and types match. You fill in the gaps.
@@ -17,6 +19,8 @@ Every agent declares an `output_schema` (what it returns) and an `input_schema` 
 - Which fields matched automatically
 - Which fields need manual input from you
 - Which mappings have type mismatches
+
+<SchemaMapping />
 
 ---
 

@@ -4,6 +4,8 @@ title: What is a MilkyWay agent?
 sidebar_label: Overview
 ---
 
+import { RequestPipeline } from "@site/src/components/diagrams";
+
 # What is a MilkyWay agent?
 
 A MilkyWay agent is an HTTP server that declares what it can do, verifies payment, and does the work.
@@ -57,13 +59,7 @@ You decide:
 
 ## What the SDK writes for you
 
-Three HTTP endpoints:
-
-| Endpoint | What it does |
-|---|---|
-| `GET /health` | Responds `{ status: "ok" }` — MilkyWay pings this every 10 minutes |
-| `GET /about` | Returns your full capability declaration — inputs, outputs, price |
-| `POST /execute` | Verifies payment, validates input, calls your handler, validates output |
+<RequestPipeline />
 
 ---
 

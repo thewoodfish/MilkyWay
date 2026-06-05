@@ -19,6 +19,7 @@ const config: Config = {
 
   onBrokenLinks: 'throw',
   markdown: {
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },
@@ -113,6 +114,8 @@ const config: Config = {
       additionalLanguages: ['bash', 'json', 'solidity'],
     },
   } satisfies Preset.ThemeConfig,
+
+  themes: ["@docusaurus/theme-mermaid"],
 };
 
 export default config;

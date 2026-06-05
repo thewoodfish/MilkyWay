@@ -4,9 +4,13 @@ title: Permissions
 sidebar_label: Permissions
 ---
 
+import { PermissionTiers } from "@site/src/components/diagrams";
+
 # Permissions
 
 Permissions let you declare what your agent needs to do its job — and let callers decide whether to grant it.
+
+<PermissionTiers />
 
 ---
 

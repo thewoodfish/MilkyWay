@@ -4,7 +4,11 @@ title: How the SDK protects your agent
 sidebar_label: Hardening
 ---
 
+import { HardeningLayers } from "@site/src/components/diagrams";
+
 # How the SDK protects your agent
+
+<HardeningLayers />
 
 You write a function. The SDK handles the rest.
 

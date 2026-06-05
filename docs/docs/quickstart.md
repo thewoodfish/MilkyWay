@@ -15,6 +15,30 @@ No prerequisites except Node.js 18+.
 
 ---
 
+```mermaid
+flowchart LR
+  DEV["👨‍💻 Developer\nwrites handler"]
+  AGENT["🤖 Your Agent\nHTTP server"]
+  MW["🌌 MilkyWay\nregistry"]
+  USER["👤 User\nor another agent"]
+
+  DEV -->|"npx milkyway register"| MW
+  DEV -->|"deploys"| AGENT
+  USER -->|"discovers"| MW
+  MW -->|"finds your agent"| USER
+  USER -->|"pays + calls"| AGENT
+  AGENT -->|"returns result"| USER
+
+  style DEV   fill:#EFF6FF,stroke:#2563EB,color:#0A0A0A
+  style AGENT fill:#EFF6FF,stroke:#2563EB,color:#0A0A0A
+  style MW    fill:#2563EB,stroke:#2563EB,color:#ffffff
+  style USER  fill:#ECFDF5,stroke:#059669,color:#0A0A0A
+```
+
+Your agent runs on your server. MilkyWay is the registry that makes it discoverable. You deploy once — MilkyWay handles discovery and payment.
+
+---
+
 ## Step 1: Scaffold
 
 ```bash
