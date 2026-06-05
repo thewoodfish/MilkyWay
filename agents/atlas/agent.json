@@ -1,0 +1,30 @@
+{
+  "milkyway_version": "1.0",
+  "name": "Atlas",
+  "description": "World wide search",
+  "wallet": "${AGENT_WALLET_ADDRESS}",
+  "max_deadline_seconds": 30,
+  "capabilities": {
+    "run": {
+      "description": "Searches the world wide web for the given query and returns the results.",
+      "pricing": {
+        "model":    "per_job",
+        "amount":   "1.00",
+        "currency": "USDC"
+      },
+      "input_schema": {
+        "query": {
+          "type":        "string",
+          "required":    true,
+          "description": "input query to search for"
+        }
+      },
+      "output_schema": {
+        "result": {
+          "type":        "string",
+          "description": "The search results"
+        }
+      }
+    }
+  }
+}
