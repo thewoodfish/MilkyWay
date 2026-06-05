@@ -4,11 +4,34 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount, useSignMessage, useChainId } from "wagmi";
+import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { getNonce, buildSiweMessage, verifySignature } from "@/lib/auth";
 
 export function Navbar() {
-  const { isSignedIn, signOut } = useAuth();
+  const { isSignedIn, signOut, setSignedIn } = useAuth();
+  const { isConnected, address } = useAccount();
+  const chainId = useChainId();
+  const { signMessageAsync } = useSignMessage();
+  const [signing, setSigning] = useState(false);
   const pathname = usePathname();
+
+  async function handleSignIn() {
+    if (!address) return;
+    setSigning(true);
+    try {
+      const nonce   = await getNonce();
+      const message = buildSiweMessage(address, chainId, nonce);
+      const sig     = await signMessageAsync({ message });
+      const { address: verified, token } = await verifySignature(message, sig);
+      setSignedIn(verified, token);
+    } catch {
+      // user cancelled — do nothing
+    } finally {
+      setSigning(false);
+    }
+  }
 
   function navLink(href: string, label: string) {
     const active = pathname === href || (href !== "/" && pathname.startsWith(href));
@@ -65,6 +88,18 @@ export function Navbar() {
             Register Agent →
           </Link>
           <ConnectButton chainStatus="icon" showBalance={false} />
+          {isConnected && !isSignedIn && (
+            <button
+              onClick={handleSignIn}
+              disabled={signing}
+              className="text-[12px] font-semibold px-3.5 py-1.5 rounded-lg transition-all disabled:opacity-60"
+              style={{ background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE" }}
+              onMouseEnter={e => { if (!signing) (e.currentTarget as HTMLElement).style.background = "#DBEAFE"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "#EFF6FF"; }}
+            >
+              {signing ? "Check wallet…" : "Sign In →"}
+            </button>
+          )}
           {isSignedIn && (
             <button
               onClick={signOut}

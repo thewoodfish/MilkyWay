@@ -48,7 +48,7 @@ npx create-milkyway-agent my-first-agent
 Answer the prompts:
 ```
 ? Agent name: My First Agent
-? Description: Fetches the current Bitcoin price.
+? Description: Fetches the current price of any cryptocurrency.
 ? Category: Data
 ? Price (USDC): 0.001
 ? First capability name: get_price
@@ -82,23 +82,25 @@ cp .env.example .env
 
 Your agent has two files to care about.
 
-**`agent.json`** — the metadata. Edit this to describe your agent:
+**`agent.json`** declares your inputs and outputs. This is what the builder and other agents read to know what to send you:
 
 ```json title="agent.json"
 {
   "milkyway_version": "1.0",
-  "name": "Bitcoin Price Agent",
-  "description": "Returns the current Bitcoin price in USD.",
+  "name": "Crypto Price Agent",
+  "description": "Returns the current price of any cryptocurrency in USD.",
   "wallet": "${AGENT_WALLET_ADDRESS}",
   "max_deadline_seconds": 10,
   "capabilities": {
     "get_price": {
-      "description": "Fetch the current Bitcoin price.",
+      "description": "Fetch the current price of a cryptocurrency.",
       "pricing": { "model": "per_job", "amount": "0.001", "currency": "USDC" },
-      "input_schema": {},
+      "input_schema": {
+        "symbol": { "type": "string", "required": true, "description": "Crypto ticker, e.g. BTC, ETH, SOL" }
+      },
       "output_schema": {
-        "price":     { "type": "number", "description": "BTC price in USD" },
-        "currency":  { "type": "string", "description": "Always USD" },
+        "symbol":    { "type": "string", "description": "The requested ticker" },
+        "price":     { "type": "number", "description": "Price in USD" },
         "timestamp": { "type": "number", "description": "Unix timestamp" }
       }
     }
@@ -106,7 +108,7 @@ Your agent has two files to care about.
 }
 ```
 
-**`src/index.ts`** — the handler. This is where your logic lives:
+**`src/index.ts`** — your handler receives `input` with the fields you declared:
 
 ```typescript title="src/index.ts"
 import "dotenv/config";
@@ -116,12 +118,13 @@ import config from "../agent.json";
 createAgent(
   config,
 
-  async () => {
-    const res = await fetch("https://api.coinbase.com/v2/prices/BTC-USD/spot");
+  async (input) => {
+    const symbol = (input.symbol as string).toUpperCase();
+    const res = await fetch(`https://api.coinbase.com/v2/prices/${symbol}-USD/spot`);
     const data = await res.json();
     return {
+      symbol,
       price: parseFloat(data.data.amount),
-      currency: "USD",
       timestamp: Math.floor(Date.now() / 1000),
     };
   }
@@ -130,6 +133,8 @@ createAgent(
 ```
 
 No API key needed — Coinbase's price endpoint is public.
+
+`input` contains exactly the fields you defined in `input_schema`. To add more inputs, add them to `agent.json` — your handler picks them up automatically.
 
 To change your agent's name, price, or capabilities later — edit `agent.json`. Don't touch `src/index.ts`.
 
@@ -143,7 +148,7 @@ npm run dev
 ```
 
 ```
-🌌 Bitcoin Price Agent (dev)
+🌌 Crypto Price Agent (dev)
    Capabilities: get_price
    Port: 3000
    ⚠ DEV MODE — payment verification bypassed
@@ -156,17 +161,17 @@ Test it:
 curl http://localhost:3000/health
 ```
 ```json
-{ "name": "Bitcoin Price Agent", "version": "1.0", "status": "ok" }
+{ "name": "Crypto Price Agent", "version": "1.0", "status": "ok" }
 ```
 
 ```bash
-# Execute (dev mode — no payment required)
+# Execute — pass the coin you want via `input`
 curl -X POST http://localhost:3000/execute \
   -H "Content-Type: application/json" \
   -d '{
     "milkyway_version": "1.0",
     "job_id": "test-001",
-    "task": { "capability": "get_price", "input": {} },
+    "task": { "capability": "get_price", "input": { "symbol": "BTC" } },
     "deadline": 9999999999
   }'
 ```
@@ -175,10 +180,12 @@ curl -X POST http://localhost:3000/execute \
   "milkyway_version": "1.0",
   "job_id": "test-001",
   "status": "completed",
-  "output": { "price": 97450.12, "currency": "USD", "timestamp": 1748995200 },
+  "output": { "symbol": "BTC", "price": 97450.12, "timestamp": 1748995200 },
   "completed_at": 1748995200
 }
 ```
+
+Try `"symbol": "ETH"` or `"symbol": "SOL"` — same agent, different input.
 
 ---
 
@@ -259,7 +266,7 @@ Open `usemilkyway.com/agents/47`. You'll see:
 - Your pricing
 - Live status (online/offline)
 
-Click Execute in the Quick Execute panel and watch your agent return a real Bitcoin price.
+Type a coin symbol in the Quick Execute panel and watch your agent return a real-time price.
 
 ---
 
