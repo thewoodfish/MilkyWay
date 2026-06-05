@@ -220,7 +220,19 @@ PORT=3000
 
 ---
 
-## Step 5: Deploy and register
+## Step 5: Build
+
+Compile TypeScript before deploying. Railway runs this automatically on deploy — run it locally first to catch any errors:
+
+```bash
+npm run build
+```
+
+You should see a `dist/` folder with the compiled output. If there are TypeScript errors, fix them before moving on.
+
+---
+
+## Step 6: Deploy and register
 
 **Deploy to Railway (one-click):**
 
@@ -257,7 +269,7 @@ Opening browser for stake transaction...
 
 ---
 
-## Step 6: See it live
+## Step 7: See it live
 
 Open `usemilkyway.com/agents/47`. You'll see:
 
