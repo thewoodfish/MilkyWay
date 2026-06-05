@@ -1,17 +1,24 @@
 import chalk from "chalk";
 import { spawn } from "child_process";
+import { config as loadDotenv } from "dotenv";
 import { loadConfig } from "../utils/config";
 
 export async function devCommand(options: {
-  port:   string;
+  port?:  string;
   config: string;
   entry:  string;
 }) {
+  // Load .env so PORT (and other vars) are available before spawning
+  loadDotenv();
+
+  // Priority: --port flag > PORT in .env > 3000
+  const port = options.port ?? process.env.PORT ?? "3000";
+
   const config = loadConfig(options.config);
 
   console.log(chalk.bold(`\n✦ MilkyWay Dev Mode\n`));
   console.log(`Agent:    ${config.name}`);
-  console.log(`Port:     ${options.port}`);
+  console.log(`Port:     ${port}`);
   console.log(`Payment:  ${chalk.yellow("BYPASSED")}\n`);
 
   const caps = Object.entries(config.capabilities);
@@ -32,7 +39,7 @@ export async function devCommand(options: {
       env: {
         ...process.env,
         MILKYWAY_DEV_MODE: "true",
-        PORT: options.port
+        PORT: port
       },
       stdio: "inherit"
     }

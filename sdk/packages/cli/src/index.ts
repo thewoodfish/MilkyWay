@@ -18,7 +18,7 @@ program
 program
   .command("dev")
   .description("Start agent in development mode (payment bypassed)")
-  .option("-p, --port <port>",   "port to run on", "3000")
+  .option("-p, --port <port>",   "port to run on (default: PORT from .env or 3000)")
   .option("-c, --config <path>", "path to agent.json", "./agent.json")
   .option("-e, --entry <path>",  "entry file", "./src/index.ts")
   .action(devCommand);
