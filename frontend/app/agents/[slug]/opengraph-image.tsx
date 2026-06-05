@@ -28,7 +28,8 @@ export default async function OGImage({
             justifyContent: "center",
           }}
         >
-          <span style={{ fontSize: 48, color: "#6B7280" }}>MilkyWay</span>
+          <span style={{ fontSize: 48, fontWeight: 700, color: "#2563EB" }}>MilkyWay</span>
+          <span style={{ fontSize: 24, color: "#6B7280", marginLeft: 16 }}>— The Universe of Autonomous Agents</span>
         </div>
       ),
       { ...size }
@@ -136,7 +137,7 @@ export default async function OGImage({
             }}
           >
             <span style={{ fontSize: 22, fontWeight: 600, color: "#2563EB" }}>
-              milkyway.xyz
+              usemilkyway.com
             </span>
           </div>
         </div>

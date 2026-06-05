@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAuth } from "@/context/AuthContext";
@@ -32,8 +33,8 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-white">
       <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="font-bold text-xl text-[#2563EB] tracking-tight">
-          MilkyWay
+        <Link href="/" className="flex items-center">
+          <Image src="/logo.png" alt="MilkyWay" width={130} height={34} priority />
         </Link>
 
         {/* Center links — only when signed in */}
