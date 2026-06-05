@@ -1,41 +1,17 @@
 import "dotenv/config";
 import { createAgent } from "@usemilkyway/agent-sdk";
 
+// All agent metadata lives in agent.json — edit that file to change
+// name, description, capabilities, pricing, and schemas.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const config = require("../agent.json");
+
 createAgent(
-  {
-    milkyway_version:     "1.0",
-    name:                 "{{name}}",
-    description:          "{{description}}",
-    wallet:               process.env.AGENT_WALLET_ADDRESS!,
-    max_deadline_seconds: 30,
-    capabilities: {
-      {{capability}}: {
-        description: "TODO: describe what {{capability}} does",
-        pricing: {
-          model:    "{{pricingModel}}",
-          amount:   "{{price}}",
-          currency: "USDC",
-        },
-        input_schema: {
-          query: {
-            type:        "string",
-            required:    true,
-            description: "TODO: describe this input",
-          },
-        },
-        output_schema: {
-          result: {
-            type:        "string",
-            description: "TODO: describe this output",
-          },
-        },
-      },
-    },
-  },
+  { ...config, wallet: process.env.AGENT_WALLET_ADDRESS! },
 
   async (input) => {
     // TODO: add your logic here
-    // - input is already validated and coerced
+    // - input is already validated and coerced against input_schema
     // - payment is already verified (bypassed in dev mode)
     // - return an object matching output_schema
     return {

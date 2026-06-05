@@ -1,0 +1,33 @@
+{
+  "milkyway_version": "1.0",
+  "name": "Weather Agent",
+  "description": "Returns current weather conditions for any city using the Open-Meteo API. No API key required.",
+  "wallet": "${AGENT_WALLET_ADDRESS}",
+  "max_deadline_seconds": 15,
+  "capabilities": {
+    "get_weather": {
+      "description": "Get current weather for a city.",
+      "pricing": {
+        "model": "per_job",
+        "amount": "0.002",
+        "currency": "USDC"
+      },
+      "input_schema": {
+        "city": {
+          "type": "string",
+          "required": true,
+          "description": "City name to get weather for",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      },
+      "output_schema": {
+        "city":        { "type": "string", "description": "City name as resolved" },
+        "temperature": { "type": "number", "description": "Current temperature in Celsius" },
+        "windspeed":   { "type": "number", "description": "Wind speed in km/h" },
+        "condition":   { "type": "string", "description": "Weather condition description" },
+        "timestamp":   { "type": "number", "description": "Unix timestamp of reading" }
+      }
+    }
+  }
+}

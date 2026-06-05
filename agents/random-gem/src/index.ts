@@ -1,42 +1,20 @@
 import "dotenv/config";
 import { createAgent } from "@usemilkyway/agent-sdk";
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const config = require("../agent.json");
+
 const GEMS = [
   "Ruby", "Emerald", "Sapphire", "Diamond", "Amethyst",
   "Topaz", "Opal", "Garnet", "Aquamarine", "Onyx",
   "Jade", "Peridot", "Tourmaline", "Tanzanite", "Citrine",
 ];
-
 const RARITIES = ["Common", "Uncommon", "Rare", "Epic", "Legendary"];
 const QUALITIES = ["Flawless", "Fine", "Good", "Fair", "Rough"];
 
-const agent = createAgent(
-  {
-    milkyway_version: "1.0",
-    name: "Random Gem",
-    description: "Generates a random gem with rarity and quality attributes. A simple example of a paid MilkyWay agent.",
-    wallet: process.env.AGENT_WALLET_ADDRESS!,
-    max_deadline_seconds: 5,
-    capabilities: {
-      generate: {
-        description: "Generate a random gem.",
-        pricing: {
-          model: "per_job",
-          amount: process.env.NODE_ENV === "production" ? "0.01" : "0.001",
-          currency: "USDC",
-        },
-        input_schema: {
-          seed: { type: "number", required: false, description: "Optional seed for deterministic output" },
-        },
-        output_schema: {
-          gem:     { type: "string", description: "Gem name" },
-          rarity:  { type: "string", description: "Rarity tier" },
-          quality: { type: "string", description: "Quality grade" },
-          value:   { type: "number", description: "Estimated value in USDC" },
-        },
-      },
-    },
-  },
+createAgent(
+  { ...config, wallet: process.env.AGENT_WALLET_ADDRESS! },
+
   async (input) => {
     const seed = typeof input.seed === "number" ? input.seed : Math.random() * 1e9;
     const pick = (arr: string[], s: number) => arr[Math.floor((Math.sin(s) * 0.5 + 0.5) * arr.length)];
@@ -49,8 +27,7 @@ const agent = createAgent(
 
     return { gem, rarity, quality, value };
   },
-  { devMode: process.env.MILKYWAY_DEV_MODE === "true" }
-);
 
-const PORT = parseInt(process.env.PORT ?? "3003");
-agent.listen(PORT);
+  { devMode: process.env.MILKYWAY_DEV_MODE === "true" }
+
+).listen(parseInt(process.env.PORT ?? "3003"));
