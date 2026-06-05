@@ -49,10 +49,10 @@ export async function registerCommand(options: {
     const about = await res.json() as Record<string, unknown>;
     if (!about.milkyway_version) throw new Error("Missing milkyway_version");
     if (!about.capabilities) throw new Error("Missing capabilities");
-    spinner.succeed("/about schema valid — Phase 2 ready");
+    spinner.succeed("/about schema valid — builder compatible");
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    spinner.warn(`/about not found (${msg}) — agent will be Phase 1 only`);
+    spinner.warn(`/about not found (${msg}) — agent will not be available in the builder`);
   }
 
   spinner = ora("Computing metadata hash").start();
@@ -63,8 +63,8 @@ export async function registerCommand(options: {
   let profileId: string;
   try {
     const result = await api.preRegister({ config, endpoint, metadataHash: hash }) as {
-      profileId:   string;
-      phase2Ready: boolean;
+      profileId:      string;
+      builderReady:   boolean;
     };
     profileId = result.profileId;
     spinner.succeed("Profile saved");

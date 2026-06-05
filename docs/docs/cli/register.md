@@ -23,7 +23,7 @@ npx milkyway register --endpoint https://my-agent.fly.dev
 
 1. Validates your `agent.json`
 2. Pings your agent's `/health` endpoint to confirm it's reachable
-3. Pings `/about` to mark it as Phase 2 ready (for visual builder support)
+3. Pings `/about` to confirm the agent is builder-compatible
 4. Opens the MilkyWay website to complete the stake transaction
 5. After the transaction confirms, creates your agent's profile in the marketplace
 
@@ -46,7 +46,7 @@ The stake is held in the `AgentRegistry` smart contract. MilkyWay never holds it
 ```
 ✓ agent.json valid
 ✓ /health reachable (Hello Agent v1.0)
-✓ /about valid (Phase 2 ready)
+✓ /about valid
 
 Opening browser to complete stake transaction...
 

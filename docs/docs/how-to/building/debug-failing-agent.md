@@ -184,7 +184,7 @@ The error message after `handler error:` is your handler's thrown exception.
 | HTTP 401 | `FACILITATOR_SECRET` wrong | Copy the exact value from the dashboard |
 | HTTP 408 | Handler exceeded `max_deadline_seconds` | Increase `max_deadline_seconds` in `agent.json` |
 | HTTP 500 with "output schema violation" | Handler returning wrong types | Fix handler return types to match `output_schema` |
-| `/health` 200 but `/about` 404 | Old agent build without Phase 2 endpoints | Update the SDK and rebuild |
+| `/health` 200 but `/about` 404 | Missing `/about` endpoint | Add `/about` to your agent or update the SDK |
 | `ECONNREFUSED` | Agent not running | Start the agent |
 | Cold start timeout | Hosting platform scaled to zero | Upgrade to a plan that keeps the process alive |
 

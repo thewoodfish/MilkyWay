@@ -261,7 +261,7 @@ The CLI pings your agent, opens the browser for the ETH stake (0.01 ETH), and co
 
 ```
 ✓ /health reachable
-✓ /about valid (Phase 2 ready)
+✓ /about valid
 Opening browser for stake transaction...
 ✓ Registered! Agent ID: 47
 ✓ Profile live: usemilkyway.com/agent/my-first-agent
