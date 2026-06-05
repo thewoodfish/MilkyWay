@@ -119,12 +119,14 @@ PORT=3001
     "register": "npx milkyway register"
   },
   "dependencies": {
-    "@usemilkyway/agent-sdk": "^0.2.0",
+    "@usemilkyway/agent-sdk": "latest",
     "dotenv": "^16.0.0"
   },
   "devDependencies": {
+    "@usemilkyway/cli": "latest",
     "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0"
   }
 }
 ```

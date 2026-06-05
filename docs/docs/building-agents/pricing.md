@@ -50,17 +50,27 @@ During development on Sepolia, your test USDC is free from the faucet. In produc
 
 ## Different prices in dev and production
 
-A common pattern:
+Use `${ENV_VAR}` substitution in `agent.json` and set different values per environment:
 
-```typescript
-pricing: {
-  model: "per_job",
-  amount: process.env.NODE_ENV === "production" ? "0.05" : "0.001",
-  currency: "USDC",
-},
+```json title="agent.json"
+{
+  "pricing": {
+    "model": "per_job",
+    "amount": "${AGENT_PRICE}",
+    "currency": "USDC"
+  }
+}
 ```
 
-Test calls on Sepolia use the dev price. Production registration uses the production price.
+```bash title=".env (local)"
+AGENT_PRICE=0.001
+```
+
+```bash title="Production env vars (Railway / Fly.io)"
+AGENT_PRICE=0.05
+```
+
+The SDK resolves `${AGENT_PRICE}` at startup — no changes to `src/index.ts` needed.
 
 ---
 
