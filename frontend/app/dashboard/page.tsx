@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef, Fragment } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { authFetch } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
@@ -16,7 +17,6 @@ import {
 } from "recharts";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-const ARBISCAN = "https://sepolia.arbiscan.io";
 const REGISTRY = process.env.NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS as `0x${string}`;
 
 type Tab = "flows" | "agents" | "earnings";
@@ -162,13 +162,6 @@ const HEALTH_STYLE = {
   live:     { dot: "#10b981", label: "Live" },
   degraded: { dot: "#f59e0b", label: "Degraded" },
   down:     { dot: "#ef4444", label: "Down" },
-};
-
-const AGENT_STATUS_ICON: Record<string, string> = {
-  PENDING:   "○",
-  RUNNING:   "⟳",
-  COMPLETED: "✓",
-  FAILED:    "✗",
 };
 
 // ── Sub-components ────────────────────────────────────────────────────────
@@ -661,10 +654,11 @@ export default function DashboardPage() {
                                   const dicebear = `https://api.dicebear.com/9.x/bottts/svg?seed=milkyway-${a.agentId}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&scale=85`;
                                   return (
                                     <div key={a.id} style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: i < f.agents.length - 1 ? 0 : 1, minWidth: 0 }}>
-                                      <img
+                                      <Image
                                         src={a.logoUrl || dicebear}
                                         alt={a.agentName}
                                         width={20} height={20}
+                                        unoptimized
                                         style={{ borderRadius: "50%", border: "1px solid #E3E8EF", flexShrink: 0, background: "#F1F5F9" }}
                                       />
                                       <span style={{ fontSize: "12px", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.agentName}</span>

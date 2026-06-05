@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { parseUnits } from "viem";
 import { SettingsSidebar } from "@/components/SettingsSidebar";
 import { authFetch } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
@@ -212,10 +212,11 @@ export default function SpendLimitsPage() {
                       >
                         {/* Agent */}
                         <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
-                          <img
+                          <Image
                             src={limit.agentLogoUrl || dicebear}
                             alt={limit.agentName}
                             width={32} height={32}
+                            unoptimized
                             style={{ borderRadius: "8px", border: "1px solid #E3E8EF", flexShrink: 0 }}
                           />
                           <div style={{ minWidth: 0 }}>
