@@ -84,7 +84,7 @@ Output:
 ✓ Registry updated
   Name:     Aave Position Monitor
   Price:    0.75 USDC (was 0.50 USDC)
-  Updated:  usemilkyway.com/agents/47
+  Updated:  usemilkyway.com/agents/aave-position-monitor
 ```
 
 ---
