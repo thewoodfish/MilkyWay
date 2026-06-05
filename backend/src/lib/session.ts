@@ -1,6 +1,12 @@
-import type { IronSessionOptions } from "iron-session";
+import type { SessionOptions } from "iron-session";
 
-export const sessionOptions: IronSessionOptions = {
+export interface SessionData {
+  nonce?: string;
+  address?: string;
+  chainId?: number;
+}
+
+export const sessionOptions: SessionOptions = {
   password: process.env.SESSION_SECRET!,
   cookieName: "milkyway_session",
   cookieOptions: {
@@ -9,11 +15,3 @@ export const sessionOptions: IronSessionOptions = {
     sameSite: "lax",
   },
 };
-
-declare module "iron-session" {
-  interface IronSessionData {
-    nonce?: string;
-    address?: string;
-    chainId?: number;
-  }
-}

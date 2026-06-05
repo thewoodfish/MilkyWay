@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { SiweMessage, generateNonce } from "siwe";
 import { getIronSession } from "iron-session";
+import type { SessionData } from "../lib/session";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sessionOptions } from "../lib/session";
@@ -12,7 +13,7 @@ const router = Router();
 // GET /api/auth/nonce
 router.get("/nonce", async (req: Request, res: Response) => {
   try {
-    const session = await getIronSession(req, res, sessionOptions);
+    const session = await getIronSession<SessionData>(req, res, sessionOptions);
     session.nonce = generateNonce();
     await session.save();
     res.json({ nonce: session.nonce });
@@ -28,7 +29,7 @@ router.post("/verify", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Missing message or signature" });
   }
 
-  const session = await getIronSession(req, res, sessionOptions);
+  const session = await getIronSession<SessionData>(req, res, sessionOptions);
 
   try {
     const siweMessage = new SiweMessage(message);
@@ -65,7 +66,7 @@ router.post("/verify", async (req: Request, res: Response) => {
 
 // POST /api/auth/logout
 router.post("/logout", async (req: Request, res: Response) => {
-  const session = await getIronSession(req, res, sessionOptions);
+  const session = await getIronSession<SessionData>(req, res, sessionOptions);
   session.destroy();
   res.json({ success: true });
 });

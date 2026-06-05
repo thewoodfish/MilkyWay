@@ -17,11 +17,11 @@ router.post("/ping", async (req: Request, res: Response) => {
 
     await prisma.verificationLog.create({
       data: {
-        agentId: agent.agentId,
+        agentId: agent.agentId!,
         endpoint: agent.endpoint,
         success: result.success,
-        statusCode: result.statusCode ?? null,
-        responseTimeMs: result.responseTimeMs ?? null,
+        statusCode: result.statusCode ?? undefined,
+        responseTimeMs: result.responseTimeMs ?? undefined,
       },
     });
 
