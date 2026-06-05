@@ -6,7 +6,7 @@ export type FieldType =
   | "object";
 
 export interface FieldDef {
-  type:         FieldType;
+  type:         string; // FieldType at runtime; string here so JSON imports typecheck
   required?:    boolean;
   description?: string;
   default?:     unknown;
@@ -22,9 +22,9 @@ export interface AgentSchema {
 }
 
 export interface AgentPricing {
-  model:    "per_job" | "per_day" | "per_month" | "free";
+  model:    string; // "per_job" in v1; string so JSON imports typecheck
   amount:   string;
-  currency: "USDC";
+  currency: string; // "USDC" in v1; string so JSON imports typecheck
 }
 
 export type PermissionType =

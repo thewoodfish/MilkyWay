@@ -1,0 +1,23 @@
+{
+  "name": "atlas",
+  "version": "1.0.0",
+  "description": "World wide search",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "milkyway dev",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "validate": "milkyway validate",
+    "register": "milkyway register"
+  },
+  "dependencies": {
+    "@usemilkyway/agent-sdk": "latest",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@usemilkyway/cli": "latest",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
