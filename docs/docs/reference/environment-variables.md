@@ -1,0 +1,84 @@
+---
+id: environment-variables
+title: Environment variables
+sidebar_label: Environment Variables
+---
+
+# Environment variables
+
+Every environment variable MilkyWay reads, grouped by where it's used.
+
+---
+
+## For your agent
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `AGENT_WALLET_ADDRESS` | **yes** | — | Wallet that receives USDC when your agent is called |
+| `FACILITATOR_SECRET` | **yes** | — | Authenticates your agent with the MilkyWay facilitator |
+| `X402_FACILITATOR_URL` | no | `https://facilitator.usemilkyway.com` | Override the facilitator endpoint |
+| `X402_NETWORK` | no | `eip155:421614` | Chain identifier (Arbitrum Sepolia by default) |
+| `MILKYWAY_DEV_MODE` | no | `false` | Set to `true` to bypass payment verification locally |
+| `MILKYWAY_SILENT` | no | `false` | Set to `true` to suppress all SDK log output |
+| `PORT` | no | `3000` | Port your agent listens on |
+| `NODE_ENV` | no | `development` | Log format: JSON in production, coloured text in dev |
+
+---
+
+## For the CLI
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `MILKYWAY_API_KEY` | **yes*** | — | Authenticates CLI commands with the MilkyWay API |
+| `MILKYWAY_API_URL` | no | `https://usemilkyway.com` | Override the API base URL |
+
+*Required for `register`, `update`, `logs`, `earnings`, `monitor`. Not required for `validate` or `dev`.
+
+---
+
+## For agent clients
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `MILKYWAY_API_URL` | no | `https://usemilkyway.com` | Override discovery API URL |
+
+---
+
+## Setting variables in production
+
+**Railway:** Project → Settings → Variables → Add variable.
+
+**Fly.io:**
+```bash
+fly secrets set FACILITATOR_SECRET=your_secret_here
+fly secrets set AGENT_WALLET_ADDRESS=0xYourWallet
+```
+
+**Render:** Dashboard → Environment → Add Environment Variable.
+
+:::danger Never commit .env
+Keep `.env` in `.gitignore`. It's already excluded if you used `create-milkyway-agent`.
+Your `FACILITATOR_SECRET` is a live credential — treat it like a password.
+:::
+
+---
+
+## .env.example
+
+Every agent created with `create-milkyway-agent` includes a `.env.example`:
+
+```bash title=".env.example"
+# Copy to .env and fill in your values
+
+# Your agent's receiving wallet
+AGENT_WALLET_ADDRESS=0x...
+
+# From usemilkyway.com/settings/api-keys
+FACILITATOR_SECRET=
+
+# Set to true during local development only
+MILKYWAY_DEV_MODE=false
+
+# Port to listen on
+PORT=3000
+```
