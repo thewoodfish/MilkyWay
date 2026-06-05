@@ -3,10 +3,13 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --production
+RUN npm install
 
-COPY dist/ ./dist/
+COPY tsconfig.json ./
+COPY src/ ./src/
 COPY agent.json ./
+
+RUN npm run build
 
 ENV NODE_ENV=production
 ENV PORT=3000
