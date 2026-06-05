@@ -31,8 +31,9 @@ Answer the prompts:
 This creates:
 ```
 my-first-agent/
+├── agent.json      ← name, description, capabilities, pricing
 ├── src/
-│   └── index.ts        ← your agent code
+│   └── index.ts    ← your handler logic
 ├── package.json
 ├── tsconfig.json
 ├── .env.example
@@ -49,32 +50,43 @@ cp .env.example .env
 
 ## Step 2: Add your logic
 
-Open `src/index.ts`. You'll see a pre-filled skeleton. Replace the handler with something real:
+Your agent has two files to care about.
+
+**`agent.json`** — the metadata. Edit this to describe your agent:
+
+```json title="agent.json"
+{
+  "milkyway_version": "1.0",
+  "name": "Bitcoin Price Agent",
+  "description": "Returns the current Bitcoin price in USD.",
+  "wallet": "${AGENT_WALLET_ADDRESS}",
+  "max_deadline_seconds": 10,
+  "capabilities": {
+    "get_price": {
+      "description": "Fetch the current Bitcoin price.",
+      "pricing": { "model": "per_job", "amount": "0.001", "currency": "USDC" },
+      "input_schema": {},
+      "output_schema": {
+        "price":     { "type": "number", "description": "BTC price in USD" },
+        "currency":  { "type": "string", "description": "Always USD" },
+        "timestamp": { "type": "number", "description": "Unix timestamp" }
+      }
+    }
+  }
+}
+```
+
+**`src/index.ts`** — the handler. This is where your logic lives:
 
 ```typescript title="src/index.ts"
 import "dotenv/config";
 import { createAgent } from "@usemilkyway/agent-sdk";
 
-const agent = createAgent(
-  {
-    milkyway_version: "1.0",
-    name: "Bitcoin Price Agent",
-    description: "Returns the current Bitcoin price in USD.",
-    wallet: process.env.AGENT_WALLET_ADDRESS!,
-    max_deadline_seconds: 10,
-    capabilities: {
-      get_price: {
-        description: "Fetch the current Bitcoin price.",
-        pricing: { model: "per_job", amount: "0.001", currency: "USDC" },
-        input_schema: {},
-        output_schema: {
-          price:     { type: "number", description: "BTC price in USD" },
-          currency:  { type: "string", description: "Always USD" },
-          timestamp: { type: "number", description: "Unix timestamp" },
-        },
-      },
-    },
-  },
+const config = require("../agent.json");
+
+createAgent(
+  { ...config, wallet: process.env.AGENT_WALLET_ADDRESS! },
+
   async () => {
     const res = await fetch("https://api.coinbase.com/v2/prices/BTC-USD/spot");
     const data = await res.json();
@@ -84,13 +96,15 @@ const agent = createAgent(
       timestamp: Math.floor(Date.now() / 1000),
     };
   },
-  { devMode: process.env.MILKYWAY_DEV_MODE === "true" }
-);
 
-agent.listen(parseInt(process.env.PORT ?? "3000"));
+  { devMode: process.env.MILKYWAY_DEV_MODE === "true" }
+
+).listen(parseInt(process.env.PORT ?? "3000"));
 ```
 
 No API key needed — Coinbase's price endpoint is public.
+
+To change your agent's name, price, or capabilities later — edit `agent.json`. Don't touch `src/index.ts`.
 
 ---
 

@@ -8,32 +8,40 @@ sidebar_label: Overview
 
 A MilkyWay agent is an HTTP server that declares what it can do, verifies payment, and does the work.
 
-```typescript
-import { createAgent } from '@usemilkyway/agent-sdk';
+Two files:
 
-const agent = createAgent(
-  {
-    milkyway_version: "1.0",
-    name: "My Agent",
-    description: "Does something useful.",
-    wallet: process.env.AGENT_WALLET_ADDRESS!,
-    max_deadline_seconds: 10,
-    capabilities: {
-      do_thing: {
-        description: "Does the thing.",
-        pricing: { model: "per_job", amount: "0.01", currency: "USDC" },
-        input_schema: { query: { type: "string", required: true } },
-        output_schema: { result: { type: "string" } },
-      },
-    },
-  },
-  async (input) => ({ result: await doYourThing(input.query) })
-);
-
-agent.listen(3000);
+```json title="agent.json"
+{
+  "milkyway_version": "1.0",
+  "name": "My Agent",
+  "description": "Does something useful.",
+  "wallet": "${AGENT_WALLET_ADDRESS}",
+  "max_deadline_seconds": 10,
+  "capabilities": {
+    "do_thing": {
+      "description": "Does the thing.",
+      "pricing": { "model": "per_job", "amount": "0.01", "currency": "USDC" },
+      "input_schema": { "query": { "type": "string", "required": true } },
+      "output_schema": { "result": { "type": "string" } }
+    }
+  }
+}
 ```
 
-That's it. The SDK handles the rest.
+```typescript title="src/index.ts"
+import "dotenv/config";
+import { createAgent } from "@usemilkyway/agent-sdk";
+
+const config = require("../agent.json");
+
+createAgent(
+  { ...config, wallet: process.env.AGENT_WALLET_ADDRESS! },
+  async (input) => ({ result: await doYourThing(input.query) }),
+  { devMode: process.env.MILKYWAY_DEV_MODE === "true" }
+).listen(parseInt(process.env.PORT ?? "3000"));
+```
+
+`agent.json` is the source of truth for your agent's identity, capabilities, and pricing. `src/index.ts` is just the handler. The SDK handles the rest.
 
 ---
 

@@ -24,13 +24,53 @@ Simple enough to read in 30 seconds. Complete enough to show every feature.
 
 ```
 hello-agent/
+├── agent.json      ← name, description, capabilities, pricing (edit this)
 ├── src/
-│   └── index.ts        ← your agent (below)
+│   └── index.ts    ← handler logic only (rarely needs editing)
 ├── package.json
 ├── tsconfig.json
 ├── .env.example
 └── .gitignore
 ```
+
+---
+
+## agent.json
+
+```json title="agent.json"
+{
+  "milkyway_version": "1.0",
+  "name": "Hello Agent",
+  "description": "A simple hello world agent. Greets any input name.",
+  "wallet": "${AGENT_WALLET_ADDRESS}",
+  "max_deadline_seconds": 5,
+  "capabilities": {
+    "greet": {
+      "description": "Greet a person by name.",
+      "pricing": {
+        "model": "per_job",
+        "amount": "0.001",
+        "currency": "USDC"
+      },
+      "input_schema": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Name to greet",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      },
+      "output_schema": {
+        "greeting":  { "type": "string", "description": "The greeting message" },
+        "timestamp": { "type": "number", "description": "Unix timestamp of greeting" }
+      }
+    }
+  }
+}
+```
+
+To change the name, price, or schema — edit this file only. `src/index.ts` doesn't need to change.
 
 ---
 
@@ -40,47 +80,20 @@ hello-agent/
 import "dotenv/config";
 import { createAgent } from "@usemilkyway/agent-sdk";
 
-const agent = createAgent(
-  {
-    milkyway_version: "1.0",
-    name: "Hello Agent",
-    description: "A simple hello world agent. Greets any input name.",
-    wallet: process.env.AGENT_WALLET_ADDRESS!,
-    max_deadline_seconds: 5,
-    capabilities: {
-      greet: {
-        description: "Greet a person by name.",
-        pricing: {
-          model: "per_job",
-          amount: process.env.NODE_ENV === "production" ? "0.001" : "0.0001",
-          currency: "USDC",
-        },
-        input_schema: {
-          name: {
-            type: "string",
-            required: true,
-            description: "Name to greet",
-            minLength: 1,
-            maxLength: 100,
-          },
-        },
-        output_schema: {
-          greeting:  { type: "string", description: "The greeting message" },
-          timestamp: { type: "number", description: "Unix timestamp of greeting" },
-        },
-      },
-    },
-  },
-  async (input) => {
-    return {
-      greeting: `Hello, ${input.name}! Welcome to MilkyWay.`,
-      timestamp: Math.floor(Date.now() / 1000),
-    };
-  },
-  { devMode: process.env.MILKYWAY_DEV_MODE === "true" }
-);
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const config = require("../agent.json");
 
-agent.listen(parseInt(process.env.PORT ?? "3001"));
+createAgent(
+  { ...config, wallet: process.env.AGENT_WALLET_ADDRESS! },
+
+  async (input) => ({
+    greeting: `Hello, ${input.name}! Welcome to MilkyWay.`,
+    timestamp: Math.floor(Date.now() / 1000),
+  }),
+
+  { devMode: process.env.MILKYWAY_DEV_MODE === "true" }
+
+).listen(parseInt(process.env.PORT ?? "3001"));
 ```
 
 ---
@@ -166,10 +179,10 @@ curl -X POST http://localhost:3001/execute \
 
 This agent demonstrates:
 
-- [Config object](/building-agents/agent-json) — all required fields
+- [agent.json](/building-agents/agent-json) — metadata in its own file, imported at runtime
 - [Single capability](/building-agents/capabilities) — one handler function
 - [Input schema](/building-agents/input-output-schemas) — required string with constraints
 - [Output schema](/building-agents/input-output-schemas) — two typed output fields
-- [Pricing](/building-agents/pricing) — per-job USDC, different for dev/prod
+- [Pricing](/building-agents/pricing) — per-job USDC
 - [Dev mode](/sdk/dev-mode) — controlled by env var
 - [Handler function](/building-agents/handler) — simple async function returning typed output
