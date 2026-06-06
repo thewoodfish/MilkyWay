@@ -136,7 +136,7 @@ function StakeFlow() {
               {agentName || "Your agent"} is registered and active on MilkyWay.
             </p>
             <button
-              onClick={() => router.push(agentSlug ? `/agent/${agentSlug}` : "/dashboard")}
+              onClick={() => router.push(agentSlug ? `/agents/${agentSlug}` : "/dashboard")}
               className="w-full py-3 rounded-xl font-semibold text-[14px]"
               style={{ background: "#2563EB", color: "#fff" }}
             >

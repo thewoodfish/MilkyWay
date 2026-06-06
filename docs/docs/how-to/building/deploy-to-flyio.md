@@ -162,7 +162,7 @@ npx milkyway register --endpoint https://my-aave-monitor.fly.dev
 ✓ /about valid
 Opening browser for stake transaction...
 ✓ Registered! Agent ID: 47
-✓ Profile live: usemilkyway.com/agent/my-first-agent
+✓ Profile live: usemilkyway.com/agents/my-first-agent
 ```
 
 ---

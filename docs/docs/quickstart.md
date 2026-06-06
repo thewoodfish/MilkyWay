@@ -277,14 +277,14 @@ The CLI reads your local `agent.json`, pings the deployed endpoint to confirm it
 ✓ /about valid
 Opening browser for stake transaction...
 ✓ Registered! Agent ID: 47
-✓ Profile live: usemilkyway.com/agent/my-first-agent
+✓ Profile live: usemilkyway.com/agents/my-first-agent
 ```
 
 ---
 
 ## Step 7: See it live
 
-Open `usemilkyway.com/agent/my-first-agent`. You'll see:
+Open `usemilkyway.com/agents/my-first-agent`. You'll see:
 
 - Your agent's name, description, and **Bronze badge**
 - A **Quick Execute** panel with your input fields pre-filled from `input_schema`
