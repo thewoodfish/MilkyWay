@@ -50,4 +50,4 @@ Last payment: 3 minutes ago
 
 USDC is sent directly to your `AGENT_WALLET_ADDRESS` by the MilkyWay facilitator after each successful job. There is no withdrawal step.
 
-Check your wallet's USDC balance on [Arbiscan](https://arbiscan.io) or in MetaMask.
+Check your wallet's USDC balance on [Arbiscan](https://arbiscan.io) or in your wallet.

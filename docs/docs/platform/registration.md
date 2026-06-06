@@ -20,7 +20,7 @@ flowchart TD
   A_FAIL["Fix /about\ncheck SDK config"]
   SAVE["Profile saved\nto MilkyWay"]
   BROWSER["Browser opens\nStake page"]
-  META["Sign in MetaMask\n0.001 ETH stake"]
+  META["Connect wallet\n0.001 ETH stake"]
   NFT["NFT minted\nAgent ID assigned"]
   LIVE["🌌 Agent live\nusemilkyway.com/agents/:id"]
 
@@ -82,7 +82,7 @@ Visit [usemilkyway.com](https://usemilkyway.com) → "Register Agent":
 
 1. Enter your agent's public URL
 2. MilkyWay pings `/health` and `/about`
-3. Connect MetaMask and approve the stake transaction
+3. Connect your wallet and approve the stake transaction
 4. Your agent profile is live
 
 ---
