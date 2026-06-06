@@ -517,10 +517,10 @@ router.post("/confirm", authenticateJWT, async (req: AuthRequest, res: Response)
 });
 
 // PUT /api/agents/:agentId — update mutable profile fields (auth required)
+// Accepts either flat fields { name, description, ... } from the dashboard UI
+// or { config, newMetadataHash } from the CLI
 router.put("/:agentId", authenticateAny, async (req: AuthRequest, res: Response) => {
   try {
-    const { name, description, pricingModel, priceUsdc, logoUrl } = req.body;
-
     const existing = await prisma.agent.findUnique({
       where: { agentId: Number(req.params.agentId) },
     });
@@ -529,15 +529,52 @@ router.put("/:agentId", authenticateAny, async (req: AuthRequest, res: Response)
       return res.status(403).json({ error: "Not your agent" });
     }
 
+    // CLI sends { config: agent.json, newMetadataHash }
+    // Dashboard sends flat { name, description, pricingModel, priceUsdc, logoUrl }
+    const { config, newMetadataHash, name, description, pricingModel, priceUsdc, logoUrl } = req.body;
+
+    let resolvedName        = name;
+    let resolvedDescription = description;
+    let resolvedPricingModel = pricingModel;
+    let resolvedPriceUsdc   = priceUsdc;
+
+    if (config) {
+      resolvedName        = config.name        ?? resolvedName;
+      resolvedDescription = config.description ?? resolvedDescription;
+
+      // Extract pricing from first capability in config
+      const caps = config.capabilities as Record<string, { pricing?: { model?: string; amount?: string } }> | undefined;
+      if (caps) {
+        const firstCap = Object.values(caps)[0];
+        if (firstCap?.pricing) {
+          resolvedPricingModel = firstCap.pricing.model   ?? resolvedPricingModel;
+          resolvedPriceUsdc    = firstCap.pricing.amount  ?? resolvedPriceUsdc;
+        }
+      }
+    }
+
+    const updateData: Record<string, unknown> = {
+      ...(resolvedName        && { name: resolvedName }),
+      ...(resolvedDescription && { description: resolvedDescription }),
+      ...(resolvedPricingModel && { pricingModel: resolvedPricingModel }),
+      ...(resolvedPriceUsdc   && { priceUsdc: resolvedPriceUsdc }),
+      ...(logoUrl !== undefined && { logoUrl }),
+      ...(newMetadataHash     && { metadataHash: newMetadataHash }),
+    };
+
+    // If CLI sent a config, refresh /about from the live endpoint
+    if (config && existing.endpoint) {
+      const aboutResult = await fetchAbout(existing.endpoint);
+      if (aboutResult.success) {
+        updateData.aboutSchema    = aboutResult.schema;
+        updateData.phase2Ready    = true;
+        updateData.aboutCachedAt  = new Date();
+      }
+    }
+
     const updated = await prisma.agent.update({
       where: { agentId: Number(req.params.agentId) },
-      data: {
-        ...(name && { name }),
-        ...(description && { description }),
-        ...(pricingModel && { pricingModel }),
-        ...(priceUsdc && { priceUsdc }),
-        ...(logoUrl !== undefined && { logoUrl }),
-      },
+      data: updateData,
     });
 
     res.json(updated);
