@@ -535,20 +535,20 @@ router.put("/:agentId", authenticateAny, async (req: AuthRequest, res: Response)
 
     let resolvedName        = name;
     let resolvedDescription = description;
-    let resolvedPricingModel = pricingModel;
     let resolvedPriceUsdc   = priceUsdc;
 
     if (config) {
       resolvedName        = config.name        ?? resolvedName;
       resolvedDescription = config.description ?? resolvedDescription;
 
-      // Extract pricing from first capability in config
-      const caps = config.capabilities as Record<string, { pricing?: { model?: string; amount?: string } }> | undefined;
+      // Extract price amount from first capability in config.
+      // Do NOT write pricingModel — agent.json uses "per_job" which doesn't
+      // match the Prisma PricingModel enum (PER_CALL, PER_DAY, etc.)
+      const caps = config.capabilities as Record<string, { pricing?: { amount?: string } }> | undefined;
       if (caps) {
         const firstCap = Object.values(caps)[0];
-        if (firstCap?.pricing) {
-          resolvedPricingModel = firstCap.pricing.model   ?? resolvedPricingModel;
-          resolvedPriceUsdc    = firstCap.pricing.amount  ?? resolvedPriceUsdc;
+        if (firstCap?.pricing?.amount) {
+          resolvedPriceUsdc = firstCap.pricing.amount;
         }
       }
     }
@@ -556,7 +556,7 @@ router.put("/:agentId", authenticateAny, async (req: AuthRequest, res: Response)
     const updateData: Record<string, unknown> = {
       ...(resolvedName        && { name: resolvedName }),
       ...(resolvedDescription && { description: resolvedDescription }),
-      ...(resolvedPricingModel && { pricingModel: resolvedPricingModel }),
+      ...(pricingModel        && { pricingModel }),   // only from dashboard (already enum-safe)
       ...(resolvedPriceUsdc   && { priceUsdc: resolvedPriceUsdc }),
       ...(logoUrl !== undefined && { logoUrl }),
       ...(newMetadataHash     && { metadataHash: newMetadataHash }),
