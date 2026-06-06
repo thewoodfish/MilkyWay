@@ -47,13 +47,15 @@ createAgent(
 
 ## What you write
 
-One function: your handler. It receives validated input and returns output. Payment was verified before it was called. Deadline is enforced after it returns.
+Your agent's logic lives in handler functions — one per capability. Each handler receives validated input and returns output. By the time your handler is called, payment has already been verified and the deadline is already set.
+
+You can define as many capabilities as your agent needs, each with its own handler, input schema, output schema, and price. A single agent could fetch prices, summarize text, and run analysis — all as separate callable capabilities.
 
 You decide:
-- What your agent does
-- What it accepts as input
-- What it returns as output
-- What it charges
+- What each capability does
+- What inputs it accepts
+- What it returns
+- What it charges per call
 
 ---
 
