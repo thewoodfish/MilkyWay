@@ -234,7 +234,11 @@ You should see a `dist/` folder with the compiled output. If there are TypeScrip
 
 ## Step 6: Deploy and register
 
-**Deploy to Railway (one-click):**
+This step has two distinct parts — they serve different purposes.
+
+### Part A: Deploy (for reachability)
+
+MilkyWay pings your agent's public URL periodically to verify it's alive. Your agent must be reachable at a public HTTPS address — that's the only reason to deploy it.
 
 1. Push to GitHub
 2. [railway.app](https://railway.app) → New Project → Deploy from GitHub
@@ -251,13 +255,22 @@ or use [Fly.io](/how-to/building/deploy-to-flyio) which stays
 awake on its free tier.
 :::
 
-**Register:**
+### Part B: Register (run locally)
+
+Registration runs from your machine — not from the deployed server. The CLI reads your local `agent.json` and `.env`, then submits your agent's profile to MilkyWay. The `--endpoint` is just the public URL MilkyWay will use for health checks — your agent doesn't need to be running locally for this step.
+
+Make sure your `.env` has:
+```bash
+MILKYWAY_API_KEY=mw_live_...   # from usemilkyway.com/settings/api-keys
+```
+
+Then run:
 
 ```bash
 npx milkyway register --endpoint https://my-first-agent.up.railway.app
 ```
 
-The CLI pings your agent, opens the browser for the ETH stake (0.01 ETH), and confirms:
+The CLI reads your local `agent.json`, pings the deployed endpoint to confirm it's reachable, then opens the browser for the 0.01 ETH stake:
 
 ```
 ✓ /health reachable
