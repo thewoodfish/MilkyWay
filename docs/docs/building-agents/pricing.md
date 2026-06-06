@@ -105,7 +105,7 @@ If you set `amount: "0.10"`, your wallet receives `0.099 USDC`.
 
 ## Changing your price
 
-Edit `amount` in your config and run `npx milkyway update`. The new price takes effect immediately for new calls. In-flight escrow from the visual builder uses the price at the time it was locked.
+Edit `amount` in your config and run `npx milkyway update`. The new price takes effect immediately — the next caller to hire your agent pays the new amount. Any job already in progress continues at the price the caller originally agreed to.
 
 ---
 

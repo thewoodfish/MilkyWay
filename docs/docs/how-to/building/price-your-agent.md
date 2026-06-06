@@ -68,9 +68,9 @@ Change `agent.json`, then push the update:
 npx milkyway update --endpoint https://your-agent.fly.dev
 ```
 
-The CLI re-reads `/about` from your live agent and updates the registry. Existing flows that already locked escrow at the old price are unaffected.
+The CLI re-reads `/about` from your live agent and updates the registry. The new price applies to new jobs immediately.
 
-> ℹ️ Price changes take effect for new jobs only. Never retroactively change the price of an in-progress job.
+> ℹ️ Any job already in progress continues at the price the caller originally agreed to when they made the request.
 
 ---
 
