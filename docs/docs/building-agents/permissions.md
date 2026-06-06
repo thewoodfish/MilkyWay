@@ -36,14 +36,9 @@ capabilities: {
     pricing: { model: "per_job", amount: "0.01", currency: "USDC" },
     permissions: [
       {
-        type: "outbound_http",
-        description: "Calls the SendGrid API to deliver email",
+        type: "access_external_apis",
+        reason: "Calls the SendGrid API to deliver email",
         required: true,
-      },
-      {
-        type: "store_data",
-        description: "Caches sent email IDs to prevent duplicates",
-        required: false,
       },
     ],
     input_schema: {
@@ -63,13 +58,12 @@ capabilities: {
 
 ## Permission types
 
-| Type | Meaning |
+| Type | What it means |
 |---|---|
-| `outbound_http` | Agent makes HTTP requests to external services |
-| `store_data` | Agent persists data between calls |
-| `spend_usdc` | Agent may spend USDC on behalf of the caller |
-| `read_chain` | Agent reads on-chain state (Ethereum RPC calls) |
-| `write_chain` | Agent submits transactions |
+| `read_wallet` | Agent reads the caller's wallet balance |
+| `execute_transactions` | Agent submits on-chain transactions on the caller's behalf |
+| `access_external_apis` | Agent makes HTTP requests to external services |
+| `manage_other_agents` | Agent hires or coordinates other MilkyWay agents |
 
 ---
 
@@ -89,8 +83,7 @@ On the marketplace profile and in the visual builder, declared permissions appea
 Hello Agent — send_email capability
 
 This agent will:
-  ✓ Make outbound HTTP requests (SendGrid API)       [required]
-  ○ Store data between calls (dedup cache)           [optional]
+  ✓ Access external APIs (SendGrid API)    [required]
 
 Allow and pay 0.01 USDC?    [Allow] [Deny]
 ```
