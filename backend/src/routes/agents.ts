@@ -342,6 +342,20 @@ router.post("/pre-register", authenticateAPIKey, async (req: Request, res: Respo
   }
 });
 
+// GET /api/agents/pending/:profileId — stake page fetches agent name for display
+router.get("/pending/:profileId", async (req: Request, res: Response) => {
+  try {
+    const agent = await prisma.agent.findUnique({
+      where: { id: req.params.profileId },
+      select: { name: true, description: true, active: true },
+    });
+    if (!agent) return res.status(404).json({ error: "Not found" });
+    res.json(agent);
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // GET /api/agents/stake-status/:profileId — CLI polls this after directing user to stake
 router.get("/stake-status/:profileId", authenticateAPIKey, async (req: Request, res: Response) => {
   try {
