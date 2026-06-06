@@ -234,6 +234,8 @@ Once your agent is deployed and reachable:
 
 ```bash
 npm run register
+# or equivalently:
+npx milkyway register
 ```
 
 The CLI validates `agent.json`, pings your live endpoint, opens the browser to complete the stake transaction, then confirms registration:
