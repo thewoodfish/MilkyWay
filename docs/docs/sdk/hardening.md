@@ -102,16 +102,22 @@ Callers mid-flight get their response. New callers are told to retry.
 
 ## 6. Request logging
 
-**Dev mode** — human-readable with ANSI colours:
+**Dev** (`NODE_ENV` ≠ `production`) — human-readable, colour-coded:
 ```
-→ POST /execute  greet  job_id=test-001
-← 200  43ms
+10:30:00  ✓  greet               paid        43ms      abc-123...
 ```
 
-**Production** — JSON for log aggregators:
+**Production** (`NODE_ENV=production`) — one JSON object per request, suitable for log aggregators (Datadog, Loki, CloudWatch):
 ```json
-{"timestamp":"2026-06-05T10:30:00Z","method":"POST","path":"/execute","capability":"greet","job_id":"abc-123","status":200,"duration_ms":43}
+{"level":"info","timestamp":"2026-06-05T10:30:00.000Z","jobId":"abc-123","capability":"greet","payment":"verified","status":"completed","durationMs":43}
 ```
+
+Errors include a `level: "error"` field and an `error` message:
+```json
+{"level":"error","timestamp":"2026-06-05T10:30:01.000Z","jobId":"abc-124","capability":"greet","payment":"verified","status":"failed","durationMs":12,"error":"Cannot read properties of undefined"}
+```
+
+Logs go to your process stdout — visible in your hosting provider's log viewer (Railway, Fly.io, Render). They are never sent to MilkyWay.
 
 Disable all logging: `MILKYWAY_SILENT=true`
 
