@@ -32,22 +32,23 @@ export async function devCommand(options: {
   }
   console.log();
 
-  const child = spawn(
-    "npx",
-    ["tsx", "watch", options.entry],
-    {
-      env: {
-        ...process.env,
-        MILKYWAY_DEV_MODE: "true",
-        PORT: port
-      },
-      stdio: "inherit"
-    }
-  );
+  const isJs = options.entry.endsWith(".js");
+  const [cmd, args] = isJs
+    ? ["node", ["--watch", options.entry]]
+    : ["npx", ["tsx", "watch", options.entry]];
+
+  const child = spawn(cmd, args, {
+    env: {
+      ...process.env,
+      MILKYWAY_DEV_MODE: "true",
+      PORT: port
+    },
+    stdio: "inherit"
+  });
 
   child.on("error", (err) => {
     console.error(chalk.red(`Failed to start: ${err.message}`));
-    console.error("Make sure tsx is installed: npm install -D tsx");
+    if (!isJs) console.error("Make sure tsx is installed: npm install -D tsx");
     process.exit(1);
   });
 

@@ -15,15 +15,22 @@ export function scaffold(answers: ScaffoldAnswers): string {
   fs.mkdirSync(dir, { recursive: true });
   fs.mkdirSync(path.join(dir, "src"));
 
+  const isJs = answers.language === "JavaScript";
+
   const files: Record<string, string> = {
-    "agent.json":    renderTemplate("agent.json.hbs",     answers),
-    "src/index.ts":  renderTemplate("index.ts.hbs",       answers),
-    "package.json":  renderTemplate("package.json.hbs",   answers),
-    "tsconfig.json": renderTemplate("tsconfig.json.hbs",  answers),
-    "Dockerfile":    renderTemplate("Dockerfile.hbs",     answers),
-    ".env.example":  renderTemplate("dotenv.example.hbs", answers),
-    ".gitignore":    renderTemplate("gitignore.hbs",      answers),
-    "README.md":     renderTemplate("README.md.hbs",      answers)
+    "agent.json":   renderTemplate("agent.json.hbs",     answers),
+    "Dockerfile":   renderTemplate(isJs ? "Dockerfile.js.hbs"    : "Dockerfile.hbs",    answers),
+    "package.json": renderTemplate(isJs ? "package.json.js.hbs"  : "package.json.hbs",  answers),
+    ".env.example": renderTemplate("dotenv.example.hbs",  answers),
+    ".gitignore":   renderTemplate(isJs ? "gitignore.js.hbs"     : "gitignore.hbs",     answers),
+    "README.md":    renderTemplate(isJs ? "README.md.js.hbs"     : "README.md.hbs",     answers),
+    ...(isJs
+      ? { "src/index.js": renderTemplate("index.js.hbs", answers) }
+      : {
+          "src/index.ts":  renderTemplate("index.ts.hbs",      answers),
+          "tsconfig.json": renderTemplate("tsconfig.json.hbs", answers),
+        }
+    ),
   };
 
   for (const [filename, content] of Object.entries(files)) {

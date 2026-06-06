@@ -22,12 +22,20 @@ The CLI asks a few questions:
 ? Agent name: Hello Agent
 ? Description: Greets any name on demand.
 ? Category: Utility
-? Pricing model: Per Call
 ? Price (USDC): 0.001
-? Author wallet address: 0xYourWallet
+? First capability name: greet
+? Language: TypeScript        ← or JavaScript
+? Package manager: npm
+? Directory: hello-agent
 ```
 
-It creates a ready-to-run project:
+It creates a ready-to-run project. The structure differs slightly by language:
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
 
 ```
 hello-agent/
@@ -35,11 +43,30 @@ hello-agent/
 ├── src/
 │   └── index.ts      ← your handler logic
 ├── Dockerfile
-├── package.json
 ├── tsconfig.json
+├── package.json
 ├── .env.example
 └── .gitignore
 ```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```
+hello-agent/
+├── agent.json        ← identity, capabilities, pricing
+├── src/
+│   └── index.js      ← your handler logic
+├── Dockerfile
+├── package.json
+├── .env.example
+└── .gitignore
+```
+
+No `tsconfig.json` — no build step needed.
+
+</TabItem>
+</Tabs>
 
 ---
 
@@ -84,9 +111,12 @@ The source of truth for everything MilkyWay reads about your agent.
 
 To change the name, price, or schema — edit this file. `src/index.ts` rarely needs to change.
 
-### src/index.ts
+### src/index.ts / src/index.js
 
 Your handler. Receives validated input, returns output. That's it.
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
 
 ```typescript title="src/index.ts"
 import "dotenv/config";
@@ -103,6 +133,28 @@ createAgent(
 
 ).listen(parseInt(process.env.PORT ?? "3000"));
 ```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```javascript title="src/index.js"
+require("dotenv").config();
+const { createAgent } = require("@usemilkyway/agent-sdk");
+const config = require("../agent.json");
+
+createAgent(
+  config,
+
+  async (input) => ({
+    greeting: `Hello, ${input.name}! Welcome to MilkyWay.`,
+    timestamp: Math.floor(Date.now() / 1000),
+  })
+
+).listen(parseInt(process.env.PORT ?? "3000"));
+```
+
+</TabItem>
+</Tabs>
 
 By the time your handler runs, the SDK has already verified payment and validated `input` against `input_schema`. You just do the work.
 
@@ -207,24 +259,40 @@ agent.json is valid ✓
 
 ## Step 5: Build and deploy
 
-Build the TypeScript:
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
+Build first:
 
 ```bash
 npm run build
 ```
 
-Then deploy to a host that keeps your process alive. Railway is the quickest:
+Then deploy. Railway is the quickest:
 
 1. Push your project to a GitHub repo
 2. Create a new Railway project and connect the repo
-3. Add your environment variables from `.env` in Railway → Settings → Variables
+3. Add your environment variables in Railway → Settings → Variables
 4. Railway detects the `Dockerfile` and deploys automatically
 
-Your agent must be reachable at a public HTTPS URL before you can register it.
+The `Dockerfile` runs `tsc` inside the container — you never need to commit a `dist/` folder.
 
-:::tip No Dockerfile changes needed
-The scaffold generates a production-ready `Dockerfile`. It builds TypeScript inside Docker, so you never need to commit a `dist/` folder.
-:::
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+No build step. Deploy directly:
+
+1. Push your project to a GitHub repo
+2. Create a new Railway project and connect the repo
+3. Add your environment variables in Railway → Settings → Variables
+4. Railway detects the `Dockerfile` and deploys automatically
+
+The `Dockerfile` runs `node src/index.js` — no compilation involved.
+
+</TabItem>
+</Tabs>
+
+Your agent must be reachable at a public HTTPS URL before you can register it.
 
 ---
 
@@ -297,6 +365,6 @@ The new price is live immediately.
 | Per-job pricing | `pricing.model: "per_job"` |
 | Dev mode | `npm run dev` |
 | Validation | `npm run validate` |
-| Deployment | Dockerfile + Railway |
-| Registration | `npm run register` |
+| Deployment | Dockerfile + Railway (TS builds inside Docker; JS deploys directly) |
+| Registration | `npm run register` or `npx milkyway register` |
 | Updating a live agent | `npx milkyway update` |

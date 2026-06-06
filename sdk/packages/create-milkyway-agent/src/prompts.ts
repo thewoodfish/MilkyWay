@@ -7,6 +7,7 @@ export interface ScaffoldAnswers {
   pricingModel:   string;  // always "per_job"
   price:          string;
   capability:     string;
+  language:       "TypeScript" | "JavaScript";
   packageManager: string;
   directory:      string;
 }
@@ -46,6 +47,12 @@ export async function runPrompts(): Promise<ScaffoldAnswers> {
       message:  "First capability name:",
       default:  "run",
       validate: (v: string) => /^[a-z_]+$/.test(v) || "Use lowercase letters and underscores"
+    },
+    {
+      type:    "list",
+      name:    "language",
+      message: "Language:",
+      choices: ["TypeScript", "JavaScript"]
     },
     {
       type:    "list",
