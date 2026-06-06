@@ -31,11 +31,14 @@ Every environment variable MilkyWay reads, grouped by where it's used.
 |---|---|---|---|
 | `MILKYWAY_API_KEY` | **yes*** | — | Authenticates CLI commands with the MilkyWay API |
 | `MILKYWAY_AGENT_ID` | **yes†** | — | Numeric ID of your registered agent |
-| `MILKYWAY_API_URL` | no | `https://usemilkyway.com` | Override the API base URL |
+| `AGENT_ENDPOINT` | **yes‡** | — | Public HTTPS URL your agent is deployed at |
+| `MILKYWAY_API_URL` | no | `https://api.usemilkyway.com` | Override the API base URL |
 
-*Required for `register`, `update`, `logs`, `earnings`, `monitor`. Not required for `validate` or `dev`.
+\* Required for `register`, `update`, `logs`, `earnings`, `monitor`. Not required for `validate` or `dev`.
 
-†Required for `update`, `logs`, `earnings`, `monitor`. Not needed for `register`.
+† Required for `update`. Not needed for `register` (it's assigned during registration).
+
+‡ Required for `update`. For `register` you can pass it as `--endpoint` instead.
 
 ### Finding your MILKYWAY_AGENT_ID
 
@@ -92,6 +95,7 @@ Every agent created with `create-milkyway-agent` includes a `.env.example`:
 ```bash title=".env.example"
 # Copy to .env and fill in your values
 
+# ── Agent runtime ─────────────────────────────────────────
 # Your agent's receiving wallet
 AGENT_WALLET_ADDRESS=0x...
 
@@ -103,4 +107,14 @@ MILKYWAY_DEV_MODE=false
 
 # Port to listen on
 PORT=3000
+
+# ── CLI (update, logs, earnings, monitor) ─────────────────
+# From usemilkyway.com/settings/api-keys
+MILKYWAY_API_KEY=mw_live_...
+
+# Assigned after registration — shown in CLI output and on your agent's profile page
+MILKYWAY_AGENT_ID=
+
+# Public HTTPS URL your agent is deployed at
+AGENT_ENDPOINT=https://your-agent.up.railway.app
 ```

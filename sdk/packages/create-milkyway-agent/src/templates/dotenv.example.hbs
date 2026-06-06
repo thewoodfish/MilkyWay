@@ -19,8 +19,16 @@ X402_NETWORK=eip155:421614
 MILKYWAY_DEV_MODE=false
 
 # ── MilkyWay CLI ────────────────────────────────────────────────
-# For: npx milkyway register, logs, earnings, monitor
-# Get from usemilkyway.com/settings
+# For: npx milkyway register, update, logs, earnings, monitor
+# Get from usemilkyway.com/settings/api-keys
 MILKYWAY_API_KEY=mw_live_...
+
+# Assigned after registration — shown in CLI output and on your agent's profile page
+# Required for: npx milkyway update, logs, earnings, monitor
+MILKYWAY_AGENT_ID=
+
+# Public HTTPS URL your agent is deployed at
+# Required for: npx milkyway update
+AGENT_ENDPOINT=https://your-agent.up.railway.app
 
 PORT=3000
