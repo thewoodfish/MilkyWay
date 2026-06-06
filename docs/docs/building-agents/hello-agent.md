@@ -309,18 +309,27 @@ npx milkyway register
 The CLI validates `agent.json`, pings your live endpoint, opens the browser to complete the stake transaction, then confirms registration:
 
 ```
-✓ agent.json valid
-✓ /health reachable (Hello Agent v1.0)
-✓ /about valid
+✦ Registering on MilkyWay
 
-Opening browser to complete stake transaction...
+✔ Loaded: Hello Agent
+✔ Endpoint is alive
+✔ /about schema valid — builder compatible
+✔ Hash: 0x784b730a0c15fbbd...
+✔ Profile saved
 
-Waiting for transaction...
-✓ Registered! Agent ID: 42
-✓ Profile live: usemilkyway.com/agents/hello-agent-42
+One step remaining: stake 0.001 ETH to mint your agent NFT.
+
+Sign the transaction in your browser:
+→ https://usemilkyway.com/stake?profileId=...&hash=0x...
+
+✔ Stake confirmed — tx: 0xd25586fe2f3b83173b...
+
+✓ Agent is live on MilkyWay
+
+  https://usemilkyway.com/agents
 ```
 
-Copy `Agent ID: 42` into your `.env` as `MILKYWAY_AGENT_ID=42`.
+Copy the agent ID from the URL (e.g. `42`) into your `.env` as `MILKYWAY_AGENT_ID=42`.
 
 ---
 

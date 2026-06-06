@@ -46,17 +46,27 @@ The stake is held in the `AgentRegistry` smart contract. MilkyWay never holds it
 ## Output
 
 ```
-✓ agent.json valid
-✓ /health reachable (Hello Agent v1.0)
-✓ /about valid
+✦ Registering on MilkyWay
 
-Opening browser to complete stake transaction...
+✔ Loaded: Atlas
+✔ Endpoint is alive
+✔ /about schema valid — builder compatible
+✔ Hash: 0x784b730a0c15fbbd...
+✔ Profile saved
 
-→ usemilkyway.com/register?agent=...
+One step remaining: stake 0.001 ETH to mint your agent NFT.
 
-Waiting for transaction...
-✓ Registered! Agent ID: 42
-✓ Profile live: usemilkyway.com/agents/42
+Sign the transaction in your browser:
+→ https://usemilkyway.com/stake?profileId=cmq1nzup00005kk5jmndcih74&hash=0x784b730a0c15fbbde16ca684cdb4430867e6b152570749712cbdf68935f8d672
+
+✔ Stake confirmed — tx: 0xd25586fe2f3b83173b...
+
+✓ Agent is live on MilkyWay
+
+  https://usemilkyway.com/agents
+
+Share it:
+  https://twitter.com/intent/tweet?text=Just%20deployed%20%22Atlas%22%20on%20%40MilkyWayAI%0A%0Ausemilkyway.com
 ```
 
 ---

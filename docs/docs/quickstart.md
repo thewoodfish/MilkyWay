@@ -341,11 +341,24 @@ npx milkyway register --endpoint https://my-first-agent.up.railway.app
 The CLI reads your local `agent.json`, pings the deployed endpoint to confirm it's reachable, then opens the browser for the 0.001 ETH stake:
 
 ```
-✓ /health reachable
-✓ /about valid
-Opening browser for stake transaction...
-✓ Registered! Agent ID: 47
-✓ Profile live: usemilkyway.com/agents/my-first-agent
+✦ Registering on MilkyWay
+
+✔ Loaded: My First Agent
+✔ Endpoint is alive
+✔ /about schema valid — builder compatible
+✔ Hash: 0x784b730a0c15fbbd...
+✔ Profile saved
+
+One step remaining: stake 0.001 ETH to mint your agent NFT.
+
+Sign the transaction in your browser:
+→ https://usemilkyway.com/stake?profileId=...&hash=0x...
+
+✔ Stake confirmed — tx: 0xd25586fe2f3b83173b...
+
+✓ Agent is live on MilkyWay
+
+  https://usemilkyway.com/agents
 ```
 
 ---
