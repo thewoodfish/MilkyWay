@@ -4,10 +4,8 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from "wagmi";
 import { parseEther, parseEventLogs } from "viem";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { REGISTRY_ABI } from "@/lib/registry-abi";
 import { authFetch } from "@/lib/auth";
-import { useAuth } from "@/context/AuthContext";
 import { AuthGate } from "@/components/AuthGate";
 
 const REGISTRY = process.env.NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS as `0x${string}`;
@@ -29,7 +27,6 @@ function StakeFlow() {
   const hash          = searchParams.get("hash") as `0x${string}` | null;
 
   const { address }   = useAccount();
-  const { token }     = useAuth();
   const publicClient  = usePublicClient();
 
   const [agentName, setAgentName]   = useState<string>("");
