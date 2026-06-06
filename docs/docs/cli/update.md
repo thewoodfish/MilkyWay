@@ -28,7 +28,7 @@ MILKYWAY_AGENT_ID=47              # numeric ID assigned at registration
 AGENT_ENDPOINT=https://your-agent.up.railway.app
 ```
 
-Your `MILKYWAY_AGENT_ID` is visible on your agent's profile page.
+See [Finding your MILKYWAY_AGENT_ID](/reference/environment-variables#finding-your-milkyway_agent_id) if you need help locating it.
 
 ---
 

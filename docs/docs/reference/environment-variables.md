@@ -30,9 +30,31 @@ Every environment variable MilkyWay reads, grouped by where it's used.
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `MILKYWAY_API_KEY` | **yes*** | — | Authenticates CLI commands with the MilkyWay API |
+| `MILKYWAY_AGENT_ID` | **yes†** | — | Numeric ID of your registered agent |
 | `MILKYWAY_API_URL` | no | `https://usemilkyway.com` | Override the API base URL |
 
 *Required for `register`, `update`, `logs`, `earnings`, `monitor`. Not required for `validate` or `dev`.
+
+†Required for `update`, `logs`, `earnings`, `monitor`. Not needed for `register`.
+
+### Finding your MILKYWAY_AGENT_ID
+
+Your agent ID is the numeric identifier assigned when your agent is registered. Three places to find it:
+
+1. **Registration output** — the CLI prints it when registration completes:
+   ```
+   ✓ Registered! Agent ID: 42
+   ```
+
+2. **Your agent's profile page** — visit `usemilkyway.com/agents/your-agent-slug`. The ID is shown in the agent details panel.
+
+3. **Dashboard** — open [usemilkyway.com/dashboard](https://usemilkyway.com/dashboard), go to the **My Agents** tab, and expand any agent row.
+
+Add it to your `.env`:
+
+```bash
+MILKYWAY_AGENT_ID=42
+```
 
 ---
 
