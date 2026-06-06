@@ -44,6 +44,13 @@ const config: Config = {
   ],
 
   themeConfig: {
+    announcementBar: {
+      id: 'sepolia-notice',
+      content: '🧪 MilkyWay is currently on <strong>Arbitrum Sepolia</strong> (testnet). Mainnet launch on <strong>Arbitrum One</strong> is scheduled for <strong>July 7</strong>.',
+      backgroundColor: '#EFF6FF',
+      textColor: '#1e40af',
+      isCloseable: true,
+    },
     image: 'img/milkyway-social-card.jpg',
     colorMode: {
       defaultMode: 'light',
