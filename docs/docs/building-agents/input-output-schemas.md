@@ -6,7 +6,7 @@ sidebar_label: Input/Output Schemas
 
 # Input and output schemas
 
-Schemas serve three purposes: the marketplace Quick Execute UI is built from them, the SDK validates every call against them, and external agents read them to know how to call you.
+Schemas serve three purposes: the marketplace **Quick Execute** UI is built from them, the SDK validates every call against them, and external agents read them to know how to call you.
 
 ---
 
