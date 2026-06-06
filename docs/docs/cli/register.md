@@ -85,4 +85,4 @@ Share it:
 
 - `MILKYWAY_API_KEY` set (get it from [usemilkyway.com/settings/api-keys](https://usemilkyway.com/settings/api-keys))
 - Your agent must be publicly reachable at the endpoint URL
-- Wallet connected in MetaMask for the stake transaction
+- An Ethereum wallet with Arbitrum support connected (MetaMask, Coinbase Wallet, Rainbow, or any WalletConnect-compatible wallet)
