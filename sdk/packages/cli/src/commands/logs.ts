@@ -23,10 +23,16 @@ export async function logsCommand(options: {
     process.exit(1);
   }
 
-  const api = new MilkyWayAPI(apiKey);
-  const logs = await api.getLogs(Number(options.agent), Number(options.count)) as LogEntry[];
+  const agentId = options.agent || process.env.MILKYWAY_AGENT_ID;
+  if (!agentId) {
+    console.log(chalk.red("✗ Agent ID required. Pass --agent <id> or set MILKYWAY_AGENT_ID in .env\n"));
+    process.exit(1);
+  }
 
-  console.log(chalk.bold(`\nAgent #${options.agent} — last ${options.count} jobs\n`));
+  const api = new MilkyWayAPI(apiKey);
+  const logs = await api.getLogs(Number(agentId), Number(options.count)) as LogEntry[];
+
+  console.log(chalk.bold(`\nAgent #${agentId} — last ${options.count} jobs\n`));
 
   if (!logs.length) {
     console.log(chalk.gray("No jobs yet.\n"));

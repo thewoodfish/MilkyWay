@@ -33,10 +33,16 @@ export async function monitorCommand(options: {
     process.exit(1);
   }
 
+  const agentId = options.agent || process.env.MILKYWAY_AGENT_ID;
+  if (!agentId) {
+    console.log(chalk.red("✗ Agent ID required. Pass --agent <id> or set MILKYWAY_AGENT_ID in .env\n"));
+    process.exit(1);
+  }
+
   const api = new MilkyWayAPI(apiKey);
 
   console.log(
-    chalk.bold(`\nMonitoring Agent #${options.agent}`) +
+    chalk.bold(`\nMonitoring Agent #${agentId}`) +
     chalk.gray(" (Ctrl+C to stop)\n")
   );
 
@@ -47,7 +53,7 @@ export async function monitorCommand(options: {
     const now = new Date().toLocaleTimeString();
 
     try {
-      const health = await api.getHealth(Number(options.agent)) as HealthResponse;
+      const health = await api.getHealth(Number(agentId)) as HealthResponse;
 
       if (health.status === "live") {
         failStreak = 0;
@@ -56,7 +62,7 @@ export async function monitorCommand(options: {
           if (lastStatus === "down" && options.webhook) {
             await sendWebhook(options.webhook, {
               event:     "agent_recovered",
-              agentId:   options.agent,
+              agentId:   agentId,
               timestamp: now
             });
           }
@@ -74,7 +80,7 @@ export async function monitorCommand(options: {
           if (options.webhook) {
             await sendWebhook(options.webhook, {
               event:   "agent_degraded",
-              agentId: options.agent,
+              agentId: agentId,
               streak:  failStreak
             });
           }
@@ -85,7 +91,7 @@ export async function monitorCommand(options: {
           if (options.webhook) {
             await sendWebhook(options.webhook, {
               event:   "agent_inactive",
-              agentId: options.agent,
+              agentId: agentId,
               streak:  failStreak
             });
           }

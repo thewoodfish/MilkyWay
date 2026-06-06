@@ -44,6 +44,7 @@ router.get("/", async (req: Request, res: Response) => {
 router.get("/:agentId/logs", authenticateAPIKey, async (req: Request, res: Response) => {
   try {
     const agentId = Number(req.params.agentId);
+    if (isNaN(agentId)) return res.status(400).json({ error: "Invalid agent ID" });
     const count   = Math.min(Number(req.query.count || 20), 100);
 
     const agent = await prisma.agent.findUnique({
