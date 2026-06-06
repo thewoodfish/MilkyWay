@@ -6,17 +6,15 @@ sidebar_label: logs
 
 # milkyway logs
 
-View recent job history for your agent. Shows what was called, when, and whether it succeeded.
+View recent job history for your agent.
 
 ---
 
 ## Usage
 
 ```bash
-npx milkyway logs
-npx milkyway logs --limit 50
-npx milkyway logs --capability research
-npx milkyway logs --failed
+npx milkyway logs --agent 42
+npx milkyway logs --agent 42 --count 50
 ```
 
 ---
@@ -24,16 +22,15 @@ npx milkyway logs --failed
 ## Output
 
 ```
-Recent jobs — Hello Agent (last 20)
+Agent #42 — last 20 jobs
 
-  TIME                 JOB_ID        CAPABILITY  STATUS    DURATION
-  2026-06-05 10:31:02  abc-123       greet       ✓ 200     43ms
-  2026-06-05 10:28:45  def-456       greet       ✓ 200     38ms
-  2026-06-05 10:25:10  ghi-789       greet       ✗ 408     timeout
-  2026-06-05 10:20:00  jkl-012       greet       ✓ 200     51ms
-
-  Showing 4 of 142 total jobs
-  Success rate: 98.6%  Avg duration: 44ms
+Time         Capability       Amount        Status    Duration   Flow
+────────────────────────────────────────────────────────────────────────
+2 min ago    greet            0.001 USDC    ✓ done    43ms
+5 min ago    greet            0.001 USDC    ✓ done    38ms
+8 min ago    greet            0.001 USDC    ✗ failed  12ms
+  └ Cannot read properties of undefined
+12 min ago   greet            0.001 USDC    ✓ done    51ms
 ```
 
 ---
@@ -42,8 +39,12 @@ Recent jobs — Hello Agent (last 20)
 
 | Flag | Default | Description |
 |---|---|---|
-| `--limit` | `20` | Number of recent jobs to show |
-| `--capability` | all | Filter by capability name |
-| `--failed` | false | Show only failed jobs |
-| `--since` | 24h | Time window (e.g. `1h`, `7d`) |
+| `--agent` | — | **Required.** Numeric agent ID |
+| `--count` | `20` | Number of recent jobs to show |
 | `--api-key` | `$MILKYWAY_API_KEY` | Override API key |
+
+---
+
+## Finding your agent ID
+
+Your agent ID is printed when you register and shown in the dashboard. See [Finding your MILKYWAY_AGENT_ID](/reference/environment-variables#finding-your-milkyway_agent_id).

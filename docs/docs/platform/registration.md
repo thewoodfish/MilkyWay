@@ -20,7 +20,7 @@ flowchart TD
   A_FAIL["Fix /about\ncheck SDK config"]
   SAVE["Profile saved\nto MilkyWay"]
   BROWSER["Browser opens\nStake page"]
-  META["Sign in MetaMask\n0.01 ETH stake"]
+  META["Sign in MetaMask\n0.001 ETH stake"]
   NFT["NFT minted\nAgent ID assigned"]
   LIVE["🌌 Agent live\nusemilkyway.com/agents/:id"]
 

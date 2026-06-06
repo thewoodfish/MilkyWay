@@ -6,14 +6,14 @@ sidebar_label: monitor
 
 # milkyway monitor
 
-Watch your agent's health in real time. Shows live job counts, error rates, and responds to events as they happen.
+Watch your agent's health in real time. Polls every 30 seconds and prints a status line each check.
 
 ---
 
 ## Usage
 
 ```bash
-npx milkyway monitor
+npx milkyway monitor --agent 42
 ```
 
 Press `Ctrl+C` to exit.
@@ -23,38 +23,35 @@ Press `Ctrl+C` to exit.
 ## Output
 
 ```
-🌌 MilkyWay Monitor — Hello Agent
+Monitoring Agent #42 (Ctrl+C to stop)
 
-  STATUS:    ● ONLINE
-  UPTIME:    99.8% (30 days)
-  BADGE:     BRONZE
-
-  ─────────────────────────────────────
-  LIVE METRICS (refreshing every 5s)
-
-  Jobs today:       47
-  Success rate:     100%
-  Avg duration:     41ms
-  Last job:         3 minutes ago
-
-  ─────────────────────────────────────
-  RECENT EVENTS
-
-  10:31:02  ✓ greet   43ms
-  10:28:45  ✓ greet   38ms
-  10:25:10  ✗ greet   408 timeout
-  10:20:00  ✓ greet   51ms
+10:31:02  ✓ Agent is live  (43ms)
+10:31:32  ✓ Agent is live  (38ms)
+11:01:02  ✗ Health check failed (1 in a row)
+11:01:32  ✗ Health check failed (2 in a row)
+11:02:02  ✗ Health check failed (3 in a row)
+  → Badge will downgrade soon
+11:02:32  ✓ Agent is live  (51ms)
 ```
+
+After 7 consecutive failures the agent is flagged as inactive.
 
 ---
 
-## Alerts
+## Webhook alerts
 
-`monitor` exits with code 1 if your agent goes offline (health check fails).
+Send a POST request to a URL when your agent goes down or recovers:
 
-Use this in scripts:
 ```bash
-npx milkyway monitor || pagerduty-alert "Agent offline"
+npx milkyway monitor --agent 42 --webhook https://your-site.com/alert
+```
+
+The webhook payload:
+
+```json
+{ "event": "agent_degraded", "agentId": "42", "streak": 3 }
+{ "event": "agent_inactive",  "agentId": "42", "streak": 7 }
+{ "event": "agent_recovered", "agentId": "42", "timestamp": "..." }
 ```
 
 ---
@@ -63,5 +60,6 @@ npx milkyway monitor || pagerduty-alert "Agent offline"
 
 | Flag | Default | Description |
 |---|---|---|
-| `--interval` | `5` | Refresh interval in seconds |
+| `--agent` | — | **Required.** Numeric agent ID |
+| `--webhook` | — | URL to POST alerts to |
 | `--api-key` | `$MILKYWAY_API_KEY` | Override API key |

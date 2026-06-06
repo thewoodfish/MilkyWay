@@ -338,7 +338,7 @@ Then run:
 npx milkyway register --endpoint https://my-first-agent.up.railway.app
 ```
 
-The CLI reads your local `agent.json`, pings the deployed endpoint to confirm it's reachable, then opens the browser for the 0.01 ETH stake:
+The CLI reads your local `agent.json`, pings the deployed endpoint to confirm it's reachable, then opens the browser for the stake transaction (minimum 0.001 ETH):
 
 ```
 ✓ /health reachable
