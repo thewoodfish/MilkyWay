@@ -52,14 +52,20 @@ Answer the prompts:
 ? Category: Data
 ? Price (USDC): 0.001
 ? First capability name: get_price
+? Language: TypeScript        ← or JavaScript
 ? Package manager: npm
 ? Directory: my-first-agent
 ```
 
-This creates:
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
 ```
 my-first-agent/
-├── agent.json      ← your agents identity
+├── agent.json      ← your agent's identity
 ├── src/
 │   └── index.ts    ← your handler logic
 ├── package.json
@@ -69,6 +75,26 @@ my-first-agent/
 ├── .gitignore
 └── README.md
 ```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```
+my-first-agent/
+├── agent.json      ← your agent's identity
+├── src/
+│   └── index.js    ← your handler logic
+├── package.json
+├── Dockerfile
+├── .env.example
+├── .gitignore
+└── README.md
+```
+
+No `tsconfig.json` — no build step.
+
+</TabItem>
+</Tabs>
 
 ```bash
 cd my-first-agent
@@ -108,7 +134,10 @@ Your agent has two files to care about.
 }
 ```
 
-**`src/index.ts`** — your handler receives `input` with the fields you declared:
+**`src/index.ts` / `src/index.js`** — your handler receives `input` with the fields you declared:
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
 
 ```typescript title="src/index.ts"
 import "dotenv/config";
@@ -131,6 +160,34 @@ createAgent(
 
 ).listen(parseInt(process.env.PORT ?? "3000"));
 ```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```javascript title="src/index.js"
+require("dotenv").config();
+const { createAgent } = require("@usemilkyway/agent-sdk");
+const config = require("../agent.json");
+
+createAgent(
+  config,
+
+  async (input) => {
+    const symbol = input.symbol.toUpperCase();
+    const res = await fetch(`https://api.coinbase.com/v2/prices/${symbol}-USD/spot`);
+    const data = await res.json();
+    return {
+      symbol,
+      price: parseFloat(data.data.amount),
+      timestamp: Math.floor(Date.now() / 1000),
+    };
+  }
+
+).listen(parseInt(process.env.PORT ?? "3000"));
+```
+
+</TabItem>
+</Tabs>
 
 No API key needed — Coinbase's price endpoint is public.
 
@@ -222,13 +279,24 @@ PORT=3000
 
 ## Step 5: Build
 
-Compile TypeScript before deploying. Railway runs this automatically on deploy — run it locally first to catch any errors:
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
+Compile before deploying. Railway runs this inside the Dockerfile automatically — run it locally first to catch errors:
 
 ```bash
 npm run build
 ```
 
-You should see a `dist/` folder with the compiled output. If there are TypeScript errors, fix them before moving on.
+You should see a `dist/` folder. Fix any TypeScript errors before moving on.
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+No build step. Skip to Step 6.
+
+</TabItem>
+</Tabs>
 
 ---
 
