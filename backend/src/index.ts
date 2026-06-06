@@ -61,8 +61,8 @@ app.get("/api/stats", async (_req, res) => {
       }),
     ]);
 
-    // Stake = 0.01 ETH per active agent (stored on-chain, approximated here)
-    const totalStakedEth = (agentCount * 0.01).toFixed(4);
+    // Stake = 0.001 ETH per active agent (stored on-chain, approximated here)
+    const totalStakedEth = (agentCount * 0.001).toFixed(4);
 
     res.json({ agentCount, builderCount, verificationsToday, totalStaked: totalStakedEth });
   } catch {

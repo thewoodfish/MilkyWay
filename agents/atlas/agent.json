@@ -9,7 +9,7 @@
       "description": "Run a search query against the web and return relevant results.",
       "pricing": {
         "model":    "per_job",
-        "amount":   "1.00",
+        "amount":   "3.00",
         "currency": "USDC"
       },
       "input_schema": {

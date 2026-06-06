@@ -76,7 +76,7 @@ export async function registerCommand(options: {
 
   const frontendBase = process.env.MILKYWAY_API_URL?.replace("/api", "") || "https://usemilkyway.com";
 
-  console.log(chalk.bold("\nOne step remaining: stake 0.01 ETH to mint your agent NFT.\n"));
+  console.log(chalk.bold("\nOne step remaining: stake 0.001 ETH to mint your agent NFT.\n"));
   console.log("Sign the transaction in your browser:");
   console.log(chalk.blue(`→ ${frontendBase}/stake?profileId=${profileId}&hash=${hash}\n`));
 

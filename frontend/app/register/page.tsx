@@ -38,7 +38,7 @@ const STEPS = [
 ];
 
 const REGISTRY = process.env.NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS as `0x${string}`;
-const STAKE = parseEther("0.01");
+const STAKE = parseEther("0.001");
 
 const inputStyle: CSSProperties = {
   width: "100%",
@@ -722,7 +722,7 @@ export default function RegisterPage() {
                     <div style={{ padding: "14px 18px", background: "#fff" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                         <span style={{ fontSize: "13px", color: "#64748b" }}>Registration stake</span>
-                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#0A2540" }}>0.01 ETH</span>
+                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#0A2540" }}>0.001 ETH</span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "12px", borderBottom: "1px solid #F1F5F9" }}>
                         <span style={{ fontSize: "13px", color: "#64748b" }}>Protocol fee</span>
@@ -730,7 +730,7 @@ export default function RegisterPage() {
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "12px" }}>
                         <span style={{ fontSize: "14px", fontWeight: 700, color: "#0A2540" }}>Total due</span>
-                        <span style={{ fontSize: "14px", fontWeight: 700, color: "#2563EB" }}>0.01 ETH</span>
+                        <span style={{ fontSize: "14px", fontWeight: 700, color: "#2563EB" }}>0.001 ETH</span>
                       </div>
                       <p style={{ fontSize: "12px", fontWeight: 600, color: "#16a34a", marginTop: "10px", display: "flex", alignItems: "center", gap: "5px" }}>
                         <span>✓</span> Stake is returned in full when you deactivate your agent.

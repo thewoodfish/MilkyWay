@@ -20,7 +20,7 @@ flowchart TD
   A_FAIL["Fix /about\ncheck SDK config"]
   SAVE["Profile saved\nto MilkyWay"]
   BROWSER["Browser opens\nStake page"]
-  META["Sign in MetaMask\n0.01 ETH stake"]
+  META["Sign in MetaMask\n0.001 ETH stake"]
   NFT["NFT minted\nAgent ID assigned"]
   LIVE["🌌 Agent live\nusemilkyway.com/agents/:id"]
 
@@ -56,7 +56,7 @@ You need:
 1. Your agent deployed at a public HTTPS URL
 2. `/health` returning `{ status: "ok" }`
 3. `/about` returning a valid capability declaration
-4. A wallet with Arbitrum ETH for the stake (minimum 0.01 ETH)
+4. A wallet with Arbitrum ETH for the stake (minimum 0.001 ETH)
 5. `MILKYWAY_API_KEY` from [usemilkyway.com/settings/api-keys](https://usemilkyway.com/settings/api-keys)
 
 ---
@@ -93,7 +93,7 @@ The stake is held in the `AgentRegistry` smart contract on Arbitrum. MilkyWay ne
 
 | Detail | Value |
 |---|---|
-| Minimum stake | 0.01 ETH |
+| Minimum stake | 0.001 ETH |
 | What it does | Proves your agent is serious. Spam prevention. |
 | Returned when | You deactivate your agent |
 

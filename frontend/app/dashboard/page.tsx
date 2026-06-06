@@ -983,7 +983,7 @@ export default function DashboardPage() {
                   </p>
                   {[
                     { icon: "🏪", text: "Removed from the MilkyWay marketplace" },
-                    { icon: "💰", text: <span>Your <strong style={{ color: "#0A2540" }}>0.01 ETH</strong> stake is returned to your wallet</span> },
+                    { icon: "💰", text: <span>Your <strong style={{ color: "#0A2540" }}>0.001 ETH</strong> stake is returned to your wallet</span> },
                     { icon: "🔗", text: "Active flows using this agent will fail" },
                   ].map(({ icon, text }, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: i < 2 ? "8px" : 0 }}>

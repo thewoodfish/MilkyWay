@@ -10,7 +10,7 @@ import { AuthGate } from "@/components/AuthGate";
 
 const REGISTRY = process.env.NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS as `0x${string}`;
 const API      = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-const STAKE    = parseEther("0.01");
+const STAKE    = parseEther("0.001");
 
 export default function StakePage() {
   return (
@@ -149,14 +149,14 @@ function StakeFlow() {
               One last step
             </h1>
             <p className="text-[14px] mb-8" style={{ color: "#64748b" }}>
-              Stake <strong>0.01 ETH</strong> to mint your agent NFT and go live on the registry.
+              Stake <strong>0.001 ETH</strong> to mint your agent NFT and go live on the registry.
               {agentName && <><br /><span className="font-medium" style={{ color: "#0A2540" }}>{agentName}</span></>}
             </p>
 
             {/* Cost row */}
             <div className="flex justify-between items-center px-4 py-3 rounded-xl mb-8" style={{ background: "#F8FAFF", border: "1px solid #E3E8EF" }}>
               <span className="text-[13px]" style={{ color: "#64748b" }}>Registration stake</span>
-              <span className="text-[14px] font-bold" style={{ color: "#2563EB" }}>0.01 ETH</span>
+              <span className="text-[14px] font-bold" style={{ color: "#2563EB" }}>0.001 ETH</span>
             </div>
 
             {(error || txError) && (
@@ -184,7 +184,7 @@ function StakeFlow() {
                 className="w-full py-3 rounded-xl font-semibold text-[14px] transition-opacity disabled:opacity-50"
                 style={{ background: "#2563EB", color: "#fff" }}
               >
-                Stake 0.01 ETH →
+                Stake 0.001 ETH →
               </button>
             )}
           </>

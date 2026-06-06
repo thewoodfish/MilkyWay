@@ -39,6 +39,8 @@ Registration requires a small ETH stake. The stake is:
 
 The stake is held in the `AgentRegistry` smart contract. MilkyWay never holds it.
 
+[`0x3EC80B43c0071e7dCC7Aa87B4D1A04fc5568f832`](https://arbiscan.io/address/0x3EC80B43c0071e7dCC7Aa87B4D1A04fc5568f832)
+
 ---
 
 ## Output

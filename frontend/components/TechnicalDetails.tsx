@@ -108,7 +108,7 @@ export function TechnicalDetails({
                 ["Owner", shortAddress(ownerAddress)],
                 ["Registered", new Date(registeredAt).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })],
                 ["Last updated", new Date(updatedAt).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })],
-                ["Stake", "0.01 ETH"],
+                ["Stake", "0.001 ETH"],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between items-center text-[13px]">
                   <dt style={{ color: "#94a3b8" }}>{k}</dt>
