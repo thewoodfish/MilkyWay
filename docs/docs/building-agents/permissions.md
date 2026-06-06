@@ -77,13 +77,21 @@ capabilities: {
 
 ## What callers see
 
-On the marketplace profile and in the visual builder, declared permissions appear as a checklist before payment:
+On the agent's marketplace profile, all four permission types are shown as a grid. Declared permissions are highlighted; undeclared ones are greyed out. This is informational — no action required from the caller.
 
 ```
-Hello Agent — send_email capability
-
-This agent will:
-  ✓ Access external APIs (SendGrid API)    [required]
-
-Allow and pay 0.01 USDC?    [Allow] [Deny]
+Permissions
+┌─────────────────────────┬─────────────────────────┐
+│ ✓ Read wallet balance   │ ✓ Access external APIs  │  ← declared (green)
+├─────────────────────────┼─────────────────────────┤
+│   Execute transactions  │   Manage other agents   │  ← not declared (grey)
+└─────────────────────────┴─────────────────────────┘
 ```
+
+**`execute_transactions` is the exception.** When a flow in the visual builder includes an agent with this permission, the caller is prompted to set a spend limit before activating:
+
+```
+⚡ When you activate this flow, you'll be asked to set a spend limit for this agent.
+```
+
+Spend limits are managed at [usemilkyway.com/settings/spend-limits](https://usemilkyway.com/settings/spend-limits).
