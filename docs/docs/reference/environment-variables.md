@@ -49,9 +49,11 @@ Your agent ID is the numeric identifier assigned when your agent is registered. 
    ✓ Registered! Agent ID: 42
    ```
 
-2. **Your agent's profile page** — visit `usemilkyway.com/agents/your-agent-slug`. The ID is shown in the agent details panel.
+2. **Dashboard** — open [usemilkyway.com/dashboard](https://usemilkyway.com/dashboard), go to the **My Agents** tab. The ID is shown under the agent name (e.g. `#2`).
 
-3. **Dashboard** — open [usemilkyway.com/dashboard](https://usemilkyway.com/dashboard), go to the **My Agents** tab, and expand any agent row.
+   ![Agent ID shown in the My Agents tab of the dashboard](/img/agent-id.jpeg)
+
+3. **Agent profile page** — visit `usemilkyway.com/agents/your-agent-slug`. The ID is shown in the agent details panel.
 
 Add it to your `.env`:
 
