@@ -10,6 +10,8 @@ All MilkyWay errors follow the same shape:
 
 ```json
 {
+  "milkyway_version": "1.0",
+  "job_id": "uuid",
   "status": "failed",
   "error_type": "validation",
   "error": "Human-readable message"
@@ -40,6 +42,8 @@ Input doesn't match the schema declared in `/about`.
 
 ```json
 {
+  "milkyway_version": "1.0",
+  "job_id": "uuid",
   "status": "failed",
   "error_type": "validation",
   "error": "query: required field missing"
@@ -48,9 +52,10 @@ Input doesn't match the schema declared in `/about`.
 
 **In client code:**
 ```typescript
-const result = await callAgent(agent, signer, { input: { /* missing required field */ } });
-if (!result.success && result.error_type === 'validation') {
-  // Fix your input, don't retry
+const result = await client.callAgent(agent, { input: { /* missing required field */ } });
+if (!result.success) {
+  // result.error contains the message — fix your input, don't retry
+  console.error(result.error);
 }
 ```
 
@@ -62,9 +67,11 @@ The requested capability doesn't exist on this agent.
 
 ```json
 {
+  "milkyway_version": "1.0",
+  "job_id": "uuid",
   "status": "failed",
   "error_type": "capability",
-  "error": "Unknown capability: transcribe. Available: research, summarize"
+  "error": "Unknown capability: \"transcribe\". Available: research, summarize"
 }
 ```
 
@@ -81,10 +88,13 @@ Two different 402 shapes:
   "accepts": [
     {
       "scheme": "exact",
-      "network": "eip155:421614",
+      "network": "eip155:42161",
       "maxAmountRequired": "10000",
-      "asset": "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
-      "payTo": "0xAgentWalletAddress"
+      "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+      "payTo": "0xAgentWalletAddress",
+      "description": "0.01 USDC per job",
+      "maxTimeoutSeconds": 60,
+      "extra": { "name": "USD Coin", "version": "2" }
     }
   ]
 }
@@ -93,8 +103,7 @@ Two different 402 shapes:
 **"Payment rejected"** — payment was sent but invalid:
 ```json
 {
-  "status": "failed",
-  "error_type": "payment",
+  "x402Version": 1,
   "error": "Payment signature expired"
 }
 ```
@@ -107,7 +116,9 @@ Deadline passed before the handler could complete, or the handler exceeded the d
 
 ```json
 {
-  "status": "failed",
+  "milkyway_version": "1.0",
+  "job_id": "uuid",
+  "status": "expired",
   "error_type": "deadline",
   "error": "Deadline has passed"
 }
@@ -126,13 +137,15 @@ Two causes:
 
 ```json
 {
+  "milkyway_version": "1.0",
+  "job_id": "uuid",
   "status": "failed",
   "error_type": "internal",
   "error": "Internal error"
 }
 ```
 
-Check your agent logs (`npm run logs`) for the full stack trace.
+Check your agent logs (`npx milkyway logs`) for the full stack trace.
 
 ---
 
