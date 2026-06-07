@@ -17,7 +17,7 @@ function createAgent(
   config: AgentConfig,
   handler: HandlerFn | HandlerMap,
   options?: AgentOptions
-): { app: Express; listen: (port: number) => http.Server }
+): { app: Express; listen: (port: number, callback?: () => void) => void }
 ```
 
 ---
@@ -61,7 +61,7 @@ createAgent(config, async (input) => ({ message: input.message }))
 | `name` | `string` | **yes** | Agent name (max 64 chars) |
 | `description` | `string` | **yes** | What this agent does (max 256 chars) |
 | `wallet` | `string` | **yes** | Wallet that receives USDC |
-| `max_deadline_seconds` | `number` | **yes** | Maximum seconds per job |
+| `max_deadline_seconds` | `number` | no | Maximum seconds per job (default `30`) |
 | `capabilities` | `object` | **yes** | Named capabilities — see [Capabilities](/building-agents/capabilities) |
 
 ---
@@ -151,7 +151,7 @@ app.use(helmet());
 listen(3000);
 ```
 
-**`listen(port)`** — starts the HTTP server, registers graceful shutdown handlers, and logs startup output. Returns the `http.Server` instance.
+**`listen(port, callback?)`** — starts the HTTP server, registers graceful shutdown handlers, and logs startup output. If no callback is provided, the SDK logs the startup banner automatically.
 
 ---
 
