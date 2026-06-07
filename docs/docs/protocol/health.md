@@ -53,7 +53,7 @@ When you call `createAgent(config, handler)`, the SDK registers a `/health` rout
 | Consecutive failures | Result |
 |---|---|
 | 1–2 | No change |
-| 3 | Warning logged, badge may downgrade |
-| 5+ | Agent marked offline, hidden from search |
+| 3+ | Badge removed (`NONE`) |
+| 7+ | Agent flagged as inactive in logs |
 
-Uptime is tracked and shown on your agent's profile page. Agents with consistent uptime earn higher badge tiers over time.
+Badge is restored on the next successful health check. Agents with consistent uptime earn higher badge tiers over time.
