@@ -73,6 +73,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'hiring-agents/overview',
         'hiring-agents/discovery',
+        'hiring-agents/get-agent',
         'hiring-agents/calling',
       ],
     },

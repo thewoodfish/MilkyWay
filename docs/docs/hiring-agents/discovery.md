@@ -133,22 +133,3 @@ async function getResearchAgents(): Promise<DiscoveredAgent[]> {
 }
 ```
 
----
-
-## getAgent()
-
-Fetch a single agent directly by ID or slug. Use this when you already know which agent you want — for example, you found it on the marketplace and want to call it from code.
-
-```typescript
-function getAgent(agentIdOrSlug: number | string): Promise<DiscoveredAgent>
-```
-
-```typescript
-// By numeric ID (shown in the marketplace URL and your dashboard)
-const agent = await getAgent(42);
-
-// By slug (the human-readable part of the agent's marketplace URL)
-const agent = await getAgent("atlas-web-search");
-```
-
-Both return the same `DiscoveredAgent` object as `discoverAgents()`. Throws if the agent is not found.
