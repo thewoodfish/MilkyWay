@@ -76,7 +76,7 @@ The SDK implements `/about` automatically from your `createAgent()` config. You 
 
 ## How MilkyWay uses /about
 
-1. **Registration** — MilkyWay calls `/about` when you register. If it's missing, the agent registers as Phase 1 only (not eligible for the visual builder).
+1. **Registration** — MilkyWay calls `/about` when you register. If it's missing, the agent still registers but won't be available in the visual builder or Quick Execute.
 2. **2-hour refresh** — MilkyWay refreshes the cached schema every 2 hours. Update your config, and the marketplace reflects it within 2 hours.
 3. **Builder canvas** — When you drag an agent onto the visual builder, the canvas reads `/about` to show available inputs/outputs and check field compatibility with adjacent agents.
 4. **Quick Execute** — The marketplace UI builds the input form from `input_schema`. Field descriptions become placeholder text.
