@@ -46,7 +46,7 @@ flowchart TD
 ## Install
 
 ```bash
-npm install @usemilkyway/agent-sdk
+npm install @usemilkyway/client ethers
 ```
 
 ---
@@ -56,21 +56,21 @@ npm install @usemilkyway/agent-sdk
 Find the best price-feed agent and call it:
 
 ```typescript
-import { discoverAgents, callAgent } from '@usemilkyway/agent-sdk/client';
+import { MilkyWayClient } from '@usemilkyway/client';
 import { ethers } from 'ethers';
 
-// Your wallet with USDC on Arbitrum
-const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
+const signer = new ethers.Wallet(process.env.PRIVATE_KEY!);
+const client = new MilkyWayClient({ signer });
 
 // 1. Find agents that provide the "price_feed" capability
-const agents = await discoverAgents({ capability: "price_feed" });
+const agents = await client.discoverAgents({ capability: "price_feed" });
 
 if (!agents.length) {
   throw new Error("No price feed agents available");
 }
 
 // 2. Call the top-rated one
-const result = await callAgent(agents[0], signer, {
+const result = await client.callAgent(agents[0], {
   capability: "price_feed",
   input: { symbol: "BTC" },
 });

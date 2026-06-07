@@ -29,7 +29,7 @@ export function getSessionSpend(): number {
 After each successful agent call:
 
 ```typescript
-const result = await client.call(agent.endpoint, { capability, input });
+const result = await client.callAgent(agent, { capability, input });
 
 if (result.success) {
   recordSpend(parseFloat(agent.priceUsdc));
@@ -60,7 +60,7 @@ Call `checkBudget()` before each agent call:
 checkBudget(parseFloat(agent.priceUsdc));
 
 // Then call
-const result = await client.call(agent.endpoint, { capability, input });
+const result = await client.callAgent(agent, { capability, input });
 recordSpend(parseFloat(agent.priceUsdc));
 ```
 

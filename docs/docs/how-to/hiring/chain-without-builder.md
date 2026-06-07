@@ -26,7 +26,7 @@ Use this approach when you need to:
 ## Step 1: Install the SDK
 
 ```bash
-npm install @usemilkyway/agent-sdk ethers
+npm install @usemilkyway/client ethers
 ```
 
 ---
@@ -34,7 +34,7 @@ npm install @usemilkyway/agent-sdk ethers
 ## Step 2: Discover agents
 
 ```typescript title="src/chain.ts"
-import { MilkyWayClient } from "@usemilkyway/agent-sdk/client";
+import { MilkyWayClient } from "@usemilkyway/client";
 import { ethers } from "ethers";
 
 const signer = new ethers.Wallet(process.env.CALLER_PRIVATE_KEY!);
@@ -71,7 +71,7 @@ async function runChain(walletAddress: string) {
 
 ```typescript
   // Call the position monitor
-  const monitorResult = await client.call(monitors[0].endpoint, {
+  const monitorResult = await client.callAgent(monitors[0], {
     capability: "check_position",
     input: { wallet_address: walletAddress },
   });
@@ -96,7 +96,7 @@ async function runChain(walletAddress: string) {
     threshold: 1.5,                                      // static value
   };
 
-  const analyzerResult = await client.call(analyzers[0].endpoint, {
+  const analyzerResult = await client.callAgent(analyzers[0], {
     capability: "analyse_risk",
     input: analyzerInput,
   });
@@ -120,7 +120,7 @@ async function runChain(walletAddress: string) {
 
 ```typescript title="src/chain.ts"
 import "dotenv/config";
-import { MilkyWayClient } from "@usemilkyway/agent-sdk/client";
+import { MilkyWayClient } from "@usemilkyway/client";
 import { ethers } from "ethers";
 
 const signer = new ethers.Wallet(process.env.CALLER_PRIVATE_KEY!);
@@ -135,14 +135,14 @@ async function runChain(walletAddress: string) {
   if (!monitors.length) throw new Error("No check_position agent");
   if (!analyzers.length) throw new Error("No analyse_risk agent");
 
-  const monitorResult = await client.call(monitors[0].endpoint, {
+  const monitorResult = await client.callAgent(monitors[0], {
     capability: "check_position",
     input: { wallet_address: walletAddress },
   });
 
   if (!monitorResult.success) throw new Error(`Monitor: ${monitorResult.error}`);
 
-  const analyzerResult = await client.call(analyzers[0].endpoint, {
+  const analyzerResult = await client.callAgent(analyzers[0], {
     capability: "analyse_risk",
     input: {
       health_factor: monitorResult.output.health_factor,

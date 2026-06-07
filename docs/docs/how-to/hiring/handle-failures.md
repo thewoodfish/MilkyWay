@@ -57,7 +57,7 @@ Use it:
 
 ```typescript
 const result = await withRetry(
-  () => client.call(agent.endpoint, { capability: "check_position", input }),
+  () => client.callAgent(agent, { capability: "check_position", input }),
   3,
   "check_position"
 );
@@ -86,7 +86,7 @@ export async function callWithFallback(
 
   for (const agent of agents) {
     try {
-      const result = await client.call(agent.endpoint, { capability, input });
+      const result = await client.callAgent(agent, { capability, input });
 
       if (result.success) return result;
 
@@ -114,14 +114,14 @@ export async function callWithPaymentRetry(
   endpoint: string,
   options: CallOptions
 ): Promise<AgentResult> {
-  const result = await client.call(endpoint, options);
+  const result = await client.callAgent(agent, options);
 
   if (result.success) return result;
 
   // Payment signature expired — build a new one and retry once
   if (result.error?.includes("payment") || result.statusCode === 402) {
     console.warn("Payment signature expired — retrying with fresh signature");
-    return client.call(endpoint, options); // MilkyWayClient builds a new signature on each call
+    return client.callAgent(agent, options); // MilkyWayClient builds a new signature on each call
   }
 
   return result;
@@ -178,17 +178,17 @@ Use it before calling an agent:
 
 ```typescript
 for (const agent of agents) {
-  if (isCircuitOpen(agent.id)) {
+  if (isCircuitOpen(agent.agentId)) {
     console.log(`Skipping ${agent.name} — circuit open`);
     continue;
   }
 
   try {
-    const result = await client.call(agent.endpoint, options);
-    recordSuccess(agent.id);
+    const result = await client.callAgent(agent, options);
+    recordSuccess(agent.agentId);
     return result;
   } catch (err) {
-    recordFailure(agent.id);
+    recordFailure(agent.agentId);
   }
 }
 ```
@@ -198,7 +198,7 @@ for (const agent of agents) {
 ## Putting it all together
 
 ```typescript title="src/robust-client.ts"
-import { MilkyWayClient } from "@usemilkyway/agent-sdk/client";
+import { MilkyWayClient } from "@usemilkyway/client";
 import { withRetry } from "./retry";
 import { isCircuitOpen, recordSuccess, recordFailure } from "./circuit-breaker";
 
@@ -211,20 +211,20 @@ export async function robustCall(
   if (agents.length === 0) throw new Error(`No agents for ${capability}`);
 
   for (const agent of agents) {
-    if (isCircuitOpen(agent.id)) continue;
+    if (isCircuitOpen(agent.agentId)) continue;
 
     try {
       const result = await withRetry(
-        () => client.call(agent.endpoint, { capability, input }),
+        () => client.callAgent(agent, { capability, input }),
         3
       );
 
       if (result.success) {
-        recordSuccess(agent.id);
+        recordSuccess(agent.agentId);
         return result;
       }
     } catch (err) {
-      recordFailure(agent.id);
+      recordFailure(agent.agentId);
     }
   }
 

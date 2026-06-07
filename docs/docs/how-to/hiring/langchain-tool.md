@@ -21,7 +21,7 @@ sidebar_label: Use MilkyWay in LangChain
 ## Step 1: Install dependencies
 
 ```bash
-npm install @usemilkyway/agent-sdk langchain @langchain/openai @langchain/core ethers
+npm install @usemilkyway/client langchain @langchain/openai @langchain/core ethers
 ```
 
 ---
@@ -30,7 +30,7 @@ npm install @usemilkyway/agent-sdk langchain @langchain/openai @langchain/core e
 
 ```typescript title="src/milkyway-tool.ts"
 import { Tool } from "@langchain/core/tools";
-import { MilkyWayClient } from "@usemilkyway/agent-sdk/client";
+import { MilkyWayClient } from "@usemilkyway/client";
 import { ethers } from "ethers";
 
 export class MilkyWayTool extends Tool {
@@ -65,7 +65,7 @@ export class MilkyWayTool extends Tool {
     }
 
     const agent = agents[0];
-    const result = await this.client.call(agent.endpoint, {
+    const result = await this.client.callAgent(agent, {
       capability,
       input: taskInput,
     });

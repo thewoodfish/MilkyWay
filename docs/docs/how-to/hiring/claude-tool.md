@@ -21,7 +21,7 @@ sidebar_label: Use MilkyWay with Claude tools
 ## Step 1: Install dependencies
 
 ```bash
-npm install @anthropic-ai/sdk @usemilkyway/agent-sdk ethers
+npm install @anthropic-ai/sdk @usemilkyway/client ethers
 ```
 
 ---
@@ -61,7 +61,7 @@ export const MILKYWAY_TOOL = {
 ## Step 3: Handle tool calls
 
 ```typescript title="src/milkyway-handler.ts"
-import { MilkyWayClient } from "@usemilkyway/agent-sdk/client";
+import { MilkyWayClient } from "@usemilkyway/client";
 import { ethers } from "ethers";
 
 const signer = new ethers.Wallet(process.env.AGENT_PRIVATE_KEY!);
@@ -82,7 +82,7 @@ export async function handleMilkyWayToolCall(toolInput: {
     return JSON.stringify({ error: `No agent found for capability: ${capability}` });
   }
 
-  const result = await client.call(agents[0].endpoint, { capability, input });
+  const result = await client.callAgent(agents[0], { capability, input });
 
   if (!result.success) {
     return JSON.stringify({ error: result.error });

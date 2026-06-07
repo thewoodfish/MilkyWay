@@ -96,7 +96,7 @@ With dev mode off, `/execute` requires a valid payment header. Use the test scri
 
 ```typescript
 // scripts/test-payment.ts
-import { MilkyWayClient } from "@usemilkyway/agent-sdk/client";
+import { MilkyWayClient } from "@usemilkyway/client";
 import { ethers } from "ethers";
 
 const AGENT_ENDPOINT = "http://localhost:3000";
@@ -110,7 +110,9 @@ async function main() {
     network: "eip155:421614", // Arbitrum Sepolia
   });
 
-  const result = await client.call(AGENT_ENDPOINT, {
+  // For direct endpoint testing without discovery, use callAgent with a mock agent object
+  const mockAgent = { endpoint: AGENT_ENDPOINT, agentWallet: "0x...", priceUsdc: "0.001" } as any;
+  const result = await client.callAgent(mockAgent, {
     capability: "greet",
     input: { name: "Alice" },
   });
