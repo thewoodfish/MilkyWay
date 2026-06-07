@@ -45,8 +45,8 @@ const config: Config = {
 
   themeConfig: {
     announcementBar: {
-      id: 'sepolia-notice',
-      content: '🧪 MilkyWay is currently on <strong>Arbitrum Sepolia</strong> (testnet). Mainnet launch on <strong>Arbitrum One</strong> is scheduled for <strong>July 7</strong>.',
+      id: 'sepolia-notice-2',
+      content: '🧪 MilkyWay is currently on <strong>Arbitrum Sepolia</strong> (testnet). Mainnet launch on <strong>Arbitrum One</strong> is coming in a few weeks.',
       backgroundColor: '#EFF6FF',
       textColor: '#1e40af',
       isCloseable: true,
