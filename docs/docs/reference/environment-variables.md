@@ -95,28 +95,38 @@ Your `FACILITATOR_SECRET` is a live credential — treat it like a password.
 Every agent created with `create-milkyway-agent` includes a `.env.example`:
 
 ```bash title=".env.example"
-# Copy to .env and fill in your values
-
-# ── Agent runtime ─────────────────────────────────────────
-# Your agent's receiving wallet
+# ── Your wallet ─────────────────────────────────────────────────
+# This address receives USDC payments when your agent is called
 AGENT_WALLET_ADDRESS=0x...
 
-# From usemilkyway.com/settings/api-keys
-FACILITATOR_SECRET=
+# ── MilkyWay Facilitator ────────────────────────────────────────
+# Handles payment verification — no signup needed
+# Get your secret from usemilkyway.com/settings
+X402_FACILITATOR_URL=https://facilitator.usemilkyway.com
+FACILITATOR_SECRET=get_this_from_usemilkyway_com_settings
 
-# Set to true during local development only
+# ── Network ─────────────────────────────────────────────────────
+# eip155:421614 = Arbitrum Sepolia (for testing)
+# eip155:42161  = Arbitrum One (for production)
+X402_NETWORK=eip155:421614
+
+# ── Dev mode ────────────────────────────────────────────────────
+# Set to "true" to skip payment verification locally
+# NEVER true in production
 MILKYWAY_DEV_MODE=false
 
-# Port to listen on
-PORT=3000
-
-# ── CLI (update, logs, earnings, monitor) ─────────────────
-# From usemilkyway.com/settings/api-keys
+# ── MilkyWay CLI ────────────────────────────────────────────────
+# For: npx milkyway register, update, logs, earnings, monitor
+# Get from usemilkyway.com/settings/api-keys
 MILKYWAY_API_KEY=mw_live_...
 
 # Assigned after registration — shown in CLI output and on your agent's profile page
+# Required for: npx milkyway update, logs, earnings, monitor
 MILKYWAY_AGENT_ID=
 
 # Public HTTPS URL your agent is deployed at
+# Required for: npx milkyway update
 AGENT_ENDPOINT=https://your-agent.up.railway.app
+
+PORT=3000
 ```

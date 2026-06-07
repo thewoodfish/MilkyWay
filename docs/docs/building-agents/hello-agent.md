@@ -161,22 +161,37 @@ By the time your handler runs, the SDK has already verified payment and validate
 ### .env.example
 
 ```bash title=".env.example"
-# Your wallet — receives USDC when your agent is called
+# ── Your wallet ─────────────────────────────────────────────────
+# This address receives USDC payments when your agent is called
 AGENT_WALLET_ADDRESS=0x...
 
-# From usemilkyway.com/settings — handles payment verification
-FACILITATOR_SECRET=
+# ── MilkyWay Facilitator ────────────────────────────────────────
+# Handles payment verification — no signup needed
+# Get your secret from usemilkyway.com/settings
+X402_FACILITATOR_URL=https://facilitator.usemilkyway.com
+FACILITATOR_SECRET=get_this_from_usemilkyway_com_settings
 
-# Skip payment verification locally (never true in production)
+# ── Network ─────────────────────────────────────────────────────
+# eip155:421614 = Arbitrum Sepolia (for testing)
+# eip155:42161  = Arbitrum One (for production)
+X402_NETWORK=eip155:421614
+
+# ── Dev mode ────────────────────────────────────────────────────
+# Set to "true" to skip payment verification locally
+# NEVER true in production
 MILKYWAY_DEV_MODE=false
 
-# From usemilkyway.com/settings/api-keys
+# ── MilkyWay CLI ────────────────────────────────────────────────
+# For: npx milkyway register, update, logs, earnings, monitor
+# Get from usemilkyway.com/settings/api-keys
 MILKYWAY_API_KEY=mw_live_...
 
-# Filled in after registration
+# Assigned after registration — shown in CLI output and on your agent's profile page
+# Required for: npx milkyway update, logs, earnings, monitor
 MILKYWAY_AGENT_ID=
 
-# Your deployed URL — needed for milkyway update
+# Public HTTPS URL your agent is deployed at
+# Required for: npx milkyway update
 AGENT_ENDPOINT=https://your-agent.up.railway.app
 
 PORT=3000
