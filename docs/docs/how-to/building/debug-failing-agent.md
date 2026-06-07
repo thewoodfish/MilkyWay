@@ -77,19 +77,21 @@ The SDK validates input against your `input_schema` before calling your handler.
 
 ```json
 {
-  "error": "ValidationError",
-  "message": "Field 'threshold': expected number, got string"
+  "milkyway_version": "1.0",
+  "status": "failed",
+  "error_type": "validation",
+  "error": "threshold: Expected number, received string"
 }
 ```
 
-The message tells you exactly which field and what went wrong.
+`error_type` is always `"validation"` and `error` tells you exactly which field and what went wrong.
 
 **Common causes:**
 - Sending a string where a number is expected — `"1.5"` instead of `1.5`
 - Missing a required field
 - String shorter than `minLength`
 
-**Fix:** Check your curl command or caller code. The SDK does not silently coerce types at the boundary.
+**Fix:** Check your curl command or caller code. The SDK coerces safe conversions (e.g. `"1.5"` string → number) but throws a `ValidationError` when coercion is impossible.
 
 ---
 

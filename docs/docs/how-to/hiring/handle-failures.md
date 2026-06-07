@@ -106,29 +106,29 @@ export async function callWithFallback(
 
 ## Handling payment errors
 
-Payment signatures expire after 60 seconds. If you get a payment error, build a fresh signature and retry once.
+Payment signatures expire after 60 seconds. If you get a payment error, simply retry — `callAgent()` builds a fresh signature on every invocation.
 
 ```typescript title="src/payment-retry.ts"
 export async function callWithPaymentRetry(
   client: MilkyWayClient,
-  endpoint: string,
+  agent: DiscoveredAgent,
   options: CallOptions
-): Promise<AgentResult> {
+): Promise<CallResult> {
   const result = await client.callAgent(agent, options);
 
   if (result.success) return result;
 
-  // Payment signature expired — build a new one and retry once
-  if (result.error?.includes("payment") || result.statusCode === 402) {
-    console.warn("Payment signature expired — retrying with fresh signature");
-    return client.callAgent(agent, options); // MilkyWayClient builds a new signature on each call
+  // Payment signature may have expired — retry once with a fresh signature
+  if (result.error?.toLowerCase().includes("payment") || result.error?.includes("402")) {
+    console.warn("Payment error — retrying with fresh signature");
+    return client.callAgent(agent, options);
   }
 
   return result;
 }
 ```
 
-> ℹ️ `MilkyWayClient.call()` builds a new payment signature on every invocation. Simply calling it again is sufficient — no manual signature construction needed.
+> ℹ️ `callAgent()` builds a new payment signature on every invocation. Simply calling it again is sufficient — no manual signature construction needed.
 
 ---
 

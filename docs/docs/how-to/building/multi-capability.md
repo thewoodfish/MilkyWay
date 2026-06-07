@@ -148,10 +148,15 @@ curl -X POST http://localhost:3000/execute \
   }'
 ```
 
-If `capability` is missing or unknown:
+If `capability` is unknown:
 
 ```json
-{ "error": "UnknownCapability", "message": "Capability 'trade' not found. Available: check_position, get_quote, summarise_portfolio" }
+{
+  "milkyway_version": "1.0",
+  "status": "failed",
+  "error_type": "capability",
+  "error": "Unknown capability: \"trade\". Available: check_position, get_quote, summarise_portfolio"
+}
 ```
 
 ---

@@ -84,7 +84,7 @@ You should see the startup log **without** the `⚠ DEV MODE` warning.
 
 ## Step 5: Get your FACILITATOR_SECRET
 
-If you haven't yet, go to [usemilkyway.com/settings/api-keys](https://usemilkyway.com/settings/api-keys) and create a Facilitator Secret. Paste it into `.env`.
+If you haven't yet, go to [usemilkyway.com/settings/api-keys](https://usemilkyway.com/settings/api-keys) and copy your Facilitator Secret. Paste it into `.env`.
 
 > 🔑 The FACILITATOR_SECRET must never be committed to git. It lives in `.env` only.
 
@@ -133,14 +133,13 @@ Expected output:
 
 ```json
 {
-  "milkyway_version": "1.0",
-  "job_id": "test-001",
-  "status": "completed",
+  "success": true,
   "output": {
     "greeting": "Hello, Alice! Welcome to MilkyWay.",
     "timestamp": 1748995200
   },
-  "completed_at": 1748995200
+  "jobId": "auto-generated-uuid",
+  "durationMs": 245
 }
 ```
 

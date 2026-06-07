@@ -30,16 +30,17 @@ sidebar_label: Build an execute-transactions agent
   "description": "Repays an Aave V3 USDC loan on behalf of the caller.",
   "wallet": "${AGENT_WALLET_ADDRESS}",
   "max_deadline_seconds": 30,
-  "permissions": {
-    "EXECUTE_TRANSACTIONS": {
-      "reason": "Required to call USDC.transferFrom() and Aave repay() on behalf of the user.",
-      "token": "USDC",
-      "max_per_transaction": "500"
-    }
-  },
   "capabilities": {
     "repay_loan": {
       "description": "Repay a USDC loan on Aave V3.",
+      "permissions": [
+        {
+          "type": "EXECUTE_TRANSACTIONS",
+          "reason": "Required to call USDC.transferFrom() and Aave repay() on behalf of the user.",
+          "token": "USDC",
+          "max_per_transaction": "500"
+        }
+      ],
       "pricing": {
         "model": "per_job",
         "amount": "1.00",
@@ -111,7 +112,7 @@ createAgent(
     const provider = new ethers.JsonRpcProvider(process.env.ARBITRUM_RPC);
     const signer = new ethers.Wallet(process.env.AGENT_PRIVATE_KEY!, provider);
 
-    const usdc = new ethers.Contract(USDC_ABI, USDC_ABI, provider);
+    const usdc = new ethers.Contract(USDC_ARBITRUM, USDC_ABI, provider);
     const pool = new ethers.Contract(AAVE_POOL_ARBITRUM, AAVE_POOL_ABI, signer);
 
     // Convert to 6 decimal USDC units

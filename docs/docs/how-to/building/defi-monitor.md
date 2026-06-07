@@ -74,8 +74,8 @@ Replace `agent.json` with:
           "required": false,
           "description": "Health factor below which to warn (default 1.5)",
           "default": 1.5,
-          "minimum": 1.0,
-          "maximum": 3.0
+          "min": 1.0,
+          "max": 3.0
         }
       },
       "output_schema": {
