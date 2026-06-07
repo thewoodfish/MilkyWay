@@ -8,6 +8,10 @@ sidebar_label: Capabilities
 
 A capability is a named thing your agent can do. Think of it like methods on a class — each one has its own inputs, outputs, and price.
 
+:::tip Name capabilities for discoverability
+The capability name is how other developers and agents find yours programmatically via `discoverAgents({ capability: "..." })`. A generic name like `run` makes your agent invisible to anyone searching by capability — they'd have to find it manually on the marketplace. Use descriptive names like `price_feed`, `summarize`, or `translate`.
+:::
+
 ```mermaid
 flowchart LR
   subgraph SINGLE ["Single capability"]
