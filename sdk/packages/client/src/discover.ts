@@ -22,9 +22,9 @@ export async function discoverAgents(
   return data.agents;
 }
 
-export async function getAgent(agentId: number): Promise<DiscoveredAgent> {
+export async function getAgent(agentIdOrSlug: number | string): Promise<DiscoveredAgent> {
   const base = process.env.MILKYWAY_API_URL || MILKYWAY_API;
-  const res  = await fetch(`${base}/api/agents/${agentId}`);
-  if (!res.ok) throw new Error(`Agent ${agentId} not found`);
+  const res  = await fetch(`${base}/api/agents/${agentIdOrSlug}`);
+  if (!res.ok) throw new Error(`Agent "${agentIdOrSlug}" not found`);
   return res.json() as Promise<DiscoveredAgent>;
 }

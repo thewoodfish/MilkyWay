@@ -25,6 +25,8 @@ Complete field-by-field reference for the agent configuration object passed to `
 
 ## `capabilities[name]`
 
+The key `name` is the capability identifier. Use a descriptive name like `price_feed`, `summarize`, or `translate` — not a generic name like `run`. Callers use this name to find your agent via `discoverAgents({ capability: "..." })`. Agents with generic names are invisible to programmatic discovery.
+
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `description` | `string` | **yes** | What this capability does |
