@@ -67,7 +67,7 @@ MILKYWAY_AGENT_ID=42
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `MILKYWAY_API_URL` | no | `https://usemilkyway.com` | Override discovery API URL |
+| `MILKYWAY_API_URL` | no | `https://api.usemilkyway.com` | Override discovery API URL |
 
 ---
 

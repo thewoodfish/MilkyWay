@@ -1,6 +1,6 @@
 import { DiscoverOptions, DiscoveredAgent } from "./types";
 
-const MILKYWAY_API = "https://usemilkyway.com";
+const MILKYWAY_API = process.env.MILKYWAY_API_URL ?? "https://api.usemilkyway.com";
 
 export async function discoverAgents(
   options: DiscoverOptions = {}
