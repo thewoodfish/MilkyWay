@@ -1,63 +1,87 @@
 ---
 id: spend-limits
-title: Spend limits
+title: Spend Limits
 sidebar_label: Spend Limits
 ---
 
-# Spend limits
+# Spend Limits
 
-Spend limits cap how much USDC can be paid to a specific agent from a specific API key. Use them to protect against runaway agent loops or unexpected usage spikes.
+When an agent declares the `execute_transactions` permission, it is asking for the ability to move USDC on your behalf — for example, to execute a swap, repay a loan, or rebalance a portfolio.
+
+Before the agent can do any of that, you must explicitly approve a spend limit. Nothing moves until you grant it.
 
 ---
 
-## Setting a spend limit
+## How it works
 
-In [usemilkyway.com/dashboard](https://usemilkyway.com/dashboard) → API Keys → select a key → Add Spend Limit:
+```mermaid
+sequenceDiagram
+  participant U as You
+  participant MW as MilkyWay
+  participant C as Arbitrum (USDC)
+  participant A as Agent
 
-| Setting | Description |
+  U->>MW: Activate flow or use agent
+  Note over MW: Agent requests execute_transactions
+  MW->>U: Show spend limit prompt
+  U->>C: USDC.approve(agentAddress, maxPerTx)
+  U->>MW: POST /api/permissions/grant
+  Note over MW: Limit stored (maxPerTx + maxLifetime)
+
+  A->>C: transferFrom(you, recipient, amount)
+  Note over C: Allowed if amount ≤ maxPerTx
+  MW->>MW: Track spentToDate against maxLifetime
+
+  U->>C: USDC.approve(agentAddress, 0)
+  U->>MW: POST /api/permissions/revoke
+  Note over A: Agent blocked immediately
+```
+
+1. You set two limits: **max per transaction** and **max lifetime total**
+2. An on-chain `USDC.approve` is signed in your wallet — no funds move yet
+3. MilkyWay records the limit and tracks spending against the lifetime cap
+4. The agent can spend up to `maxPerTx` per action, until `maxLifetime` is exhausted
+5. You can revoke at any time — calls `USDC.approve(agentAddress, 0)` on-chain, immediately blocking the agent
+
+---
+
+## Granting a spend limit
+
+Spend limits are set during flow activation in the builder, or when you first use an agent that requires `execute_transactions`. You'll see the prompt automatically:
+
+| Field | Description |
 |---|---|
-| Agent | Which agent this limit applies to |
-| Period | `hourly`, `daily`, or `monthly` |
-| Limit | USDC cap for the period |
-| Action | `block` (return 402) or `alert` (notify, don't block) |
+| **Max per transaction** | The most the agent can move in a single action |
+| **Max lifetime** | The total the agent can ever move — after this it's blocked |
+
+No funds move when you approve. The `USDC.approve` call sets an allowance — the agent can only use it when it actually executes a transaction.
 
 ---
 
-## How limits work
+## Managing your limits
 
-When a call would exceed the limit:
+Visit [usemilkyway.com/settings/spend-limits](https://usemilkyway.com/settings/spend-limits) to see all active limits:
 
-**Block mode:** The agent receives a 402 with `{ error: "Spend limit exceeded" }`. USDC is not charged.
-
-**Alert mode:** The call proceeds, but you receive an email notification. Use this to detect unexpected usage before blocking.
-
-Limits reset at the start of each period (top of the hour, midnight UTC, or first of the month).
-
----
-
-## Use cases
-
-**Budget guardrails for automated agents:**
-```
-API Key: production-agent-key
-Agent: Research Agent (ID: 42)
-Period: daily
-Limit: 10.00 USDC
-Action: block
-```
-Your automation can call the Research Agent up to 10 USDC worth per day. After that, calls return 402 until tomorrow.
-
-**Monitoring during launch:**
-```
-Agent: My New Agent
-Period: hourly
-Limit: 1.00 USDC
-Action: alert
-```
-Get notified if your agent suddenly gets 1 USDC worth of calls in an hour — unusual for a new agent.
+| Column | Description |
+|---|---|
+| Agent | Which agent holds the allowance |
+| Max per tx | Single-transaction cap |
+| Lifetime | Total cap |
+| Spent to date | How much has been used so far |
+| Granted | When the limit was set |
 
 ---
 
-## No limits vs limits
+## Revoking a limit
 
-Agents with no spend limits set can receive unlimited payments from any caller. This is fine for established agents. For new agents or automated pipelines, start with limits and increase as you validate usage.
+Click **Revoke** next to any agent. This calls `USDC.approve(agentAddress, 0)` on-chain — the agent's allowance drops to zero immediately and it cannot spend any more USDC on your behalf.
+
+Revoking costs a small amount of gas.
+
+---
+
+## Which agents require this
+
+Only agents that declare `execute_transactions` in their `agent.json` will prompt for a spend limit. Agents that only read data or call external APIs do not.
+
+You can see an agent's declared permissions on their marketplace profile before granting anything.
