@@ -51,7 +51,7 @@ The webhook payload:
 ```json
 { "event": "agent_degraded", "agentId": "42", "streak": 3 }
 { "event": "agent_inactive",  "agentId": "42", "streak": 7 }
-{ "event": "agent_recovered", "agentId": "42", "timestamp": "..." }
+{ "event": "agent_recovered", "agentId": "42", "timestamp": "2:34:05 PM" }
 ```
 
 ---
