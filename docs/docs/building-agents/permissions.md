@@ -36,9 +36,8 @@ capabilities: {
     pricing: { model: "per_job", amount: "0.01", currency: "USDC" },
     permissions: [
       {
-        type: "access_external_apis",
+        type: "ACCESS_EXTERNAL_APIS",
         reason: "Calls the SendGrid API to deliver email",
-        required: true,
       },
     ],
     input_schema: {
@@ -60,18 +59,28 @@ capabilities: {
 
 | Type | What it means |
 |---|---|
-| `read_wallet` | Agent reads the caller's wallet balance |
-| `execute_transactions` | Agent submits on-chain transactions on the caller's behalf |
-| `access_external_apis` | Agent makes HTTP requests to external services |
-| `manage_other_agents` | Agent hires or coordinates other MilkyWay agents |
+| `READ_WALLET_BALANCE` | Agent reads the caller's wallet balance |
+| `EXECUTE_TRANSACTIONS` | Agent submits on-chain transactions on the caller's behalf |
+| `ACCESS_EXTERNAL_APIS` | Agent makes HTTP requests to external services |
+| `MANAGE_AGENTS` | Agent hires or coordinates other MilkyWay agents |
 
----
+`EXECUTE_TRANSACTIONS` supports additional fields to declare limits:
 
-## required vs optional
+```typescript
+{
+  type: "EXECUTE_TRANSACTIONS",
+  reason: "Rebalances your portfolio via DEX swaps",
+  token: "USDC",
+  max_per_transaction: "10.00",
+  max_lifetime: "100.00",
+}
+```
 
-`required: true` — the capability cannot function without this permission. Callers who decline cannot use this capability.
-
-`required: false` — the capability works without it, but with reduced functionality. Callers can opt out.
+| Field | Required | Description |
+|---|---|---|
+| `token` | no | Token being spent — e.g. `"USDC"` |
+| `max_per_transaction` | no | Max amount per single transaction |
+| `max_lifetime` | no | Max total amount across all transactions |
 
 ---
 
