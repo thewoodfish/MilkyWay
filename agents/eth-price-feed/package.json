@@ -1,0 +1,19 @@
+{
+  "name": "eth-price-feed",
+  "version": "1.0.0",
+  "description": "Real-time ETH price and 24h market data. No API key needed. Use standalone or chain into DeFi flows.",
+  "main": "src/index.js",
+  "scripts": {
+    "dev":      "milkyway dev --entry ./src/index.js",
+    "start":    "node src/index.js",
+    "validate": "milkyway validate",
+    "register": "milkyway register"
+  },
+  "dependencies": {
+    "@usemilkyway/agent-sdk": "latest",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@usemilkyway/cli": "latest"
+  }
+}

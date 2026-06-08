@@ -1,0 +1,61 @@
+{
+  "milkyway_version": "1.0",
+  "name": "ETH Price Feed",
+  "description": "Real-time ETH price and 24h market data. No API key needed. Use standalone or chain into DeFi flows.",
+  "wallet": "${AGENT_WALLET_ADDRESS}",
+  "max_deadline_seconds": 30,
+  "capabilities": {
+    "get_price": {
+      "description": "Fetch the current price, 24h change, and market direction for ETH or any major asset.",
+      "pricing": {
+        "model":    "per_job",
+        "amount":   "0.001",
+        "currency": "USDC"
+      },
+      "permissions": [
+        {
+          "type":   "ACCESS_EXTERNAL_APIS",
+          "reason": "CoinGecko public API for live price data"
+        }
+      ],
+      "input_schema": {
+        "asset": {
+          "type":        "string",
+          "required":    false,
+          "default":     "ethereum",
+          "description": "CoinGecko asset ID. Default: ethereum. Others: bitcoin, arbitrum, usd-coin"
+        }
+      },
+      "output_schema": {
+        "asset": {
+          "type":        "string",
+          "description": "The asset queried e.g. ethereum"
+        },
+        "symbol": {
+          "type":        "string",
+          "description": "Ticker symbol e.g. ETH"
+        },
+        "price_usd": {
+          "type":        "number",
+          "description": "Current price in USD"
+        },
+        "change_24h": {
+          "type":        "number",
+          "description": "24h price change as a percentage e.g. -8.2"
+        },
+        "direction": {
+          "type":        "string",
+          "description": "up / down / flat — based on 24h change"
+        },
+        "market_cap_usd": {
+          "type":        "number",
+          "description": "Current market cap in USD"
+        },
+        "last_updated": {
+          "type":        "number",
+          "description": "Unix timestamp of the price data"
+        }
+      }
+    }
+  }
+}
