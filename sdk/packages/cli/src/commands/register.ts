@@ -76,9 +76,14 @@ export async function registerCommand(options: {
 
   const frontendBase = process.env.MILKYWAY_API_URL?.replace("/api", "") || "https://usemilkyway.com";
 
+  const stakeUrl = `${frontendBase}/stake?profileId=${profileId}&hash=${hash}`;
   console.log(chalk.bold("\nOne step remaining: stake 0.001 ETH to mint your agent NFT.\n"));
-  console.log("Sign the transaction in your browser:");
-  console.log(chalk.blue(`→ ${frontendBase}/stake?profileId=${profileId}&hash=${hash}\n`));
+  console.log("Opening your browser...");
+  console.log(chalk.blue(`→ ${stakeUrl}\n`));
+
+  const { exec } = await import("child_process");
+  const opener = process.platform === "win32" ? "start" : process.platform === "darwin" ? "open" : "xdg-open";
+  exec(`${opener} "${stakeUrl}"`);
 
   spinner = ora("Waiting for on-chain confirmation").start();
   let confirmed = false;
