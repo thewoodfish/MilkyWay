@@ -10,8 +10,7 @@ No prerequisites except Node.js 18+.
 
 **Prerequisites:**
 - Node.js 18 or later
-- A wallet with Arbitrum Sepolia ETH — [get it free](/how-to/building/get-sepolia-eth)
-- A wallet with test USDC — [get it free](https://faucet.circle.com)
+- An Ethereum wallet (MetaMask or any EVM wallet)
 
 ---
 
@@ -263,9 +262,9 @@ AGENT_WALLET_ADDRESS=0xYourWalletAddress
 FACILITATOR_SECRET=your_secret_here
 
 # Which Arbitrum network to use
-# eip155:421614 = Arbitrum Sepolia (testing)
 # eip155:42161  = Arbitrum One (production)
-X402_NETWORK=eip155:421614
+# eip155:421614 = Arbitrum Sepolia (testing only)
+X402_NETWORK=eip155:42161
 
 # MilkyWay CLI — for register, logs, earnings commands
 # Generate at usemilkyway.com/settings/api-keys

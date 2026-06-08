@@ -245,6 +245,6 @@ Once it works locally:
 
 ## What's next
 
-- [Test on Sepolia end-to-end](/how-to/building/test-on-sepolia) — run a real payment before going live
+- [Deploy to Railway](/how-to/building/deploy-to-railway) — ship to production
 - [Build an execute-transactions agent](/how-to/building/execute-transactions) — take action when health factor drops
 - [Build a DeFi safety flow](/how-to/flows/defi-safety-flow) — chain this monitor with a liquidation shield

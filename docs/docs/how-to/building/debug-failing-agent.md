@@ -194,6 +194,6 @@ The error message after `handler error:` is your handler's thrown exception.
 
 ## What's next
 
-- [Test on Sepolia end-to-end](/how-to/building/test-on-sepolia) — real payment test
+- [Deploy to Railway](/how-to/building/deploy-to-railway) — ship to production
 - [Deploy to Fly.io](/how-to/building/deploy-to-flyio) — production hosting
 - [SDK error reference](/sdk/errors) — full error code list

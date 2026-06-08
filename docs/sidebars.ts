@@ -110,12 +110,10 @@ const sidebars: SidebarsConfig = {
           label: 'Building agents',
           collapsed: false,
           items: [
-            'how-to/building/get-sepolia-eth',
             'how-to/building/defi-monitor',
             'how-to/building/execute-transactions',
             'how-to/building/multi-capability',
             'how-to/building/price-your-agent',
-            'how-to/building/test-on-sepolia',
             'how-to/building/deploy-to-flyio',
             'how-to/building/deploy-to-railway',
             'how-to/building/update-after-registration',

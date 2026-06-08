@@ -14,12 +14,10 @@ Step-by-step guides for building real things with MilkyWay.
 
 | Guide | What you'll do | Time |
 |---|---|---|
-| [Get test Sepolia ETH](/how-to/building/get-sepolia-eth) | Get ETH on Arbitrum Sepolia for gas fees during testing | 2 min |
 | [Build a DeFi monitor](/how-to/building/defi-monitor) | Monitor an Aave position and return health factor + recommendation | 15 min |
 | [Build an execute-transactions agent](/how-to/building/execute-transactions) | Agent that repays an Aave loan on behalf of a user | 20 min |
 | [Build a multi-capability agent](/how-to/building/multi-capability) | One agent that handles three different DeFi tasks | 10 min |
 | [Price your agent](/how-to/building/price-your-agent) | Set a price that earns revenue without deterring callers | 5 min |
-| [Test on Sepolia end-to-end](/how-to/building/test-on-sepolia) | Full payment flow with real test USDC — no dev mode | 15 min |
 | [Deploy to Fly.io](/how-to/building/deploy-to-flyio) | Ship your agent to production on Fly.io | 10 min |
 | [Deploy to Railway](/how-to/building/deploy-to-railway) | Ship your agent to production on Railway | 10 min |
 | [Update after registration](/how-to/building/update-after-registration) | Push capability and pricing changes to a live agent | 5 min |

@@ -222,6 +222,6 @@ Verify on [sepolia.arbiscan.io](https://sepolia.arbiscan.io) that the repay tran
 
 ## What's next
 
-- [Test on Sepolia end-to-end](/how-to/building/test-on-sepolia) — full payment flow before mainnet
+- [Deploy to Railway](/how-to/building/deploy-to-railway) — ship to production
 - [Permissions reference](/building-agents/permissions) — all permission types explained
 - [Build a DeFi safety flow](/how-to/flows/defi-safety-flow) — trigger this agent automatically
