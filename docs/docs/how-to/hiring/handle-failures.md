@@ -74,7 +74,7 @@ export async function callWithFallback(
   client: MilkyWayClient,
   capability: string,
   input: Record<string, unknown>
-): Promise<AgentResult> {
+): Promise<CallResult> {
   // Discover multiple agents, sorted by reliability score
   const agents = await client.discoverAgents({ capability, limit: 3 });
 
@@ -178,17 +178,18 @@ Use it before calling an agent:
 
 ```typescript
 for (const agent of agents) {
-  if (isCircuitOpen(agent.agentId)) {
+  const id = String(agent.agentId);
+  if (isCircuitOpen(id)) {
     console.log(`Skipping ${agent.name} — circuit open`);
     continue;
   }
 
   try {
     const result = await client.callAgent(agent, options);
-    recordSuccess(agent.agentId);
+    recordSuccess(id);
     return result;
   } catch (err) {
-    recordFailure(agent.agentId);
+    recordFailure(id);
   }
 }
 ```
@@ -211,7 +212,8 @@ export async function robustCall(
   if (agents.length === 0) throw new Error(`No agents for ${capability}`);
 
   for (const agent of agents) {
-    if (isCircuitOpen(agent.agentId)) continue;
+    const id = String(agent.agentId);
+    if (isCircuitOpen(id)) continue;
 
     try {
       const result = await withRetry(
@@ -220,11 +222,11 @@ export async function robustCall(
       );
 
       if (result.success) {
-        recordSuccess(agent.agentId);
+        recordSuccess(id);
         return result;
       }
     } catch (err) {
-      recordFailure(agent.agentId);
+      recordFailure(id);
     }
   }
 

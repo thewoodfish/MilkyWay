@@ -205,7 +205,7 @@ if (estimatedCost > SESSION_BUDGET_USDC) {
 
 | Agent type | Price | Daily at 100 calls | Daily at 1,000 calls |
 |---|---|---|---|
-| Price feed | 0.10 USDC | $10/day | $100/day |
+| Price feed | 0.25 USDC | $25/day | $250/day |
 | DeFi monitor | 0.50 USDC | $50/day | $500/day |
 | Research agent | 1.00 USDC | $100/day | $1,000/day |
 | Transaction agent | 1.50 USDC | $150/day | $1,500/day |
