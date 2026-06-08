@@ -14,10 +14,10 @@ import { SiweMessage } from "siwe";
 // ── Config ────────────────────────────────────────────────────────────────────
 
 const BACKEND       = "http://localhost:5000";
-const RPC           = "https://arb-sepolia.g.alchemy.com/v2/Ukyp1Ogy1qih7QQ6fO8FY";
+const RPC           = process.env.ARBITRUM_RPC;
 const CHAIN_ID      = 421614;
 const REGISTRY_ADDR = "0x8F65922EA9faa532fB849814bB1a58AB95DF482E";
-const PRIVATE_KEY   = "0xbf520fbce9d2deb136049680817c69fb6b590d9eec6ac2b4d03f27ec5f221f65";
+const PRIVATE_KEY   = process.env.DEPLOYER_PRIVATE_KEY;
 const DOMAIN        = "localhost:3000";
 const STAKE_ETH     = "0.01";
 
