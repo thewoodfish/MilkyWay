@@ -17,7 +17,7 @@ export async function callAgent(
   const start    = Date.now();
   const jobId    = options.jobId ?? uuidv4();
   const deadline = Math.floor(Date.now() / 1000) + (options.deadline ?? 30);
-  const network  = process.env.X402_NETWORK ?? "eip155:421614";
+  const network  = process.env.X402_NETWORK ?? "eip155:42161";
   const endpoint = agent.endpoint.replace(/\/$/, "");
   const url      = `${endpoint}/execute`;
 

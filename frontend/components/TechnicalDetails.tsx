@@ -5,7 +5,7 @@ import { shortAddress } from "@/lib/utils";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
-const ARBISCAN = "https://sepolia.arbiscan.io";
+const ARBISCAN = "https://arbiscan.io";
 const CONTRACT = process.env.NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS;
 
 interface Props {

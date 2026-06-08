@@ -20,9 +20,8 @@ import { UsdcAmount } from "@/components/UsdcAmount";
 import { ActivationModal } from "@/components/ActivationModal";
 import type { Agent } from "@/lib/types";
 
-// Arbitrum Sepolia — swap both lines for mainnet post-hackathon
-const CHAIN_ID = 421614;
-const USDC_ADDRESS = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d" as `0x${string}`;
+const CHAIN_ID = 42161;
+const USDC_ADDRESS = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" as `0x${string}`;
 
 const EIP3009_TYPES = {
   TransferWithAuthorization: [

@@ -20,7 +20,7 @@ export async function buildPaymentHeader(
   signer:     ethers.Wallet,
   payTo:      string,
   amountUsdc: string,
-  network:    string = "eip155:421614"
+  network:    string = "eip155:42161"
 ): Promise<string> {
   const chainId     = Number(network.split(":")[1]);
   const usdcAddress = USDC_ADDRESSES[network];

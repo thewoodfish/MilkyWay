@@ -12,7 +12,7 @@ contract AgentRegistry is ERC721URIStorage, Ownable, ReentrancyGuard {
     string public constant ERC8004_VERSION = "1.0";
 
     uint256 private _nextAgentId;
-    uint256 public minimumStake = 0.01 ether;
+    uint256 public minimumStake = 0.001 ether;
 
     struct AgentData {
         address owner;

@@ -45,7 +45,7 @@ export async function executeFlow(flow: {
       const allCaps = about?.capabilities ? Object.values(about.capabilities) : [];
       const execPerm = allCaps.flatMap((c) => c?.permissions ?? []).find((p) => p.type === "EXECUTE_TRANSACTIONS");
       if (execPerm) {
-        const network = process.env.X402_NETWORK || "eip155:421614";
+        const network = process.env.X402_NETWORK || "eip155:42161";
         const amountRaw = String(Math.round(parseFloat(flowAgent.amountUsdc) * 1_000_000));
         const check = await checkSpendPermission(flow.callerAddress, flowAgent.agentAddress, amountRaw, network);
         if (!check.allowed) throw new Error(`Agent ${agent.name}: ${check.reason}`);
@@ -86,7 +86,7 @@ export async function executeFlow(flow: {
           },
           body: JSON.stringify({
             payment: header,
-            network: process.env.X402_NETWORK || "eip155:421614",
+            network: process.env.X402_NETWORK || "eip155:42161",
           }),
         }).catch((err: Error) => console.error(`[engine] Settle failed for ${agent.name}:`, err.message));
       }
@@ -114,7 +114,7 @@ export async function executeFlow(flow: {
         },
         body: JSON.stringify({
           payment: buildPaymentHeader(treasuryAuth, treasuryResource),
-          network: process.env.X402_NETWORK || "eip155:421614",
+          network: process.env.X402_NETWORK || "eip155:42161",
         }),
       }).catch((err: Error) => console.error("[engine] Treasury settle failed:", err.message));
     }
@@ -168,7 +168,7 @@ function buildPaymentHeader(auth: StoredAuth, resource: string): string {
   const payment = {
     x402Version: 1,
     scheme: "exact",
-    network: process.env.X402_NETWORK || "eip155:421614",
+    network: process.env.X402_NETWORK || "eip155:42161",
     payload: {
       authorization: {
         from: auth.from,
@@ -188,7 +188,7 @@ function buildPaymentHeader(auth: StoredAuth, resource: string): string {
 const USDC_ABI = ["function allowance(address owner, address spender) view returns (uint256)"];
 const USDC_ADDRESS: Record<string, string> = {
   "eip155:42161":  "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-  "eip155:421614": "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
+  "eip155:42161": "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
 };
 
 async function checkSpendPermission(

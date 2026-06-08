@@ -10,7 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 import { AuthGate } from "@/components/AuthGate";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-const USDC_ADDRESS = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d" as `0x${string}`;
+const USDC_ADDRESS = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" as `0x${string}`;
 
 const USDC_ABI = [
   {

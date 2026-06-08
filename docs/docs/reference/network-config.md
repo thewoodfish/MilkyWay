@@ -17,7 +17,7 @@ All contracts are on Arbitrum. Use Sepolia for testing, One for production.
 | Chain ID | `42161` |
 | RPC | `https://arb1.arbitrum.io/rpc` |
 | USDC | `0xaf88d065e77c8cC2239327C5EDb3A432268e5831` |
-| AgentRegistry | *(coming in a few weeks)* |
+| AgentRegistry | `0x8F65922EA9faa532fB849814bB1a58AB95DF482E` |
 | Explorer | [arbiscan.io](https://arbiscan.io) |
 
 ---

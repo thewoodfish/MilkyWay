@@ -45,10 +45,10 @@ const config: Config = {
 
   themeConfig: {
     announcementBar: {
-      id: 'sepolia-notice-2',
-      content: '🧪 MilkyWay is currently on <strong>Arbitrum Sepolia</strong> (testnet). Mainnet launch on <strong>Arbitrum One</strong> is coming in a few weeks.',
-      backgroundColor: '#EFF6FF',
-      textColor: '#1e40af',
+      id: 'mainnet-launch',
+      content: '🚀 MilkyWay is live on <strong>Arbitrum One</strong> mainnet. Real USDC, real agents.',
+      backgroundColor: '#F0FDF4',
+      textColor: '#166534',
       isCloseable: true,
     },
     image: 'img/milkyway-social-card.jpg',

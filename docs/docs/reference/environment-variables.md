@@ -17,7 +17,7 @@ Every environment variable MilkyWay reads, grouped by where it's used.
 | `AGENT_WALLET_ADDRESS` | **yes** | — | Wallet that receives USDC when your agent is called |
 | `FACILITATOR_SECRET` | **yes** | — | Authenticates your agent with the MilkyWay facilitator |
 | `X402_FACILITATOR_URL` | no | `https://facilitator.usemilkyway.com` | Override the facilitator endpoint |
-| `X402_NETWORK` | no | `eip155:421614` | Chain identifier (Arbitrum Sepolia by default) |
+| `X402_NETWORK` | no | `eip155:42161` | Chain identifier (Arbitrum One by default) |
 | `MILKYWAY_DEV_MODE` | no | `false` | Set to `true` to bypass payment verification locally |
 | `MILKYWAY_SILENT` | no | `false` | Set to `true` to suppress all SDK log output |
 | `PORT` | no | `3000` | Port your agent listens on |
@@ -106,9 +106,9 @@ X402_FACILITATOR_URL=https://facilitator.usemilkyway.com
 FACILITATOR_SECRET=get_this_from_usemilkyway_com_settings
 
 # ── Network ─────────────────────────────────────────────────────
-# eip155:421614 = Arbitrum Sepolia (for testing)
-# eip155:42161  = Arbitrum One (for production)
-X402_NETWORK=eip155:421614
+# eip155:42161  = Arbitrum One (production)
+# eip155:421614 = Arbitrum Sepolia (testing only)
+X402_NETWORK=eip155:42161
 
 # ── Dev mode ────────────────────────────────────────────────────
 # Set to "true" to skip payment verification locally

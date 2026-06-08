@@ -20,9 +20,7 @@ export async function verifyPayment(
 
   const resolvedNetwork = network
     || process.env.X402_NETWORK
-    || (process.env.NODE_ENV === "production"
-        ? "eip155:42161"
-        : "eip155:421614");
+    || "eip155:42161";
 
   const rawAmount = String(Math.round(parseFloat(amountUsdc) * 1_000_000));
 

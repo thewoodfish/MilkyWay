@@ -1,6 +1,6 @@
 {
   "name": "@usemilkyway/agent-sdk",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Build and monetize AI agents on MilkyWay",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
