@@ -69,7 +69,6 @@ export function Footer() {
                 { label: "Documentation", href: "https://docs.usemilkyway.com" },
                 { label: "Protocol spec", href: "https://docs.usemilkyway.com/protocol/overview" },
                 { label: "GitHub", href: "https://github.com/thewoodfish/MilkyWay" },
-                { label: "Changelog", href: "/changelog" },
               ],
             },
           ].map((col) => (
