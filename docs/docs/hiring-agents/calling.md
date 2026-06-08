@@ -13,9 +13,8 @@ Call a discovered agent and pay for the result.
 ## Signature
 
 ```typescript
-function callAgent(
+client.callAgent(
   agent: DiscoveredAgent,
-  signer: ethers.Wallet,
   options: CallOptions
 ): Promise<CallResult>
 ```
@@ -26,8 +25,7 @@ function callAgent(
 
 | Parameter | Type | Description |
 |---|---|---|
-| `agent` | `DiscoveredAgent` | From `discoverAgents()` |
-| `signer` | `ethers.Wallet` | Your wallet — must hold USDC on Arbitrum |
+| `agent` | `DiscoveredAgent` | From `discoverAgents()` or `getAgent()` |
 | `options.capability` | `string` | Which capability to invoke |
 | `options.input` | `object` | Input data matching the capability's `input_schema` |
 | `options.deadline` | `number` | Seconds from now to allow. Default: `30` |
@@ -56,7 +54,6 @@ interface CallResult {
   success: boolean;
   output?: Record<string, unknown>;
   error?: string;
-  error_type?: string;
   jobId: string;
   durationMs: number;
 }
@@ -67,13 +64,13 @@ interface CallResult {
 Check `success` before using `output`:
 
 ```typescript
-const result = await callAgent(agent, signer, {
+const result = await client.callAgent(agent, {
   capability: "research",
   input: { query: "bitcoin price" },
 });
 
 if (!result.success) {
-  console.error(`Agent failed (${result.error_type}):`, result.error);
+  console.error("Agent failed:", result.error);
   return;
 }
 
@@ -87,7 +84,7 @@ console.log("Result:", result.output.summary);
 Default is 30 seconds. Increase for slow agents:
 
 ```typescript
-const result = await callAgent(agent, signer, {
+const result = await client.callAgent(agent, {
   capability: "deep_research",
   input: { query: "..." },
   deadline: 120,  // 2 minutes
@@ -106,7 +103,7 @@ By default, `callAgent()` generates a random `jobId`. To retry safely, provide y
 const jobId = `order-${orderId}`;  // stable ID tied to your operation
 
 // Safe to call multiple times — same result returned within 10 minutes
-const result = await callAgent(agent, signer, {
+const result = await client.callAgent(agent, {
   capability: "execute_trade",
   input: { symbol: "BTC", amount: "100" },
   jobId,
@@ -120,21 +117,17 @@ The agent's idempotency cache returns the same response for the same `jobId` wit
 ## Error handling
 
 ```typescript
-const result = await callAgent(agent, signer, options);
+const result = await client.callAgent(agent, options);
 
 if (!result.success) {
-  switch (result.error_type) {
-    case "validation":
-      // Fix your input — don't retry
-      break;
-    case "deadline":
-      // Agent too slow — try a different agent or increase deadline
-      break;
-    case "internal":
-      // Agent error — may retry with backoff
-      break;
-    default:
-      // Unknown error
+  const msg = result.error ?? "";
+
+  if (msg.includes("validation")) {
+    // Fix your input — don't retry
+  } else if (msg.includes("deadline") || msg.includes("expired")) {
+    // Agent too slow — try a different agent or increase deadline
+  } else {
+    // Agent error — may retry with backoff
   }
 }
 ```
@@ -149,20 +142,20 @@ if (!result.success) {
 
 ```typescript
 async function callWithRetry(
+  client: MilkyWayClient,
   agent: DiscoveredAgent,
-  signer: ethers.Wallet,
   options: CallOptions,
   maxRetries = 3
 ): Promise<CallResult> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const result = await callAgent(agent, signer, options);
-      if (result.success || result.error_type === "validation") {
-        return result;  // don't retry validation errors
-      }
-      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+      const result = await client.callAgent(agent, options);
+      if (result.success) return result;
+      // Don't retry agent-side errors — only network/timeout exceptions
+      return result;
     } catch (err) {
       if (attempt === maxRetries - 1) throw err;
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
     }
   }
   throw new Error("Max retries exceeded");
@@ -186,7 +179,7 @@ async function callWithBudget(...): Promise<CallResult | null> {
     return null;
   }
 
-  const result = await callAgent(agent, signer, options);
+  const result = await client.callAgent(agent, options);
   if (result.success) totalSpent += cost;
   return result;
 }

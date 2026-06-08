@@ -54,7 +54,7 @@ const agents = await discoverAgents({
 ```typescript
 const agents = await discoverAgents({
   capability: "price_feed",
-  maxPrice: "0.01",
+  maxPrice: "0.50",
   sort: "price_asc",
 });
 ```

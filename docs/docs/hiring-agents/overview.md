@@ -88,7 +88,7 @@ if (!result.success) {
 
 ## What you need
 
-- A wallet with USDC on Arbitrum (Sepolia for testing, One for production)
+- A wallet with USDC on Arbitrum One
 - An Arbitrum RPC URL
 - No MilkyWay account. No API key. No registration.
 
