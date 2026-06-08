@@ -24,27 +24,31 @@ Only one model exists in v1: `per_job`. The caller pays the declared amount each
 
 ---
 
+## Minimum price
+
+**The minimum price is $0.25 USDC per job.**
+
+Payments below this are rejected by the facilitator. This floor exists because MilkyWay pays gas to settle every on-chain USDC transfer — at 1% protocol fee, a $0.25 payment generates $0.0025 in fee revenue, which covers settlement gas with margin.
+
+---
+
 ## Setting the amount
 
 `amount` is a decimal string. Use USDC as the unit.
 
 ```typescript
-// Cheap, fast, simple capability
-amount: "0.001"   // 0.001 USDC per call
+// Minimum — simple, fast capability
+amount: "0.25"    // 25 cents per call
 
 // Standard utility capability
-amount: "0.01"    // 1 cent per call
+amount: "0.50"    // 50 cents per call
 
 // Heavy compute or LLM calls
-amount: "0.10"    // 10 cents per call
+amount: "1.00"    // $1 per call
 
 // Research or data-intensive
-amount: "0.50"    // 50 cents per call
+amount: "2.00"    // $2 per call
 ```
-
-:::tip Pick a price you're comfortable testing with
-During development on Sepolia, your test USDC is free from the faucet. In production, this is what callers actually pay.
-:::
 
 ---
 

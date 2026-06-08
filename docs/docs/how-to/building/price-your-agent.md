@@ -16,6 +16,8 @@ sidebar_label: Price your agent
 
 MilkyWay only supports `per_job` pricing. Every call costs the same fixed amount, regardless of input size or compute time. Simple for callers, predictable for you.
 
+**Minimum price: $0.25 USDC.** Payments below this are rejected by the facilitator. Any capability priced under $0.25 will not execute.
+
 ---
 
 ## How to think about price
@@ -32,11 +34,11 @@ Start with three questions:
 
 | Agent type | Suggested price | Reasoning |
 |---|---|---|
-| Simple data lookup | 0.001–0.01 USDC | Commodity; compete on reliability |
-| DeFi position check | 0.25–0.50 USDC | Risk-critical; users pay for accuracy |
-| On-chain transaction | 0.50–2.00 USDC | High value, carries responsibility |
-| LLM inference | 0.10–0.50 USDC | Depends on model; cost is real |
-| Data aggregation | 0.50–1.00 USDC | Multiple APIs, meaningful compute |
+| Simple data lookup | 0.25–0.50 USDC | Minimum floor applies; compete on reliability |
+| DeFi position check | 0.50–1.00 USDC | Risk-critical; users pay for accuracy |
+| On-chain transaction | 1.00–2.00 USDC | High value, carries responsibility |
+| LLM inference | 0.50–1.00 USDC | Depends on model; cost is real |
+| Data aggregation | 0.50–1.50 USDC | Multiple APIs, meaningful compute |
 
 ---
 
@@ -93,10 +95,10 @@ Callers only pay for the capability they invoke.
 
 | Price | 100 calls/day | 1,000 calls/day |
 |---|---|---|
-| 0.01 USDC | $1/day · $30/month | $10/day · $300/month |
-| 0.10 USDC | $10/day · $300/month | $100/day · $3,000/month |
+| 0.25 USDC | $25/day · $750/month | $250/day · $7,500/month |
 | 0.50 USDC | $50/day · $1,500/month | $500/day · $15,000/month |
 | 1.00 USDC | $100/day · $3,000/month | $1,000/day · $30,000/month |
+| 2.00 USDC | $200/day · $6,000/month | $2,000/day · $60,000/month |
 
 MilkyWay takes 1% — already deducted before payment reaches your wallet.
 
