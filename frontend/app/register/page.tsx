@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSignMessage, useChainId, useSwitchChain, usePublicClient } from "wagmi";
-import { arbitrumSepolia } from "wagmi/chains";
+import { arbitrum } from "wagmi/chains";
 import { parseEther, parseEventLogs } from "viem";
 import { REGISTRY_ABI } from "@/lib/registry-abi";
 import { apiFetch, CATEGORY_LABELS } from "@/lib/utils";
@@ -151,8 +151,8 @@ export default function RegisterPage() {
   async function handleRegister() {
     setError("");
     try {
-      if (chainId !== arbitrumSepolia.id) {
-        await switchChainAsync({ chainId: arbitrumSepolia.id });
+      if (chainId !== arbitrum.id) {
+        await switchChainAsync({ chainId: arbitrum.id });
       }
 
       await ensureSignedIn();

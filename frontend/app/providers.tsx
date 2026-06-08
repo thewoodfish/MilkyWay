@@ -2,7 +2,7 @@
 
 import { RainbowKitProvider, getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { arbitrumSepolia } from "wagmi/chains";
+import { arbitrum } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
@@ -18,12 +18,12 @@ const config = isValidProjectId
   ? getDefaultConfig({
       appName: "MilkyWay",
       projectId: rawProjectId,
-      chains: [arbitrumSepolia],
+      chains: [arbitrum],
       ssr: true,
     })
   : createConfig({
-      chains: [arbitrumSepolia],
-      transports: { [arbitrumSepolia.id]: http() },
+      chains: [arbitrum],
+      transports: { [arbitrum.id]: http() },
       connectors: [injected()],
       ssr: true,
     });
