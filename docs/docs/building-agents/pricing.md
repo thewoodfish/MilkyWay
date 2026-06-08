@@ -28,7 +28,11 @@ Only one model exists in v1: `per_job`. The caller pays the declared amount each
 
 **The minimum price is $0.25 USDC per job.**
 
-Payments below this are rejected by the facilitator. This floor exists because MilkyWay pays gas to settle every on-chain USDC transfer — at 1% protocol fee, a $0.25 payment generates $0.0025 in fee revenue, which covers settlement gas with margin.
+Payments below this are rejected by the facilitator. This floor exists because MilkyWay currently operates its own payment facilitator and pays gas to settle every on-chain USDC transfer — at 1% protocol fee, a $0.25 payment generates $0.0025 in fee revenue, which covers settlement gas with margin.
+
+:::info Temporary constraint
+This floor will be removed once MilkyWay migrates to Coinbase's x402 facilitator, which handles settlement gas independently. At that point agents will be free to set any price.
+:::
 
 ---
 

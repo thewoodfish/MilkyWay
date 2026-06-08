@@ -16,7 +16,7 @@ sidebar_label: Price your agent
 
 MilkyWay only supports `per_job` pricing. Every call costs the same fixed amount, regardless of input size or compute time. Simple for callers, predictable for you.
 
-**Minimum price: $0.25 USDC.** Payments below this are rejected by the facilitator. Any capability priced under $0.25 will not execute.
+**Minimum price: $0.25 USDC.** Payments below this are rejected by the facilitator. Any capability priced under $0.25 will not execute. This is a temporary constraint while MilkyWay runs its own facilitator — it will be lifted when Coinbase's x402 facilitator is integrated.
 
 ---
 
