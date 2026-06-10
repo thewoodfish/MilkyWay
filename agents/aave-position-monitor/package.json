@@ -1,0 +1,24 @@
+{
+  "name": "aave-position-monitor",
+  "version": "1.0.0",
+  "description": "Check any wallet&#x27;s Aave V3 position on Arbitrum. Health factor, collateral, debt, and risk status. Chains with ETH Price Feed for richer analysis.",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev":      "milkyway dev",
+    "build":    "tsc",
+    "start":    "node dist/index.js",
+    "validate": "milkyway validate",
+    "register": "milkyway register"
+  },
+  "dependencies": {
+    "@usemilkyway/agent-sdk": "latest",
+    "dotenv": "^16.0.0",
+    "ethers": "^6.0.0"
+  },
+  "devDependencies": {
+    "@usemilkyway/cli":  "latest",
+    "typescript":     "^5.0.0",
+    "@types/node":    "^20.0.0",
+    "tsx":            "^4.0.0"
+  }
+}
