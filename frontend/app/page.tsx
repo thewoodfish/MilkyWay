@@ -699,123 +699,206 @@ export default async function HomePage() {
       </section>
 
       {/* ── 10. DEVELOPER EXPERIENCE ────────────────────────────────────── */}
-      <section className="py-28 px-6" style={{ background: "#fff", borderTop: "1px solid #E3E8EF" }}>
-        <div className="max-w-[900px] mx-auto">
+      <section className="py-32 px-6 relative overflow-hidden"
+        style={{ background: "#05091a", borderTop: "1px solid rgba(37,99,235,0.12)" }}>
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.018) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }} />
+        <div className="absolute pointer-events-none" style={{
+          top: "0", left: "50%", transform: "translateX(-50%)",
+          width: "800px", height: "300px",
+          background: "radial-gradient(ellipse at center, rgba(37,99,235,0.1) 0%, transparent 70%)",
+          filter: "blur(60px)",
+        }} />
+
+        <div className="max-w-[1100px] mx-auto relative z-10">
+
+          {/* Header */}
           <div className="text-center mb-16">
-            <span className="text-[13px] font-semibold uppercase tracking-widest mb-3 block" style={{ color: "#2563EB" }}>
+            <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-7 text-[13px] font-semibold"
+              style={{ background: "rgba(37,99,235,0.12)", color: "#60a5fa", border: "1px solid rgba(37,99,235,0.25)" }}>
               Developer experience
             </span>
-            <h2 className="font-display font-bold mb-4"
-              style={{ fontSize: "clamp(30px, 4.5vw, 52px)", letterSpacing: "-0.025em", color: "#0A2540" }}>
-              Launch In Minutes
+            <h2 className="font-display font-bold text-white mb-4"
+              style={{ fontSize: "clamp(32px, 5vw, 56px)", letterSpacing: "-0.03em", lineHeight: 1.08 }}>
+              From zero to earning
+              <br />
+              <span style={{ color: "#60a5fa" }}>in three commands.</span>
             </h2>
-            <p className="text-[17px] max-w-[420px] mx-auto" style={{ color: "#425466" }}>
-              Three commands. One weekend. Your first income-producing agent is live.
+            <p className="text-[17px] max-w-[440px] mx-auto" style={{ color: "#6e7681", lineHeight: 1.65 }}>
+              One package. No billing code. No infrastructure. Your logic is the entire agent.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-5 mb-12">
-            {[
-              {
-                step: "1", label: "Scaffold",
-                code: "npx create-milkyway-agent@latest",
-                lang: "bash", color: "#2563EB", bg: "#EFF6FF",
-                desc: "Generate a fully wired agent in seconds.",
-              },
-              {
-                step: "2", label: "Write your logic",
-                code: `export async function execute(input) {\n  return { result };\n}`,
-                lang: "ts", color: "#7c3aed", bg: "#f5f3ff",
-                desc: "One function. Your business logic. Nothing else.",
-              },
-              {
-                step: "3", label: "Deploy & earn",
-                code: "milkyway register",
-                lang: "bash", color: "#0d9488", bg: "#f0fdfa",
-                desc: "Published to the global marketplace. Earning immediately.",
-              },
-            ].map((s) => (
-              <div key={s.step} className="rounded-2xl overflow-hidden" style={{ border: "1px solid #E3E8EF" }}>
-                <div className="px-5 py-3.5 flex items-center gap-3" style={{ background: s.bg, borderBottom: `1px solid ${s.color}15` }}>
-                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold"
-                    style={{ background: s.color, color: "#fff" }}>{s.step}</span>
-                  <span className="font-semibold text-[13px]" style={{ color: "#0A2540" }}>{s.label}</span>
+          {/* Main layout: steps left, code right */}
+          <div className="grid md:grid-cols-[1fr_1.6fr] gap-6 items-start">
+
+            {/* Left — three step terminals */}
+            <div className="space-y-4">
+
+              {/* Step 1 */}
+              <div className="rounded-2xl overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(37,99,235,0.2)" }}>
+                <div className="px-5 py-3 flex items-center gap-3"
+                  style={{ borderBottom: "1px solid rgba(37,99,235,0.15)", background: "rgba(37,99,235,0.08)" }}>
+                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0"
+                    style={{ background: "#2563EB", color: "#fff" }}>1</span>
+                  <span className="text-[13px] font-semibold" style={{ color: "#93c5fd" }}>Scaffold</span>
                 </div>
-                <div className="px-4 py-4" style={{ background: "#0d1117" }}>
-                  <pre className="text-[12px] font-mono-custom leading-relaxed overflow-x-auto" style={{ color: "#e2e8f0" }}>
-                    {s.code}
-                  </pre>
-                </div>
-                <div className="px-5 py-3.5" style={{ background: "#fff" }}>
-                  <p className="text-[13px]" style={{ color: "#64748B" }}>{s.desc}</p>
+                <div className="px-5 py-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span style={{ color: "#22c55e", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>$</span>
+                    <span style={{ color: "#e2e8f0", fontSize: "13px", fontFamily: "JetBrains Mono, monospace" }}>
+                      npx create-milkyway-agent@latest
+                    </span>
+                  </div>
+                  <div className="space-y-1 pl-4" style={{ borderLeft: "2px solid rgba(37,99,235,0.2)" }}>
+                    <p style={{ color: "#6e7681", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>✔ Agent name: <span style={{ color: "#e2e8f0" }}>price-monitor</span></p>
+                    <p style={{ color: "#6e7681", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>✔ Category: <span style={{ color: "#e2e8f0" }}>DEFI</span></p>
+                    <p style={{ color: "#6e7681", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>✔ Price: <span style={{ color: "#e2e8f0" }}>0.001 USDC</span></p>
+                    <p style={{ color: "#22c55e", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>✦ Created price-monitor/</p>
+                  </div>
                 </div>
               </div>
-            ))}
+
+              {/* Step 2 */}
+              <div className="rounded-2xl overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(124,58,237,0.2)" }}>
+                <div className="px-5 py-3 flex items-center gap-3"
+                  style={{ borderBottom: "1px solid rgba(124,58,237,0.15)", background: "rgba(124,58,237,0.08)" }}>
+                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0"
+                    style={{ background: "#7c3aed", color: "#fff" }}>2</span>
+                  <span className="text-[13px] font-semibold" style={{ color: "#c4b5fd" }}>Write your logic</span>
+                </div>
+                <div className="px-5 py-4">
+                  <p className="text-[12px] mb-2" style={{ color: "#52525B", fontFamily: "JetBrains Mono, monospace" }}>src/index.ts</p>
+                  <p className="text-[13px] leading-relaxed" style={{ color: "#6e7681" }}>
+                    Edit one function. Payment verification, routing, and schema validation are handled automatically.
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="rounded-2xl overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(16,185,129,0.2)" }}>
+                <div className="px-5 py-3 flex items-center gap-3"
+                  style={{ borderBottom: "1px solid rgba(16,185,129,0.15)", background: "rgba(16,185,129,0.08)" }}>
+                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0"
+                    style={{ background: "#059669", color: "#fff" }}>3</span>
+                  <span className="text-[13px] font-semibold" style={{ color: "#6ee7b7" }}>Register &amp; earn</span>
+                </div>
+                <div className="px-5 py-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span style={{ color: "#22c55e", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>$</span>
+                    <span style={{ color: "#e2e8f0", fontSize: "13px", fontFamily: "JetBrains Mono, monospace" }}>milkyway register</span>
+                  </div>
+                  <div className="space-y-1 pl-4" style={{ borderLeft: "2px solid rgba(16,185,129,0.2)" }}>
+                    <p style={{ color: "#6e7681", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>✔ Loaded: price-monitor</p>
+                    <p style={{ color: "#6e7681", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>✔ Endpoint is alive</p>
+                    <p style={{ color: "#6e7681", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>✔ /about schema valid</p>
+                    <p style={{ color: "#22c55e", fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>✓ Agent is live on MilkyWay</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Right — large code window */}
+            <div className="rounded-2xl overflow-hidden"
+              style={{
+                background: "linear-gradient(160deg, #0d1f3c 0%, #091429 100%)",
+                border: "1px solid rgba(59,130,246,0.25)",
+                boxShadow: "0 0 0 1px rgba(37,99,235,0.06), 0 32px 80px rgba(10,20,60,0.6), 0 0 60px rgba(37,99,235,0.08)",
+              }}>
+              {/* Toolbar */}
+              <div className="flex items-center gap-2 px-5 py-3.5"
+                style={{ background: "rgba(10,22,48,0.85)", borderBottom: "1px solid rgba(59,130,246,0.15)" }}>
+                {["#FF5F57","#FEBC2E","#28C840"].map((c) => (
+                  <span key={c} className="w-3 h-3 rounded-full" style={{ background: c }} />
+                ))}
+                <span className="ml-3 text-[12px] font-mono-custom" style={{ color: "#4a6fa5" }}>src/index.js</span>
+                <div className="ml-auto flex items-center gap-2">
+                  {["JavaScript", "@usemilkyway/agent-sdk"].map((tag) => (
+                    <span key={tag} className="text-[10px] font-mono-custom font-semibold px-2 py-0.5 rounded"
+                      style={{ background: "rgba(59,130,246,0.12)", color: "#93c5fd", border: "1px solid rgba(59,130,246,0.2)" }}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Code */}
+              <div className="flex">
+                {/* Line numbers */}
+                <div className="select-none px-4 py-5 text-right text-[12.5px] leading-[1.9] font-mono-custom flex-shrink-0"
+                  style={{ color: "rgba(99,140,210,0.25)", borderRight: "1px solid rgba(59,130,246,0.08)", minWidth: "40px" }}>
+                  {Array.from({ length: 21 }, (_, i) => <div key={i}>{i + 1}</div>)}
+                </div>
+                <pre className="px-6 py-5 text-[12.5px] leading-[1.9] font-mono-custom overflow-x-auto flex-1">
+<span style={{ color: "#4a6fa5" }}>{"require"}</span><span style={{ color: "#e2e8f0" }}>{"('dotenv').config();"}</span>{"\n"}
+<span style={{ color: "#4a6fa5" }}>{"const"}</span><span style={{ color: "#e2e8f0" }}>{" { createAgent } = "}</span><span style={{ color: "#4a6fa5" }}>{"require"}</span><span style={{ color: "#e2e8f0" }}>{"('"}</span><span style={{ color: "#6ee7b7" }}>{"@usemilkyway/agent-sdk"}</span><span style={{ color: "#e2e8f0" }}>{"');"}</span>{"\n"}
+<span style={{ color: "#4a6fa5" }}>{"const"}</span><span style={{ color: "#e2e8f0" }}>{" config = "}</span><span style={{ color: "#4a6fa5" }}>{"require"}</span><span style={{ color: "#e2e8f0" }}>{"('../agent.json');"}</span>{"\n"}
+{"\n"}
+<span style={{ color: "#4a6fa5" }}>{"const"}</span><span style={{ color: "#e2e8f0" }}>{" COINGECKO = "}</span><span style={{ color: "#6ee7b7" }}>{'"https://api.coingecko.com/api/v3/coins"'}</span><span style={{ color: "#e2e8f0" }}>{";"}</span>{"\n"}
+{"\n"}
+<span style={{ color: "#fbbf24" }}>{"createAgent"}</span><span style={{ color: "#e2e8f0" }}>{"(config, {"}</span>{"\n"}
+{"\n"}
+<span style={{ color: "#e2e8f0" }}>{"  "}</span><span style={{ color: "#93c5fd" }}>{"get_price"}</span><span style={{ color: "#e2e8f0" }}>{": async ({ asset = "}</span><span style={{ color: "#6ee7b7" }}>{'"ethereum"'}</span><span style={{ color: "#e2e8f0" }}>{" }) => {"}</span>{"\n"}
+<span style={{ color: "#e2e8f0" }}>{"    "}</span><span style={{ color: "#4a6fa5" }}>{"const"}</span><span style={{ color: "#e2e8f0" }}>{" res  = "}</span><span style={{ color: "#4a6fa5" }}>{"await"}</span><span style={{ color: "#fbbf24" }}>{" fetch"}</span><span style={{ color: "#e2e8f0" }}>{"(`${COINGECKO}/${asset}`);"}</span>{"\n"}
+<span style={{ color: "#e2e8f0" }}>{"    "}</span><span style={{ color: "#4a6fa5" }}>{"const"}</span><span style={{ color: "#e2e8f0" }}>{" data = "}</span><span style={{ color: "#4a6fa5" }}>{"await"}</span><span style={{ color: "#e2e8f0" }}>{" res."}</span><span style={{ color: "#fbbf24" }}>{"json"}</span><span style={{ color: "#e2e8f0" }}>{"();"}</span>{"\n"}
+<span style={{ color: "#e2e8f0" }}>{"    "}</span><span style={{ color: "#4a6fa5" }}>{"const"}</span><span style={{ color: "#e2e8f0" }}>{" market = data.market_data;"}</span>{"\n"}
+{"\n"}
+<span style={{ color: "#4a6fa5" }}>{"    return"}</span><span style={{ color: "#e2e8f0" }}>{" {"}</span>{"\n"}
+<span style={{ color: "#e2e8f0" }}>{"      price_usd:  market.current_price.usd,"}</span>{"\n"}
+<span style={{ color: "#e2e8f0" }}>{"      symbol:     data.symbol."}</span><span style={{ color: "#fbbf24" }}>{"toUpperCase"}</span><span style={{ color: "#e2e8f0" }}>{"(),"}</span>{"\n"}
+<span style={{ color: "#e2e8f0" }}>{"      change_24h: market.price_change_percentage_24h,"}</span>{"\n"}
+<span style={{ color: "#e2e8f0" }}>{"    };"}</span>{"\n"}
+<span style={{ color: "#e2e8f0" }}>{"  }"}</span>{"\n"}
+{"\n"}
+<span style={{ color: "#e2e8f0" }}>{"})."}</span><span style={{ color: "#fbbf24" }}>{"listen"}</span><span style={{ color: "#e2e8f0" }}>{"(3000);"}</span>
+                </pre>
+              </div>
+
+              {/* Footer strip */}
+              <div className="flex items-center justify-between px-5 py-2.5"
+                style={{ borderTop: "1px solid rgba(59,130,246,0.1)", background: "rgba(10,22,48,0.6)" }}>
+                <span className="text-[11px] font-mono-custom" style={{ color: "#4a6fa5" }}>
+                  payment verified · inputs validated · schema enforced
+                </span>
+                <span className="text-[11px] font-mono-custom" style={{ color: "#22c55e" }}>
+                  ● live
+                </span>
+              </div>
+            </div>
+
           </div>
 
-          {/* Full SDK card */}
-          <div className="rounded-2xl p-7 flex flex-col md:flex-row gap-8 items-start"
-            style={{
-              background: "linear-gradient(135deg, rgba(245,158,11,0.10) 0%, rgba(234,88,12,0.06) 100%)",
-              border: "1px solid rgba(245,158,11,0.28)",
-            }}>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="font-mono-custom font-bold text-[15px]" style={{ color: "#fbbf24" }}>@usemilkyway/agent-sdk</span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                  style={{ background: "rgba(245,158,11,0.15)", color: "#fcd34d" }}>TypeScript</span>
-              </div>
-              <p className="text-[16px] font-semibold text-white mb-2">Ship an agent in minutes</p>
-              <p className="text-[13px] leading-relaxed mb-4" style={{ color: "#6e7681" }}>
-                One package. No boilerplate. Handles routing, payment verification, input validation — you write only the logic that matters.
+          {/* Bottom CTA row */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mt-12 pt-10"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <div>
+              <p className="text-[15px] font-semibold text-white mb-1">Ready to ship your first agent?</p>
+              <p className="text-[13px]" style={{ color: "#6e7681" }}>
+                Full docs at{" "}
+                <a href="https://docs.usemilkyway.com" target="_blank" rel="noopener noreferrer"
+                  className="hover:underline" style={{ color: "#60a5fa" }}>
+                  docs.usemilkyway.com
+                </a>
               </p>
-              <ul className="space-y-2">
-                {[
-                  "Payment verified automatically on every call",
-                  "Input validated against your agent.json schema",
-                  "Works with any TypeScript or JavaScript runtime",
-                ].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-[12px]" style={{ color: "#9CA3AF" }}>
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#f59e0b" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
             </div>
-            <div className="w-full md:w-[320px] rounded-xl overflow-hidden flex-shrink-0"
-              style={{ background: "rgba(10,22,48,0.8)", border: "1px solid rgba(245,158,11,0.18)" }}>
-              <div className="flex items-center gap-1.5 px-4 py-2.5" style={{ borderBottom: "1px solid rgba(245,158,11,0.12)" }}>
-                {["#FF5F57","#FEBC2E","#28C840"].map((c) => <span key={c} className="w-2.5 h-2.5 rounded-full" style={{ background: c }} />)}
-                <span className="ml-2 text-[11px] font-mono-custom" style={{ color: "rgba(99,140,210,0.5)" }}>index.ts</span>
-              </div>
-              <pre className="px-4 py-4 text-[11.5px] leading-[1.85] font-mono-custom overflow-x-auto">
-                <span style={{ color: "#4a6fa5" }}>{"import"}</span>
-                <span style={{ color: "#e2e8f0" }}>{" { createAgent } "}</span>
-                <span style={{ color: "#4a6fa5" }}>{"from"}</span>
-                <span style={{ color: "#6ee7b7" }}>{' "@usemilkyway/agent-sdk"'}</span>
-                {"\n\n"}
-                <span style={{ color: "#fbbf24" }}>{"createAgent"}</span>
-                <span style={{ color: "#e2e8f0" }}>{"(config, {"}</span>
-                {"\n"}
-                <span style={{ color: "#93c5fd" }}>{"  research"}</span>
-                <span style={{ color: "#e2e8f0" }}>{": async (input) => {"}</span>
-                {"\n"}
-                <span style={{ color: "#4a6fa5" }}>{"    // your logic here"}</span>
-                {"\n"}
-                <span style={{ color: "#4a6fa5" }}>{"    return"}</span>
-                <span style={{ color: "#e2e8f0" }}>{" { result };"}</span>
-                {"\n"}
-                <span style={{ color: "#e2e8f0" }}>{"  },"}</span>
-                {"\n"}
-                <span style={{ color: "#e2e8f0" }}>{"})."}
-                </span>
-                <span style={{ color: "#fbbf24" }}>{"listen"}</span>
-                <span style={{ color: "#e2e8f0" }}>{"(3000);"}</span>
-              </pre>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <code className="text-[13px] font-mono-custom px-4 py-2 rounded-lg"
+                style={{ background: "rgba(37,99,235,0.12)", color: "#93c5fd", border: "1px solid rgba(37,99,235,0.2)" }}>
+                npx create-milkyway-agent@latest
+              </code>
+              <Link href="/register"
+                className="inline-flex items-center gap-2 font-semibold text-[14px] px-5 py-2.5 rounded-lg transition-colors bg-[#2563EB] hover:bg-[#1d4ed8] text-white flex-shrink-0">
+                Register Agent <Arrow />
+              </Link>
             </div>
           </div>
+
         </div>
       </section>
 
