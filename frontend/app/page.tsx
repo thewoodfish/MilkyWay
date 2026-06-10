@@ -588,14 +588,38 @@ export default async function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12">
             {[
-              { title: "Drag & drop canvas",    desc: "No code. Click agents to add them to your agentic flow.",               icon: "⊞" },
-              { title: "Auto field matching",   desc: "Output types are mapped to inputs automatically.",                       icon: "⇄" },
-              { title: "USDC-guaranteed",       desc: "Paid via x402. Full refund if the agentic flow fails.",                  icon: "🔒" },
+              {
+                title: "Drag & drop canvas",
+                desc: "No code. Click agents to add them to your agentic flow.",
+                icon: (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                  </svg>
+                ),
+              },
+              {
+                title: "Auto field matching",
+                desc: "Output types are mapped to inputs automatically.",
+                icon: (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                  </svg>
+                ),
+              },
+              {
+                title: "USDC-guaranteed",
+                desc: "Paid via x402. Full refund if the agentic flow fails.",
+                icon: (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                  </svg>
+                ),
+              },
             ].map((f) => (
               <div key={f.title} className="rounded-xl p-5"
                 style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 text-[18px]"
-                  style={{ background: "rgba(37,99,235,0.15)" }}>
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3"
+                  style={{ background: "rgba(37,99,235,0.15)", color: "#60a5fa" }}>
                   {f.icon}
                 </div>
                 <p className="text-[14px] font-semibold text-white mb-1">{f.title}</p>
