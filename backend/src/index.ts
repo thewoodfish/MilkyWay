@@ -10,6 +10,7 @@ import dashboardRouter from "./routes/dashboard";
 import notificationsRouter from "./routes/notifications";
 import uploadRouter from "./routes/upload";
 import permissionsRouter from "./routes/permissions";
+import historyRouter from "./routes/history";
 import { prisma } from "./lib/db";
 import { runVerificationCycle } from "./services/verification";
 
@@ -30,6 +31,7 @@ app.use("/api/dashboard", dashboardRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/upload", uploadRouter);
 app.use("/api/permissions", permissionsRouter);
+app.use("/api/history", historyRouter);
 
 // GET /api/builders/:address
 app.get("/api/builders/:address", async (req, res) => {

@@ -38,10 +38,23 @@ export function Navbar() {
     return (
       <Link
         href={href}
-        className="relative text-sm font-medium px-3 py-2 transition-colors"
+        className="relative text-sm font-medium px-3 py-2 transition-colors flex items-center"
         style={{ color: active ? "#0A0A0A" : "#6B7280" }}
       >
         {label}
+        {href === "/history" && (
+          <span style={{
+            display:      "inline-block",
+            width:        "6px",
+            height:       "6px",
+            borderRadius: "50%",
+            background:   "#22C55E",
+            marginLeft:   "5px",
+            marginBottom: "1px",
+            animation:    "pulse 2s ease-in-out infinite",
+            flexShrink:   0
+          }} />
+        )}
         {active && (
           <span
             className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full"
@@ -60,19 +73,15 @@ export function Navbar() {
           <Image src="/logo.png" alt="MilkyWay" width={130} height={34} priority />
         </Link>
 
-        {/* Center links — only when signed in */}
-        {isSignedIn && (
-          <div className="hidden md:flex items-center gap-1">
-            {navLink("/agents", "Explore")}
-            {navLink("/dashboard", "Dashboard")}
-          </div>
-        )}
+        {/* Center links */}
+        <div className="hidden md:flex items-center gap-1">
+          {navLink("/agents", "Explore")}
+          {navLink("/history", "History")}
+          {isSignedIn && navLink("/dashboard", "Dashboard")}
+        </div>
 
         {/* Right: explore (logged out) + docs + register + wallet + sign out */}
         <div className="flex items-center gap-3">
-          {!isSignedIn && (
-            <Link href="/agents" className="hidden md:inline-flex text-[#6B7280] hover:text-[#0A0A0A] transition-colors text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-50">Explore</Link>
-          )}
           <a
             href="https://docs.usemilkyway.com"
             target="_blank"
