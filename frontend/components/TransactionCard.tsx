@@ -18,11 +18,10 @@ export interface Transaction {
 }
 
 interface Props {
-  tx:      Transaction;
-  isFirst: boolean;
+  tx: Transaction;
 }
 
-export function TransactionCard({ tx, isFirst }: Props) {
+export function TransactionCard({ tx }: Props) {
   const [highlight, setHighlight] = useState(tx.isNew ?? false);
 
   useEffect(() => {

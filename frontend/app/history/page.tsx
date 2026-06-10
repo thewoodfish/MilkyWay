@@ -150,7 +150,7 @@ export default function HistoryPage() {
                 >
                   {tx.type === "flow"
                     ? <FlowCard tx={tx} />
-                    : <TransactionCard tx={tx} isFirst={false} />
+                    : <TransactionCard tx={tx} />
                   }
                 </div>
               );
