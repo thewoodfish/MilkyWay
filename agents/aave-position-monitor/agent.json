@@ -1,28 +1,61 @@
 {
   "milkyway_version": "1.0",
   "name": "Aave Position Monitor",
-  "description": "Check any wallet&#x27;s Aave V3 position on Arbitrum. Health factor, collateral, debt, and risk status. Chains with ETH Price Feed for richer analysis.",
+  "description": "Check any wallet's Aave V3 position on Arbitrum. Returns health factor, collateral, debt, available borrows, and risk status with actionable recommendations.",
   "wallet": "${AGENT_WALLET_ADDRESS}",
-  "max_deadline_seconds": 30,
+  "max_deadline_seconds": 15,
   "capabilities": {
     "check_position": {
-      "description": "TODO: describe what check_position does",
+      "description": "Fetch live Aave V3 position data for a wallet on Arbitrum. Returns health factor, collateral and debt in USD, and a risk status with recommendation.",
       "pricing": {
         "model":    "per_job",
-        "amount":   "0.5",
+        "amount":   "0.25",
         "currency": "USDC"
       },
       "input_schema": {
-        "query": {
+        "wallet_address": {
           "type":        "string",
           "required":    true,
-          "description": "TODO: describe this input"
+          "description": "Ethereum wallet address to check (0x...)"
+        },
+        "price_change_24h": {
+          "type":        "number",
+          "required":    false,
+          "description": "Optional ETH price change in the last 24h (percentage). Enriches the recommendation."
         }
       },
       "output_schema": {
-        "result": {
+        "wallet": {
           "type":        "string",
-          "description": "TODO: describe this output"
+          "description": "The wallet address that was checked"
+        },
+        "health_factor": {
+          "type":        "number",
+          "description": "Aave health factor. Below 1.0 means liquidatable."
+        },
+        "collateral_usd": {
+          "type":        "number",
+          "description": "Total collateral in USD"
+        },
+        "debt_usd": {
+          "type":        "number",
+          "description": "Total debt in USD"
+        },
+        "available_borrow": {
+          "type":        "number",
+          "description": "Available borrowing power in USD"
+        },
+        "status": {
+          "type":        "string",
+          "description": "Risk status: safe, warning, danger, or liquidatable"
+        },
+        "recommendation": {
+          "type":        "string",
+          "description": "Human-readable advice based on current position"
+        },
+        "has_position": {
+          "type":        "boolean",
+          "description": "Whether the wallet has an active Aave V3 position"
         }
       }
     }
