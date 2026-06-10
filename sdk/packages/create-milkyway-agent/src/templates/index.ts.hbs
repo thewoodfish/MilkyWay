@@ -6,12 +6,14 @@ createAgent(
   config,
 
   async (input) => {
+    // Cast input fields to their expected types (input is Record<string, unknown>)
+    const query = input.query as string;
+
     // TODO: add your logic here
-    // - input is already validated and coerced against input_schema
     // - payment is already verified (bypassed in dev mode)
     // - return an object matching output_schema
     return {
-      result: `You asked: ${input.query}`,
+      result: `You asked: ${query}`,
     };
   }
 

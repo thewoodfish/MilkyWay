@@ -1,0 +1,59 @@
+{
+  "milkyway_version": "1.0",
+  "name": "On-Chain Research Agent",
+  "description": "Ask any DeFi or crypto question and get a concise, intelligent answer. Chain from Portfolio Snapshot or Aave Monitor for analysis grounded in your actual data.",
+  "wallet": "${AGENT_WALLET_ADDRESS}",
+  "max_deadline_seconds": 25,
+  "capabilities": {
+    "research": {
+      "description": "Answer any DeFi or crypto research question. Accepts context from upstream agents for grounded analysis.",
+      "pricing": {
+        "model":    "per_job",
+        "amount":   "1.00",
+        "currency": "USDC"
+      },
+      "permissions": [
+        {
+          "type":   "ACCESS_EXTERNAL_APIS",
+          "reason": "OpenAI GPT-4o-mini for research and analysis"
+        }
+      ],
+      "input_schema": {
+        "query": {
+          "type":        "string",
+          "required":    true,
+          "minLength":   3,
+          "maxLength":   500,
+          "description": "Your question or research topic"
+        },
+        "context": {
+          "type":        "string",
+          "required":    false,
+          "maxLength":   1000,
+          "description": "Optional context from upstream agents e.g. portfolio data, price data, position data"
+        },
+        "style": {
+          "type":        "string",
+          "required":    false,
+          "default":     "concise",
+          "enum":        ["concise", "detailed", "bullet_points"],
+          "description": "Response style. Default: concise (2-3 sentences)"
+        }
+      },
+      "output_schema": {
+        "answer": {
+          "type":        "string",
+          "description": "The research answer"
+        },
+        "confidence": {
+          "type":        "string",
+          "description": "high / medium / low — how confident the agent is in the answer"
+        },
+        "follow_up": {
+          "type":        "string",
+          "description": "A suggested follow-up question or action"
+        }
+      }
+    }
+  }
+}
