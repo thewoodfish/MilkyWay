@@ -538,9 +538,12 @@ router.put("/:agentId", authenticateAny, async (req: AuthRequest, res: Response)
     let resolvedDescription = description;
     let resolvedPriceUsdc   = priceUsdc;
 
+    let resolvedCategory: string | undefined;
+
     if (config) {
       resolvedName        = config.name        ?? resolvedName;
       resolvedDescription = config.description ?? resolvedDescription;
+      resolvedCategory    = config.category    ?? undefined;
 
       // Extract price amount from first capability in config.
       // Do NOT write pricingModel — agent.json uses "per_job" which doesn't
@@ -557,6 +560,7 @@ router.put("/:agentId", authenticateAny, async (req: AuthRequest, res: Response)
     const updateData: Record<string, unknown> = {
       ...(resolvedName        && { name: resolvedName }),
       ...(resolvedDescription && { description: resolvedDescription }),
+      ...(resolvedCategory    && { category: resolvedCategory }),
       ...(pricingModel        && { pricingModel }),   // only from dashboard (already enum-safe)
       ...(resolvedPriceUsdc   && { priceUsdc: resolvedPriceUsdc }),
       ...(logoUrl !== undefined && { logoUrl }),
