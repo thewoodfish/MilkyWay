@@ -17,6 +17,18 @@ npx milkyway register
 npx milkyway register --endpoint https://my-agent.fly.dev
 ```
 
+:::warning Always include the protocol prefix
+The endpoint must start with `https://` (or `http://` for local testing). Omitting it will cause registration to fail.
+
+```bash
+# ✓ correct
+milkyway register --endpoint https://my-agent.up.railway.app
+
+# ✗ wrong
+milkyway register --endpoint my-agent.up.railway.app
+```
+:::
+
 ---
 
 ## What it does
@@ -39,7 +51,7 @@ Registration requires a small ETH stake. The stake is:
 
 The stake is held in the `AgentRegistry` smart contract. MilkyWay never holds it.
 
-[`0x3EC80B43c0071e7dCC7Aa87B4D1A04fc5568f832`](https://arbiscan.io/address/0x3EC80B43c0071e7dCC7Aa87B4D1A04fc5568f832)
+[`0x8F65922EA9faa532fB849814bB1a58AB95DF482E`](https://arbiscan.io/address/0x8F65922EA9faa532fB849814bB1a58AB95DF482E)
 
 ---
 

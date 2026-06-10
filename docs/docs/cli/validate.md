@@ -58,3 +58,17 @@ Failure:
 | Flag | Default | Description |
 |---|---|---|
 | `--config` | `./agent.json` | Path to agent config file |
+
+---
+
+:::warning Always include the full URL when registering
+When running `milkyway register --endpoint`, always include the `https://` (or `http://` for local) prefix. The endpoint must be a fully qualified URL.
+
+```bash
+# ✓ correct
+milkyway register --endpoint https://my-agent.up.railway.app
+
+# ✗ wrong — will fail
+milkyway register --endpoint my-agent.up.railway.app
+```
+:::
