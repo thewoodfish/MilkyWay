@@ -1,6 +1,7 @@
 {
   "milkyway_version": "1.0",
   "name": "Aave Position Monitor",
+  "category": "DEFI",
   "description": "Check any wallet's Aave V3 position on Arbitrum. Returns health factor, collateral, debt, available borrows, and risk status with actionable recommendations.",
   "wallet": "${AGENT_WALLET_ADDRESS}",
   "max_deadline_seconds": 15,

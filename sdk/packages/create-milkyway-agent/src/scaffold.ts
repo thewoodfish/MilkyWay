@@ -46,5 +46,8 @@ function renderTemplate(templateFile: string, data: ScaffoldAnswers): string {
   const templatePath = path.join(TEMPLATES_DIR, templateFile);
   const source = fs.readFileSync(templatePath, "utf8");
   const template = Handlebars.compile(source);
-  return template(data);
+  return template({
+    ...data,
+    categoryUpper: data.category.toUpperCase()
+  });
 }

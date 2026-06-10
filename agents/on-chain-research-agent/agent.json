@@ -1,6 +1,7 @@
 {
   "milkyway_version": "1.0",
   "name": "On-Chain Research Agent",
+  "category": "DATA",
   "description": "Ask any DeFi or crypto question and get a concise, intelligent answer. Chain from Portfolio Snapshot or Aave Monitor for analysis grounded in your actual data.",
   "wallet": "${AGENT_WALLET_ADDRESS}",
   "max_deadline_seconds": 25,

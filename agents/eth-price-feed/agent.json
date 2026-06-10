@@ -1,6 +1,7 @@
 {
   "milkyway_version": "1.0",
   "name": "ETH Price Feed",
+  "category": "DEFI",
   "description": "Real-time ETH price and 24h market data. No API key needed. Use standalone or chain into DeFi flows.",
   "wallet": "${AGENT_WALLET_ADDRESS}",
   "max_deadline_seconds": 30,
