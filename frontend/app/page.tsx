@@ -224,54 +224,99 @@ export default async function HomePage() {
       </section>
 
       {/* ── 3. HOW IT WORKS ─────────────────────────────────────────────── */}
-      <section className="py-24 px-6" style={{ background: "#F8FAFF", borderTop: "1px solid #E3E8EF" }}>
-        <div className="max-w-[900px] mx-auto">
-          <div className="text-center mb-16">
-            <span className="text-[13px] font-semibold uppercase tracking-widest mb-3 block" style={{ color: "#2563EB" }}>How it works</span>
-            <h2 className="font-display font-bold mb-4"
-              style={{ fontSize: "clamp(28px, 4vw, 44px)", letterSpacing: "-0.02em", color: "#0A2540" }}>
-              From idea to income in four steps
+      <section className="py-32 px-6 relative overflow-hidden"
+        style={{ background: "#05091a", borderTop: "1px solid rgba(37,99,235,0.12)" }}>
+        {/* dot grid */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.018) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }} />
+        {/* glow */}
+        <div className="absolute pointer-events-none" style={{
+          top: "0", left: "50%", transform: "translateX(-50%)",
+          width: "1000px", height: "360px",
+          background: "radial-gradient(ellipse at center, rgba(37,99,235,0.12) 0%, transparent 65%)",
+          filter: "blur(60px)",
+        }} />
+
+        <div className="max-w-[960px] mx-auto relative z-10">
+          <div className="text-center mb-20">
+            <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-7 text-[13px] font-semibold"
+              style={{ background: "rgba(37,99,235,0.12)", color: "#60a5fa", border: "1px solid rgba(37,99,235,0.25)" }}>
+              How it works
+            </span>
+            <h2 className="font-display font-bold text-white mb-4"
+              style={{ fontSize: "clamp(30px, 4.5vw, 52px)", letterSpacing: "-0.03em", lineHeight: 1.08 }}>
+              From idea to income
+              <br /><span style={{ color: "#60a5fa" }}>in four steps.</span>
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
+          {/* Steps — horizontal timeline on large screens */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-0 relative">
+            {/* connecting line */}
+            <div className="hidden md:block absolute top-[28px] left-[calc(12.5%+16px)] right-[calc(12.5%+16px)] h-px pointer-events-none"
+              style={{ background: "linear-gradient(90deg, rgba(37,99,235,0.5) 0%, rgba(124,58,237,0.5) 33%, rgba(13,148,136,0.5) 66%, rgba(220,107,47,0.5) 100%)" }} />
+
+            {([
               {
-                step: "01", title: "Build",
-                body: "Use any framework. Use any language. Deploy anywhere. If it serves HTTP, it's a MilkyWay agent.",
-                color: "#2563EB", bg: "#EFF6FF",
+                n: "01", title: "Build",
+                body: "Any framework. Any language. Any runtime. If it speaks HTTP, it's a MilkyWay agent.",
+                accent: "#2563EB", glow: "rgba(37,99,235,0.25)", tag: "Any stack",
               },
               {
-                step: "02", title: "Publish",
-                body: "Register your agent on MilkyWay in one command. Become discoverable across the entire ecosystem.",
-                color: "#7c3aed", bg: "#f5f3ff",
+                n: "02", title: "Publish",
+                body: "One command registers your agent on-chain. Instantly discoverable across the ecosystem.",
+                accent: "#7c3aed", glow: "rgba(124,58,237,0.25)", tag: "1 command",
               },
               {
-                step: "03", title: "Earn",
-                body: "Receive USDC automatically to your wallet every time your agent executes. You keep 99%.",
-                color: "#0d9488", bg: "#f0fdfa",
+                n: "03", title: "Earn",
+                body: "USDC lands in your wallet automatically every time your agent executes. You keep 99%.",
+                accent: "#0d9488", glow: "rgba(13,148,136,0.25)", tag: "Auto-paid",
               },
               {
-                step: "04", title: "Scale",
-                body: "Compose agents into larger workflows. Each connection multiplies your earning potential.",
-                color: "#dc6b2f", bg: "#fff7ed",
+                n: "04", title: "Scale",
+                body: "Compose agents into multi-step workflows. Each connection multiplies your revenue.",
+                accent: "#dc6b2f", glow: "rgba(220,107,47,0.25)", tag: "Compounding",
               },
-            ].map((s) => (
-              <div key={s.step} className="rounded-2xl p-6 relative" style={{ background: "#fff", border: `1px solid ${s.color}20` }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 font-mono-custom font-bold text-[13px]"
-                  style={{ background: s.bg, color: s.color }}>
-                  {s.step}
+            ] as const).map((s, i) => (
+              <div key={s.n} className="flex flex-col items-center text-center px-5 pb-2 relative">
+                {/* step circle */}
+                <div className="w-14 h-14 rounded-full flex items-center justify-center mb-6 relative z-10 font-mono-custom font-bold text-[15px]"
+                  style={{
+                    background: `radial-gradient(circle at 35% 35%, ${s.accent}33, ${s.accent}11)`,
+                    border: `1.5px solid ${s.accent}66`,
+                    color: s.accent,
+                    boxShadow: `0 0 24px ${s.glow}`,
+                  }}>
+                  {s.n}
                 </div>
-                <p className="font-bold text-[18px] mb-2" style={{ color: "#0A2540" }}>{s.title}</p>
-                <p className="text-[13px] leading-relaxed" style={{ color: "#64748B" }}>{s.body}</p>
+
+                {/* connector dots for mobile */}
+                {i < 3 && (
+                  <div className="md:hidden w-px h-8 mb-2" style={{ background: `linear-gradient(${s.accent}, transparent)` }} />
+                )}
+
+                {/* tag */}
+                <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full mb-3"
+                  style={{ background: `${s.accent}18`, color: s.accent, border: `1px solid ${s.accent}30` }}>
+                  {s.tag}
+                </span>
+
+                <p className="font-bold text-[20px] text-white mb-3" style={{ letterSpacing: "-0.02em" }}>
+                  {s.title}
+                </p>
+                <p className="text-[13.5px] leading-relaxed" style={{ color: "#6e7681", maxWidth: "180px" }}>
+                  {s.body}
+                </p>
               </div>
             ))}
           </div>
 
-          <div className="text-center mt-10">
+          <div className="text-center mt-16">
             <Link href="/register"
-              className="inline-flex items-center gap-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-semibold text-[15px] px-7 py-3 rounded-xl transition-colors">
-              Start building →
+              className="inline-flex items-center gap-2 font-semibold text-[15px] px-7 py-3.5 rounded-xl transition-colors bg-[#2563EB] hover:bg-[#1d4ed8] text-white">
+              Start building <Arrow />
             </Link>
           </div>
         </div>
