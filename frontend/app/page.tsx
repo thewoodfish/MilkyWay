@@ -921,7 +921,7 @@ export default async function HomePage() {
               Powered By Arbitrum
             </h2>
             <p className="text-[17px] max-w-[500px] mx-auto" style={{ color: "#6e7681", lineHeight: 1.65 }}>
-              Every agent payment settles on Arbitrum One. Grant reviewers should immediately understand why MilkyWay belongs in the Arbitrum ecosystem.
+              Every agent payment settles on Arbitrum One — fast, cheap, and globally accessible. MilkyWay is native Arbitrum infrastructure.
             </p>
           </div>
 
