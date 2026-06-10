@@ -338,45 +338,61 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             {[
-              { name: "Research Analyst",      category: "Data",          price: "$0.10", execs: "24,328", earned: "$2,432",  color: "#2563EB", bg: "#EFF6FF" },
-              { name: "Legal Review Agent",    category: "Productivity",  price: "$0.25", execs: "9,281",  earned: "$2,320",  color: "#7c3aed", bg: "#f5f3ff" },
-              { name: "Marketing Copy Agent",  category: "Productivity",  price: "$0.05", execs: "53,902", earned: "$2,695",  color: "#0d9488", bg: "#f0fdfa" },
-              { name: "DeFi Price Monitor",    category: "DeFi",          price: "$0.001",execs: "128,490",earned: "$128",    color: "#dc6b2f", bg: "#fff7ed" },
-              { name: "Portfolio Risk Scorer", category: "Trading",       price: "$0.15", execs: "11,203", earned: "$1,680",  color: "#0ea5e9", bg: "#f0f9ff" },
-              { name: "Aave Position Monitor", category: "DeFi",          price: "$0.25", execs: "7,820",  earned: "$1,955",  color: "#16a34a", bg: "#f0fdf4" },
+              { name: "Research Analyst",      category: "Data",         price: "$0.10",  execs: "24,328",  earned: "$2,432", color: "#2563EB", bg: "#EFF6FF", init: "RA" },
+              { name: "Legal Review Agent",    category: "Productivity", price: "$0.25",  execs: "9,281",   earned: "$2,320", color: "#7c3aed", bg: "#f5f3ff", init: "LR" },
+              { name: "Marketing Copy Agent",  category: "Productivity", price: "$0.05",  execs: "53,902",  earned: "$2,695", color: "#0d9488", bg: "#f0fdfa", init: "MC" },
+              { name: "DeFi Price Monitor",    category: "DeFi",         price: "$0.001", execs: "128,490", earned: "$128",   color: "#dc6b2f", bg: "#fff7ed", init: "DP" },
+              { name: "Portfolio Risk Scorer", category: "Trading",      price: "$0.15",  execs: "11,203",  earned: "$1,680", color: "#0ea5e9", bg: "#f0f9ff", init: "PR" },
+              { name: "Aave Position Monitor", category: "DeFi",         price: "$0.25",  execs: "7,820",   earned: "$1,955", color: "#16a34a", bg: "#f0fdf4", init: "AP" },
             ].map((a) => (
-              <div key={a.name} className="rounded-2xl p-5 flex flex-col"
-                style={{ background: "#fff", border: "1px solid #E3E8EF", boxShadow: "0 2px 12px rgba(10,37,64,0.05)" }}>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0" style={{ background: a.bg }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=transparent`} alt={a.name} width={40} height={40} />
+              <div key={a.name} className="rounded-2xl flex flex-col"
+                style={{ background: "#fff", border: "1px solid #E3E8EF", boxShadow: "0 2px 16px rgba(10,37,64,0.06)", overflow: "hidden" }}>
+
+                {/* Card header */}
+                <div className="flex items-center justify-between p-6 pb-5">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-[13px] flex-shrink-0"
+                      style={{ background: a.bg, color: a.color, letterSpacing: "0.04em" }}>
+                      {a.init}
                     </div>
                     <div>
-                      <p className="font-semibold text-[14px]" style={{ color: "#0A2540" }}>{a.name}</p>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: a.bg, color: a.color }}>{a.category}</span>
+                      <p className="font-semibold text-[15px] leading-tight mb-1.5" style={{ color: "#0A2540" }}>{a.name}</p>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
+                        style={{ background: a.bg, color: a.color }}>
+                        {a.category}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" style={{ boxShadow: "0 0 4px rgba(16,185,129,0.7)" }} />
+                  <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#10b981]"
+                    style={{ boxShadow: "0 0 6px rgba(16,185,129,0.7)" }} />
+                </div>
+
+                {/* Stats row */}
+                <div className="grid grid-cols-2 gap-px mx-6 mb-5 rounded-xl overflow-hidden"
+                  style={{ background: "#F3F4F6" }}>
+                  <div className="px-4 py-3" style={{ background: "#F9FAFB" }}>
+                    <p className="text-[10px] font-medium uppercase tracking-wider mb-1" style={{ color: "#9CA3AF" }}>Total earned</p>
+                    <p className="font-mono-custom font-bold text-[15px]" style={{ color: "#16a34a" }}>{a.earned} <span className="text-[11px] font-normal" style={{ color: "#9CA3AF" }}>USDC</span></p>
+                  </div>
+                  <div className="px-4 py-3" style={{ background: "#F9FAFB" }}>
+                    <p className="text-[10px] font-medium uppercase tracking-wider mb-1" style={{ color: "#9CA3AF" }}>Executions</p>
+                    <p className="font-mono-custom font-bold text-[15px]" style={{ color: "#0A2540" }}>{a.execs}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-2 pt-4" style={{ borderTop: "1px solid #F3F4F6" }}>
+
+                {/* Footer: price + CTA */}
+                <div className="flex items-center justify-between px-6 pb-6">
                   <div>
-                    <p className="text-[10px]" style={{ color: "#9CA3AF" }}>Price</p>
-                    <p className="font-mono-custom font-semibold text-[12px]" style={{ color: a.color }}>{a.price}</p>
+                    <p className="text-[10px] font-medium uppercase tracking-wider mb-0.5" style={{ color: "#9CA3AF" }}>Per execution</p>
+                    <p className="font-mono-custom font-bold text-[16px]" style={{ color: a.color }}>{a.price} <span className="text-[11px] font-normal" style={{ color: "#9CA3AF" }}>USDC</span></p>
                   </div>
-                  <div>
-                    <p className="text-[10px]" style={{ color: "#9CA3AF" }}>Executions</p>
-                    <p className="font-mono-custom font-semibold text-[12px]" style={{ color: "#0A2540" }}>{a.execs}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px]" style={{ color: "#9CA3AF" }}>Earned</p>
-                    <p className="font-mono-custom font-semibold text-[12px]" style={{ color: "#16a34a" }}>{a.earned}</p>
-                  </div>
+                  <Link href="/agents"
+                    className="inline-flex items-center gap-1.5 font-semibold text-[13px] px-4 py-2 rounded-lg transition-colors"
+                    style={{ background: a.bg, color: a.color }}>
+                    Run <Arrow />
+                  </Link>
                 </div>
               </div>
             ))}
