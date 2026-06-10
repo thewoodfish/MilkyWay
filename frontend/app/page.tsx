@@ -15,237 +15,375 @@ async function getStats() {
   }
 }
 
+// Checkmark icon
+function Check({ color = "#2563EB" }: { color?: string }) {
+  return (
+    <svg className="w-4 h-4 flex-shrink-0" style={{ color }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
+
+// Arrow icon
+function Arrow() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+    </svg>
+  );
+}
+
 export default async function HomePage() {
   const stats = await getStats();
 
   return (
     <div style={{ color: "#0A2540" }}>
 
-      {/* ─────────────────────────────────────────────────────────────
-          HERO
-          White background — subtle blue radial glow + animated grid
-      ───────────────────────────────────────────────────────────── */}
-      <section
-        className="pt-28 pb-20 px-6 text-center relative overflow-hidden"
-        style={{ background: "#ffffff" }}
-      >
-        {/* Galaxy background image */}
-        <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.5 }}>
-          <Image
-            src="/Gemini_Generated_Image_rbheezrbheezrbhe.png"
-            alt=""
-            fill
-            className="object-cover object-center"
-            priority
-          />
+      {/* ── 1. HERO ────────────────────────────────────────────────────── */}
+      <section className="pt-28 pb-20 px-6 text-center relative overflow-hidden" style={{ background: "#ffffff" }}>
+        {/* Galaxy background */}
+        <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.45 }}>
+          <Image src="/Gemini_Generated_Image_rbheezrbheezrbhe.png" alt="" fill className="object-cover object-center" priority />
         </div>
 
-        <div className="max-w-[760px] mx-auto relative z-10">
-          <div
-            className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-8 text-[13px] font-medium"
-            style={{ background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE" }}
-          >
+        <div className="max-w-[820px] mx-auto relative z-10">
+          {/* Eyebrow */}
+          <div className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-8 text-[13px] font-medium"
+            style={{ background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE" }}>
             <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
-            Build · Deploy · Earn — open protocol on Arbitrum
+            Open protocol · Arbitrum One · Live now
           </div>
 
-          <h1
-            className="font-display font-bold leading-[1.08] mb-5"
-            style={{
-              fontSize: "clamp(44px, 6.5vw, 72px)",
-              letterSpacing: "-0.03em",
-              color: "#0A2540",
-            }}
-          >
-            Ship an{" "}
-            <span style={{ color: "#2563EB" }}>AI agent</span>.
+          <h1 className="font-display font-bold leading-[1.06] mb-5"
+            style={{ fontSize: "clamp(46px, 7vw, 78px)", letterSpacing: "-0.03em", color: "#0A2540" }}>
+            The Economic Layer
             <br />
-            Start earning in minutes.
+            for{" "}
+            <span style={{ color: "#2563EB" }}>AI Agents</span>
           </h1>
 
-          <p
-            className="leading-relaxed mb-10 max-w-[560px] mx-auto"
-            style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "#425466" }}
-          >
-            Scaffold, deploy, and monetize an AI agent in minutes — or hire one
-            built by someone else. Every execution pays out directly to the builder&apos;s wallet.
+          <p className="leading-relaxed mb-4 max-w-[600px] mx-auto"
+            style={{ fontSize: "clamp(17px, 2.2vw, 21px)", color: "#425466" }}>
+            Build agents. Publish them. Get paid automatically in USDC every time they&apos;re used.
+          </p>
+          <p className="mb-10 max-w-[500px] mx-auto text-[16px]" style={{ color: "#64748B" }}>
+            MilkyWay transforms AI agents into income-producing digital assets.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
-            <Link
-              href="/register"
-              className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-semibold text-[15px] px-6 py-3 rounded-md transition-colors"
-            >
-              Build your first agent →
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-16">
+            <Link href="/register"
+              className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-semibold text-[16px] px-8 py-3.5 rounded-xl transition-colors">
+              Launch an Agent →
             </Link>
-            <Link
-              href="/agents"
-              className="font-semibold text-[15px] px-6 py-3 rounded-md transition-all bg-white border border-[#D1D5DB] text-[#0A2540] hover:border-[#2563EB] hover:text-[#2563EB] hover:bg-[#EFF6FF]"
-            >
-              Explore agents
+            <Link href="/agents"
+              className="font-semibold text-[16px] px-8 py-3.5 rounded-xl transition-all bg-white border border-[#D1D5DB] text-[#0A2540] hover:border-[#2563EB] hover:text-[#2563EB] hover:bg-[#EFF6FF]">
+              Explore Marketplace
             </Link>
           </div>
 
-        </div>
-
-        {/* Floating agent preview cards */}
-        <div className="mt-16 max-w-[960px] mx-auto relative z-10">
-          <div className="flex gap-4 justify-center flex-wrap">
-            {[
-              {
-                name: "Price Monitor",
-                category: "DeFi",
-                price: "0.001 USDC",
-                desc: "Watches on-chain prices 24/7 and alerts on significant moves.",
-                color: "#2563EB",
-                bg: "#EFF6FF",
-                runs: "1.2k runs",
-                bars: [4, 7, 5, 9, 6, 8, 10],
-              },
-              {
-                name: "Research Agent",
-                category: "Data",
-                price: "0.002 USDC",
-                desc: "Searches the web and returns structured summaries on demand.",
-                color: "#7c3aed",
-                bg: "#f5f3ff",
-                runs: "840 runs",
-                bars: [6, 4, 8, 5, 7, 6, 9],
-              },
-              {
-                name: "Portfolio Analyzer",
-                category: "Trading",
-                price: "0.001 USDC",
-                desc: "Evaluates wallet risk exposure and suggests rebalancing actions.",
-                color: "#0d9488",
-                bg: "#f0fdfa",
-                runs: "530 runs",
-                bars: [3, 6, 4, 7, 5, 8, 6],
-              },
-            ].map((a, i) => (
-              <div
-                key={a.name}
-                className="flex-shrink-0 w-[280px] text-left rounded-2xl overflow-hidden"
-                style={{
-                  background: "#fff",
-                  border: "1px solid #E3E8EF",
-                  boxShadow: "0 8px 32px rgba(10,37,64,0.10), 0 1px 4px rgba(10,37,64,0.06)",
-                  animation: `float 4s ease-in-out infinite`,
-                  animationDelay: `${i * 0.8}s`,
-                }}
-              >
-                {/* Card header stripe */}
-                <div
-                  className="px-5 pt-5 pb-4"
-                  style={{ borderBottom: `1px solid ${a.bg}` }}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div
-                      className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0"
-                      style={{ background: a.bg }}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=transparent`}
-                        alt={a.name}
-                        width={40}
-                        height={40}
-                      />
+          {/* Hero agent cards */}
+          <div className="max-w-[1040px] mx-auto">
+            <div className="flex gap-4 justify-center flex-wrap">
+              {[
+                { name: "Research Analyst",    category: "Data",       price: "$0.10 USDC",  executions: "24,328", earnings: "$2,432",  color: "#2563EB", bg: "#EFF6FF",  bars: [4,7,5,9,6,8,10], delay: "0s" },
+                { name: "Legal Review Agent",  category: "Productivity",price: "$0.25 USDC", executions: "9,281",  earnings: "$2,320",  color: "#7c3aed", bg: "#f5f3ff",  bars: [6,4,8,5,7,6,9],  delay: "0.7s" },
+                { name: "Marketing Copy Agent",category: "Productivity",price: "$0.05 USDC", executions: "53,902", earnings: "$2,695",  color: "#0d9488", bg: "#f0fdfa",  bars: [3,6,4,7,5,8,6],  delay: "1.4s" },
+              ].map((a) => (
+                <div key={a.name}
+                  className="flex-shrink-0 w-[300px] text-left rounded-2xl overflow-hidden"
+                  style={{
+                    background: "#fff",
+                    border: "1px solid #E3E8EF",
+                    boxShadow: "0 8px 32px rgba(10,37,64,0.10)",
+                    animation: `float 4s ease-in-out infinite`,
+                    animationDelay: a.delay,
+                  }}>
+                  <div className="px-5 pt-5 pb-4" style={{ borderBottom: `1px solid ${a.bg}` }}>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0" style={{ background: a.bg }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=transparent`} alt={a.name} width={40} height={40} />
+                      </div>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full" style={{ background: a.bg, color: a.color }}>
+                        {a.category}
+                      </span>
                     </div>
-                    <span
-                      className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full"
-                      style={{ background: a.bg, color: a.color }}
-                    >
-                      {a.category}
-                    </span>
+                    <p className="font-semibold text-[15px] leading-snug mb-1" style={{ color: "#0A2540" }}>{a.name}</p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <div>
+                        <p className="text-[10px]" style={{ color: "#9CA3AF" }}>Executions</p>
+                        <p className="font-mono-custom font-semibold text-[13px]" style={{ color: "#0A2540" }}>{a.executions}</p>
+                      </div>
+                      <div className="w-px h-6 bg-[#E3E8EF]" />
+                      <div>
+                        <p className="text-[10px]" style={{ color: "#9CA3AF" }}>Total earned</p>
+                        <p className="font-mono-custom font-semibold text-[13px]" style={{ color: "#16a34a" }}>{a.earnings} USDC</p>
+                      </div>
+                    </div>
                   </div>
-                  <p className="font-semibold text-[15px] leading-snug mb-1" style={{ color: "#0A2540" }}>
-                    {a.name}
-                  </p>
-                  <p className="text-[12px] leading-relaxed" style={{ color: "#9CA3AF" }}>
-                    {a.desc}
-                  </p>
-                </div>
-
-                {/* Activity sparkline */}
-                <div className="px-5 py-3" style={{ borderBottom: "1px solid #F3F4F6" }}>
-                  <p className="text-[10px] font-medium mb-2" style={{ color: "#9CA3AF" }}>
-                    Activity — last 7 days
-                  </p>
-                  <div className="flex items-end gap-1 h-6">
-                    {a.bars.map((h, bi) => (
-                      <div
-                        key={bi}
-                        className="flex-1 rounded-sm"
-                        style={{
-                          height: `${(h / 10) * 100}%`,
-                          background: bi === a.bars.length - 1 ? a.color : `${a.color}40`,
-                        }}
-                      />
-                    ))}
+                  <div className="px-5 py-3" style={{ borderBottom: "1px solid #F3F4F6" }}>
+                    <p className="text-[10px] font-medium mb-2" style={{ color: "#9CA3AF" }}>Activity — last 7 days</p>
+                    <div className="flex items-end gap-1 h-6">
+                      {a.bars.map((h, bi) => (
+                        <div key={bi} className="flex-1 rounded-sm" style={{ height: `${(h / 10) * 100}%`, background: bi === a.bars.length - 1 ? a.color : `${a.color}40` }} />
+                      ))}
+                    </div>
                   </div>
-                </div>
-
-                {/* Footer */}
-                <div className="px-5 py-3.5 flex items-center justify-between">
-                  <div>
-                    <p className="font-mono-custom font-semibold text-[14px]" style={{ color: a.color }}>
-                      {a.price}
-                    </p>
-                    <p className="text-[10px] mt-0.5" style={{ color: "#9CA3AF" }}>{a.runs}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{
-                        background: "#10b981",
-                        boxShadow: "0 0 6px rgba(16,185,129,0.7)",
-                        animation: "pulse 1.8s ease-in-out infinite",
-                      }}
-                    />
-                    <span
-                      className="text-[12px] font-semibold px-3 py-1 rounded-lg"
-                      style={{ background: a.bg, color: a.color }}
-                    >
+                  <div className="px-5 py-3.5 flex items-center justify-between">
+                    <div>
+                      <p className="font-mono-custom font-semibold text-[14px]" style={{ color: a.color }}>{a.price}</p>
+                      <p className="text-[10px] mt-0.5" style={{ color: "#9CA3AF" }}>per execution</p>
+                    </div>
+                    <span className="text-[12px] font-semibold px-3 py-1.5 rounded-lg" style={{ background: a.bg, color: a.color }}>
                       Run →
                     </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-center text-[11px] mt-4" style={{ color: "#CBD5E1" }}>
+              * Illustrative demo values
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 2. THE OPPORTUNITY ─────────────────────────────────────────── */}
+      <section className="py-28 px-6" style={{ background: "#fff", borderTop: "1px solid #E3E8EF" }}>
+        <div className="max-w-[1100px] mx-auto">
+          <div className="text-center mb-16">
+            <span className="text-[13px] font-semibold uppercase tracking-widest mb-3 block" style={{ color: "#2563EB" }}>
+              The opportunity
+            </span>
+            <h2 className="font-display font-bold mb-5"
+              style={{ fontSize: "clamp(30px, 4.5vw, 52px)", letterSpacing: "-0.025em", color: "#0A2540", lineHeight: 1.08 }}>
+              The Next Economy Is Autonomous
+            </h2>
+            <p className="text-[17px] max-w-[540px] mx-auto" style={{ color: "#425466", lineHeight: 1.65 }}>
+              For the first time in history, all four conditions for autonomous economic actors exist simultaneously.
+            </p>
+          </div>
+
+          {/* Four conditions */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-20">
+            {[
+              { num: "01", title: "Intelligence created instantly",      body: "AI can generate, reason, and act on any information — at any scale, on demand.",    color: "#2563EB", bg: "#EFF6FF" },
+              { num: "02", title: "Software acts autonomously",          body: "Agents don't wait for a human to click. They receive a task and complete it.",         color: "#7c3aed", bg: "#f5f3ff" },
+              { num: "03", title: "Payments happen globally",            body: "USDC moves across borders instantly. Any agent, anywhere, can receive payment.",       color: "#0d9488", bg: "#f0fdfa" },
+              { num: "04", title: "Ownership enforced on-chain",         body: "Smart contracts guarantee that builders get paid. No banks, no chargebacks, no delays.", color: "#dc6b2f", bg: "#fff7ed" },
+            ].map((c) => (
+              <div key={c.num} className="rounded-2xl p-6" style={{ background: c.bg, border: `1px solid ${c.color}20` }}>
+                <span className="font-mono-custom font-bold text-[11px] tracking-widest mb-4 block" style={{ color: `${c.color}80` }}>{c.num}</span>
+                <p className="font-semibold text-[15px] mb-2" style={{ color: "#0A2540" }}>{c.title}</p>
+                <p className="text-[13px] leading-relaxed" style={{ color: "#64748B" }}>{c.body}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Missing layer + flywheel */}
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div>
+              <div className="inline-block px-3 py-1 rounded-full text-[12px] font-semibold mb-5"
+                style={{ background: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA" }}>
+                The missing piece
+              </div>
+              <h3 className="font-display font-bold mb-4"
+                style={{ fontSize: "clamp(24px, 3vw, 34px)", letterSpacing: "-0.02em", color: "#0A2540", lineHeight: 1.15 }}>
+                AI has intelligence.
+                <br />AI lacks incentives.
+                <br />AI lacks ownership.
+                <br />AI lacks native payments.
+              </h3>
+              <p className="text-[17px] leading-[1.75] mb-6" style={{ color: "#425466" }}>
+                The next generation of software will not be applications. It will be autonomous economic actors. MilkyWay is building the infrastructure for that future.
+              </p>
+              <div className="inline-block px-4 py-2.5 rounded-xl text-[14px] font-semibold"
+                style={{ background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE" }}>
+                MilkyWay provides the missing infrastructure.
+              </div>
+            </div>
+
+            {/* Economic flywheel */}
+            <div className="rounded-2xl p-8 text-center"
+              style={{ background: "linear-gradient(135deg, #f8faff 0%, #EFF6FF 100%)", border: "1px solid #BFDBFE" }}>
+              <p className="text-[12px] font-semibold uppercase tracking-widest mb-6" style={{ color: "#2563EB" }}>
+                Economic flywheel
+              </p>
+              <div className="space-y-0">
+                {[
+                  { label: "Developers",    color: "#2563EB" },
+                  { label: "Agents",        color: "#7c3aed" },
+                  { label: "Users",         color: "#0d9488" },
+                  { label: "Payments",      color: "#dc6b2f" },
+                  { label: "Revenue",       color: "#16a34a" },
+                  { label: "More Developers", color: "#2563EB" },
+                ].map((item, i, arr) => (
+                  <div key={item.label}>
+                    <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-xl font-semibold text-[14px]"
+                      style={{ background: "#fff", border: `1.5px solid ${item.color}30`, color: item.color, minWidth: "180px", justifyContent: "center" }}>
+                      <span className="w-2 h-2 rounded-full" style={{ background: item.color }} />
+                      {item.label}
+                    </div>
+                    {i < arr.length - 1 && (
+                      <div className="flex justify-center py-1">
+                        <span style={{ color: "#CBD5E1", fontSize: "18px" }}>↓</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 3. HOW IT WORKS ─────────────────────────────────────────────── */}
+      <section className="py-24 px-6" style={{ background: "#F8FAFF", borderTop: "1px solid #E3E8EF" }}>
+        <div className="max-w-[900px] mx-auto">
+          <div className="text-center mb-16">
+            <span className="text-[13px] font-semibold uppercase tracking-widest mb-3 block" style={{ color: "#2563EB" }}>How it works</span>
+            <h2 className="font-display font-bold mb-4"
+              style={{ fontSize: "clamp(28px, 4vw, 44px)", letterSpacing: "-0.02em", color: "#0A2540" }}>
+              From idea to income in four steps
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              {
+                step: "01", title: "Build",
+                body: "Use any framework. Use any language. Deploy anywhere. If it serves HTTP, it's a MilkyWay agent.",
+                color: "#2563EB", bg: "#EFF6FF",
+              },
+              {
+                step: "02", title: "Publish",
+                body: "Register your agent on MilkyWay in one command. Become discoverable across the entire ecosystem.",
+                color: "#7c3aed", bg: "#f5f3ff",
+              },
+              {
+                step: "03", title: "Earn",
+                body: "Receive USDC automatically to your wallet every time your agent executes. You keep 99%.",
+                color: "#0d9488", bg: "#f0fdfa",
+              },
+              {
+                step: "04", title: "Scale",
+                body: "Compose agents into larger workflows. Each connection multiplies your earning potential.",
+                color: "#dc6b2f", bg: "#fff7ed",
+              },
+            ].map((s) => (
+              <div key={s.step} className="rounded-2xl p-6 relative" style={{ background: "#fff", border: `1px solid ${s.color}20` }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 font-mono-custom font-bold text-[13px]"
+                  style={{ background: s.bg, color: s.color }}>
+                  {s.step}
+                </div>
+                <p className="font-bold text-[18px] mb-2" style={{ color: "#0A2540" }}>{s.title}</p>
+                <p className="text-[13px] leading-relaxed" style={{ color: "#64748B" }}>{s.body}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-10">
+            <Link href="/register"
+              className="inline-flex items-center gap-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-semibold text-[15px] px-7 py-3 rounded-xl transition-colors">
+              Start building →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4. MARKETPLACE PREVIEW ──────────────────────────────────────── */}
+      <section className="py-28 px-6" style={{ background: "#fff", borderTop: "1px solid #E3E8EF" }}>
+        <div className="max-w-[1100px] mx-auto">
+          <div className="text-center mb-16">
+            <span className="text-[13px] font-semibold uppercase tracking-widest mb-3 block" style={{ color: "#2563EB" }}>
+              Marketplace
+            </span>
+            <h2 className="font-display font-bold mb-5"
+              style={{ fontSize: "clamp(30px, 4.5vw, 52px)", letterSpacing: "-0.025em", color: "#0A2540" }}>
+              A Marketplace For Autonomous Intelligence
+            </h2>
+            <p className="text-[17px] max-w-[500px] mx-auto" style={{ color: "#425466" }}>
+              Agents earning real USDC. Every execution settled on Arbitrum One.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+            {[
+              { name: "Research Analyst",      category: "Data",          price: "$0.10", execs: "24,328", earned: "$2,432",  color: "#2563EB", bg: "#EFF6FF" },
+              { name: "Legal Review Agent",    category: "Productivity",  price: "$0.25", execs: "9,281",  earned: "$2,320",  color: "#7c3aed", bg: "#f5f3ff" },
+              { name: "Marketing Copy Agent",  category: "Productivity",  price: "$0.05", execs: "53,902", earned: "$2,695",  color: "#0d9488", bg: "#f0fdfa" },
+              { name: "DeFi Price Monitor",    category: "DeFi",          price: "$0.001",execs: "128,490",earned: "$128",    color: "#dc6b2f", bg: "#fff7ed" },
+              { name: "Portfolio Risk Scorer", category: "Trading",       price: "$0.15", execs: "11,203", earned: "$1,680",  color: "#0ea5e9", bg: "#f0f9ff" },
+              { name: "Aave Position Monitor", category: "DeFi",          price: "$0.25", execs: "7,820",  earned: "$1,955",  color: "#16a34a", bg: "#f0fdf4" },
+            ].map((a) => (
+              <div key={a.name} className="rounded-2xl p-5 flex flex-col"
+                style={{ background: "#fff", border: "1px solid #E3E8EF", boxShadow: "0 2px 12px rgba(10,37,64,0.05)" }}>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0" style={{ background: a.bg }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=transparent`} alt={a.name} width={40} height={40} />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[14px]" style={{ color: "#0A2540" }}>{a.name}</p>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: a.bg, color: a.color }}>{a.category}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" style={{ boxShadow: "0 0 4px rgba(16,185,129,0.7)" }} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 pt-4" style={{ borderTop: "1px solid #F3F4F6" }}>
+                  <div>
+                    <p className="text-[10px]" style={{ color: "#9CA3AF" }}>Price</p>
+                    <p className="font-mono-custom font-semibold text-[12px]" style={{ color: a.color }}>{a.price}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px]" style={{ color: "#9CA3AF" }}>Executions</p>
+                    <p className="font-mono-custom font-semibold text-[12px]" style={{ color: "#0A2540" }}>{a.execs}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px]" style={{ color: "#9CA3AF" }}>Earned</p>
+                    <p className="font-mono-custom font-semibold text-[12px]" style={{ color: "#16a34a" }}>{a.earned}</p>
                   </div>
                 </div>
               </div>
             ))}
           </div>
+
+          <p className="text-center text-[11px] mb-8" style={{ color: "#CBD5E1" }}>* Illustrative demo values showing the marketplace potential</p>
+
+          <div className="text-center">
+            <Link href="/agents"
+              className="inline-flex items-center gap-2 font-semibold text-[15px] px-7 py-3 rounded-xl transition-all"
+              style={{ background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE" }}>
+              Explore the live marketplace <Arrow />
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────
-          STATS BAR
-      ───────────────────────────────────────────────────────────── */}
+      {/* ── 5. STATS BAR ─────────────────────────────────────────────────── */}
       <section className="py-14 px-6" style={{ background: "#2563EB" }}>
         <div className="max-w-[900px] mx-auto">
+          <p className="text-center text-[13px] font-semibold uppercase tracking-widest mb-8" style={{ color: "rgba(255,255,255,0.6)" }}>
+            The Network Is Growing
+          </p>
           <div className="flex flex-col sm:flex-row items-center justify-between text-center">
             {[
-              { value: stats.agentCount || "—", label: "Agents registered" },
-              { value: stats.builderCount || "—", label: "Active builders" },
+              { value: stats.agentCount || "Growing", label: "Agents registered" },
+              { value: stats.builderCount || "Active",   label: "Builders in ecosystem" },
               { value: (stats.totalStaked || "0") + " ETH", label: "Staked in registry" },
             ].map((s, i) => (
               <>
                 <div key={i} className="flex-1 py-4 sm:py-0">
-                  <p
-                    className="font-display font-bold leading-none tabular-nums text-white"
-                    style={{ fontSize: "clamp(28px, 3.5vw, 40px)" }}
-                  >
+                  <p className="font-display font-bold leading-none tabular-nums text-white" style={{ fontSize: "clamp(28px, 3.5vw, 40px)" }}>
                     {s.value}
                   </p>
-                  <p className="text-[13px] mt-2" style={{ color: "rgba(255,255,255,0.7)" }}>
-                    {s.label}
-                  </p>
+                  <p className="text-[13px] mt-2" style={{ color: "rgba(255,255,255,0.7)" }}>{s.label}</p>
                 </div>
                 {i < 2 && (
-                  <div
-                    key={`divider-${i}`}
-                    className="hidden sm:block w-px self-stretch mx-8"
-                    style={{ background: "rgba(255,255,255,0.25)" }}
-                  />
+                  <div key={`d-${i}`} className="hidden sm:block w-px self-stretch mx-8" style={{ background: "rgba(255,255,255,0.25)" }} />
                 )}
               </>
             ))}
@@ -253,794 +391,394 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────
-          FEATURE ROWS
-          Row 1: Find an agent — Row 2: Build and earn
-      ───────────────────────────────────────────────────────────── */}
-      <section className="py-24 px-6" style={{ background: "#fff" }}>
-        <div className="max-w-[1200px] mx-auto">
+      {/* ── 6. WHY NOW ───────────────────────────────────────────────────── */}
+      <section className="py-28 px-6 relative overflow-hidden" style={{ background: "#05091a" }}>
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.018) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }} />
+        <div className="absolute pointer-events-none" style={{
+          top: "-80px", left: "50%", transform: "translateX(-50%)",
+          width: "900px", height: "400px",
+          background: "radial-gradient(ellipse at center, rgba(37,99,235,0.14) 0%, transparent 70%)",
+          filter: "blur(60px)",
+        }} />
 
-          <div className="text-center mb-20">
-            <p
-              className="text-[13px] font-semibold uppercase tracking-widest mb-3"
-              style={{ color: "#2563EB" }}
-            >
-              How it works
-            </p>
-            <h2
-              className="font-display font-bold"
-              style={{
-                fontSize: "clamp(28px, 4vw, 42px)",
-                letterSpacing: "-0.02em",
-                color: "#0A2540",
-              }}
-            >
-              A platform for builders and users alike
+        <div className="max-w-[860px] mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-7 text-[13px] font-semibold"
+              style={{ background: "rgba(37,99,235,0.12)", color: "#60a5fa", border: "1px solid rgba(37,99,235,0.25)" }}>
+              For investors &amp; grant reviewers
+            </span>
+            <h2 className="font-display font-bold text-white mb-5"
+              style={{ fontSize: "clamp(34px, 5vw, 56px)", letterSpacing: "-0.03em", lineHeight: 1.08 }}>
+              Why This Moment Matters
             </h2>
+            <p className="text-[17px] max-w-[500px] mx-auto" style={{ color: "#6e7681", lineHeight: 1.65 }}>
+              Every infrastructure platform in history had a single inflection moment. This is that moment for autonomous agents.
+            </p>
           </div>
 
-          {/* Row 1 — Find an agent */}
-          <div className="grid md:grid-cols-2 gap-16 items-center mb-28">
-            <div>
-              <span
-                className="inline-block text-[12px] font-semibold uppercase tracking-widest px-3 py-1 rounded-full mb-5"
-                style={{ background: "#EFF6FF", color: "#2563EB" }}
-              >
-                For users
-              </span>
-              <h3
-                className="font-display font-bold mb-4 leading-tight"
+          <div className="grid md:grid-cols-3 gap-5 mb-14">
+            {[
+              {
+                title: "Websites became businesses.",
+                body: "When HTTP + payments infrastructure matured, millions of websites became commerce engines. Stripe made it programmable.",
+                icon: "🌐", accent: "#60a5fa",
+              },
+              {
+                title: "Apps became businesses.",
+                body: "When mobile + app stores matured, millions of apps became revenue-generating products. The App Store made it accessible.",
+                icon: "📱", accent: "#a78bfa",
+              },
+              {
+                title: "Agents are becoming businesses.",
+                body: "AI created the intelligence. Arbitrum provides the settlement layer. MilkyWay provides the economic infrastructure.",
+                icon: "🤖", accent: "#34d399",
+                highlight: true,
+              },
+            ].map((c) => (
+              <div key={c.title} className="rounded-2xl p-6"
                 style={{
-                  fontSize: "clamp(26px, 3.5vw, 36px)",
-                  letterSpacing: "-0.02em",
-                  color: "#0A2540",
-                }}
-              >
-                Find an agent.
-                <br />
-                Get work done.
-              </h3>
-              <p
-                className="text-[17px] leading-[1.75] mb-8"
-                style={{ color: "#425466" }}
-              >
-                Browse agents built for specific tasks. Fill in a form with what you
-                need. Pay a small fee per job. You get results — no subscription, no
-                setup.
-              </p>
-              <ul className="space-y-3 mb-8">
-                {[
-                  "No technical knowledge required",
-                  "Pay per job — as little as $0.001 USDC",
-                  "Refund guaranteed if execution fails",
-                ].map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-center gap-3 text-[15px]"
-                    style={{ color: "#425466" }}
-                  >
-                    <svg
-                      className="w-4 h-4 flex-shrink-0"
-                      style={{ color: "#2563EB" }}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/agents"
-                className="text-[15px] font-semibold hover:underline"
-                style={{ color: "#2563EB" }}
-              >
-                Browse agents →
-              </Link>
-            </div>
-
-            {/* Visual: agent marketplace UI */}
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{ border: "1px solid #BFDBFE", boxShadow: "0 8px 40px rgba(37,99,235,0.10)" }}
-            >
-              {/* Header bar */}
-              <div
-                className="px-5 py-3.5 flex items-center justify-between"
-                style={{ background: "#2563EB" }}
-              >
-                <span className="text-[13px] font-semibold text-white">Agent Marketplace</span>
-                <span className="text-[11px] font-mono-custom" style={{ color: "rgba(255,255,255,0.65)" }}>
-                  3 results
-                </span>
+                  background: c.highlight ? "linear-gradient(145deg, rgba(37,99,235,0.18) 0%, rgba(37,99,235,0.06) 100%)" : "rgba(255,255,255,0.03)",
+                  border: c.highlight ? "1px solid rgba(37,99,235,0.4)" : "1px solid rgba(255,255,255,0.06)",
+                  boxShadow: c.highlight ? "0 0 40px rgba(37,99,235,0.15)" : "none",
+                }}>
+                <span className="text-[28px] mb-4 block">{c.icon}</span>
+                <p className="font-semibold text-[15px] mb-3" style={{ color: c.accent }}>{c.title}</p>
+                <p className="text-[13px] leading-relaxed" style={{ color: "#6e7681" }}>{c.body}</p>
               </div>
-
-              {/* Category chips */}
-              <div className="flex items-center gap-2 px-5 py-3" style={{ background: "#EFF6FF", borderBottom: "1px solid #BFDBFE" }}>
-                {["All", "DeFi", "Data", "Trading"].map((cat, i) => (
-                  <span
-                    key={cat}
-                    className="text-[11px] font-semibold px-2.5 py-1 rounded-full cursor-pointer"
-                    style={i === 0
-                      ? { background: "#2563EB", color: "#fff" }
-                      : { background: "#fff", color: "#2563EB", border: "1px solid #BFDBFE" }
-                    }
-                  >
-                    {cat}
-                  </span>
-                ))}
-              </div>
-
-              {/* Search */}
-              <div className="px-5 py-3" style={{ background: "#fff", borderBottom: "1px solid #E3E8EF" }}>
-                <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: "#F6F9FC", border: "1px solid #E3E8EF" }}>
-                  <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#9CA3AF" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <span className="text-[13px]" style={{ color: "#9CA3AF" }}>Search agents…</span>
-                </div>
-              </div>
-
-              {/* Agent list */}
-              <div className="divide-y" style={{ background: "#fff", borderColor: "#E3E8EF" }}>
-                {[
-                  { name: "Price Monitor", cat: "DeFi", price: "0.001 USDC", desc: "Watches on-chain prices 24/7", featured: true },
-                  { name: "Research Agent", cat: "Data", price: "0.002 USDC", desc: "Searches and summarises topics", featured: false },
-                  { name: "Risk Analyzer", cat: "Trading", price: "0.001 USDC", desc: "Evaluates wallet exposure", featured: false },
-                ].map((a) => (
-                  <div
-                    key={a.name}
-                    className="px-5 py-4"
-                    style={a.featured ? { background: "#EFF6FF", borderLeft: "3px solid #2563EB" } : { borderLeft: "3px solid transparent" }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0"
-                          style={{ background: a.featured ? "#dbeafe" : "#EFF6FF" }}
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=transparent`}
-                            alt={a.name}
-                            width={36}
-                            height={36}
-                          />
-                        </div>
-                        <div>
-                          <p className="text-[13px] font-semibold" style={{ color: "#0A2540" }}>{a.name}</p>
-                          <p className="text-[11px]" style={{ color: "#9CA3AF" }}>{a.desc}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 flex-shrink-0 ml-3">
-                        <span className="text-[12px] font-mono-custom font-semibold" style={{ color: "#2563EB" }}>{a.price}</span>
-                        {a.featured && (
-                          <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md text-white" style={{ background: "#2563EB" }}>
-                            Run →
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* Divider */}
-          <div className="w-full h-px mb-28" style={{ background: "#E3E8EF" }} />
-
-          {/* Row 2 — Build and earn */}
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            {/* Visual: earnings dashboard */}
-            <div
-              className="rounded-2xl overflow-hidden order-2 md:order-1"
-              style={{ border: "1px solid #BFDBFE", boxShadow: "0 8px 40px rgba(37,99,235,0.10)" }}
-            >
-              {/* Blue header */}
-              <div
-                className="px-5 py-3.5 flex items-center justify-between"
-                style={{ background: "#2563EB" }}
-              >
-                <span className="text-[13px] font-semibold text-white">Builder Dashboard</span>
-                <span
-                  className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                  style={{ background: "rgba(255,255,255,0.18)", color: "#fff" }}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-white opacity-80" />
-                  Live
-                </span>
-              </div>
-
-              {/* Earnings summary */}
-              <div className="px-5 py-4" style={{ background: "#EFF6FF", borderBottom: "1px solid #BFDBFE" }}>
-                <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: "#2563EB" }}>
-                  This week
-                </p>
-                <div className="flex items-end gap-3">
-                  <p className="font-display font-bold text-[32px] leading-none" style={{ color: "#0A2540" }}>
-                    $80.00 <span className="text-[18px] font-normal" style={{ color: "#2563EB" }}>USDC</span>
-                  </p>
-                  <span
-                    className="text-[12px] font-semibold px-2 py-0.5 rounded-full mb-1"
-                    style={{ background: "#DCFCE7", color: "#16a34a" }}
-                  >
-                    ↑ 22%
-                  </span>
-                </div>
-              </div>
-
-              {/* Mini bar chart */}
-              <div className="px-5 py-4" style={{ background: "#fff", borderBottom: "1px solid #E3E8EF" }}>
-                <p className="text-[11px] mb-3" style={{ color: "#9CA3AF" }}>Daily executions</p>
-                <div className="flex items-end gap-1.5 h-10">
-                  {[3, 5, 4, 8, 6, 11, 9].map((h, i) => (
-                    <div key={i} className="flex-1 rounded-sm" style={{
-                      height: `${(h / 11) * 100}%`,
-                      background: i === 6 ? "#2563EB" : i >= 4 ? "#93c5fd" : "#BFDBFE",
-                    }} />
-                  ))}
-                </div>
-                <div className="flex justify-between mt-1.5">
-                  {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-                    <span key={i} className="flex-1 text-center text-[10px]" style={{ color: i === 6 ? "#2563EB" : "#9CA3AF" }}>{d}</span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Agent breakdown */}
-              <div className="divide-y" style={{ background: "#fff", borderColor: "#E3E8EF" }}>
-                {[
-                  { name: "Price Monitor", runs: 22, eth: "42.00", pct: 52 },
-                  { name: "Research Agent", runs: 16, eth: "38.00", pct: 48 },
-                ].map((a) => (
-                  <div key={a.name} className="px-5 py-3.5">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2.5">
-                        <div
-                          className="w-7 h-7 rounded-md overflow-hidden flex-shrink-0"
-                          style={{ background: "#EFF6FF" }}
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=transparent`}
-                            alt={a.name}
-                            width={28}
-                            height={28}
-                          />
-                        </div>
-                        <div>
-                          <p className="text-[12px] font-semibold" style={{ color: "#0A2540" }}>{a.name}</p>
-                          <p className="text-[10px]" style={{ color: "#9CA3AF" }}>{a.runs} executions</p>
-                        </div>
-                      </div>
-                      <span className="text-[13px] font-mono-custom font-semibold" style={{ color: "#2563EB" }}>
-                        ${a.eth} USDC
-                      </span>
-                    </div>
-                    {/* Progress bar */}
-                    <div className="h-1 rounded-full" style={{ background: "#EFF6FF" }}>
-                      <div className="h-1 rounded-full" style={{ width: `${a.pct}%`, background: "#2563EB" }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="order-1 md:order-2">
-              <span
-                className="inline-block text-[12px] font-semibold uppercase tracking-widest px-3 py-1 rounded-full mb-5"
-                style={{ background: "#EFF6FF", color: "#2563EB" }}
-              >
-                For builders
-              </span>
-              <h3
-                className="font-display font-bold mb-4 leading-tight"
-                style={{
-                  fontSize: "clamp(26px, 3.5vw, 36px)",
-                  letterSpacing: "-0.02em",
-                  color: "#0A2540",
-                }}
-              >
-                Build once.
-                <br />
-                Earn forever.
-              </h3>
-              <p
-                className="text-[17px] leading-[1.75] mb-8"
-                style={{ color: "#425466" }}
-              >
-                Scaffold an agent with one command, deploy it to the global registry,
-                and start earning USDC the moment someone runs it. No billing code,
-                no invoices, no waiting. MilkyWay takes 1%. You keep 99%.
-              </p>
-              <ul className="space-y-3 mb-8">
-                {[
-                  "From zero to live agent in under 5 minutes",
-                  "You control the price — change it any time",
-                  "USDC paid directly to your wallet on every execution",
-                ].map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-center gap-3 text-[15px]"
-                    style={{ color: "#425466" }}
-                  >
-                    <svg
-                      className="w-4 h-4 flex-shrink-0"
-                      style={{ color: "#2563EB" }}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/register"
-                className="text-[15px] font-semibold hover:underline"
-                style={{ color: "#2563EB" }}
-              >
-                Ship your first agent →
-              </Link>
-            </div>
+          {/* Investor takeaway */}
+          <div className="rounded-2xl p-8 text-center"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <p className="font-display font-bold text-white mb-3" style={{ fontSize: "clamp(20px, 2.5vw, 28px)", letterSpacing: "-0.02em" }}>
+              MilkyWay is not building an agent marketplace.
+            </p>
+            <p className="text-[16px]" style={{ color: "#6e7681" }}>
+              MilkyWay is building{" "}
+              <span style={{ color: "#60a5fa", fontWeight: 600 }}>the economic infrastructure for autonomous software.</span>
+            </p>
           </div>
-
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────
-          VISUAL BUILDER SHOWCASE
-          Dark section — animated live demo of the canvas
-      ───────────────────────────────────────────────────────────── */}
-      <section
-        className="py-32 px-6 relative overflow-hidden"
-        style={{
-          background: "#05091a",
-          borderTop: "1px solid rgba(37,99,235,0.15)",
-        }}
-      >
-        {/* Moving dot grid */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
-            animation: "gridSlide 12s linear infinite",
-          }}
-        />
-        {/* Glow behind canvas */}
-        <div
-          className="absolute left-1/2 pointer-events-none"
-          style={{
-            top: "35%",
-            transform: "translateX(-50%)",
-            width: "900px",
-            height: "500px",
-            background:
-              "radial-gradient(ellipse at center, rgba(37,99,235,0.14) 0%, transparent 70%)",
-            filter: "blur(48px)",
-          }}
-        />
+      {/* ── 7. DEVELOPER EARNINGS SCENARIOS ─────────────────────────────── */}
+      <section className="py-28 px-6" style={{ background: "#fff", borderTop: "1px solid #E3E8EF" }}>
+        <div className="max-w-[1000px] mx-auto">
+          <div className="text-center mb-16">
+            <span className="text-[13px] font-semibold uppercase tracking-widest mb-3 block" style={{ color: "#16a34a" }}>
+              Builder economics
+            </span>
+            <h2 className="font-display font-bold mb-5"
+              style={{ fontSize: "clamp(30px, 4.5vw, 50px)", letterSpacing: "-0.025em", color: "#0A2540" }}>
+              What builders earn
+            </h2>
+            <p className="text-[17px] max-w-[480px] mx-auto" style={{ color: "#425466" }}>
+              Every agent you publish becomes a revenue stream. Here&apos;s what that looks like in practice.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {[
+              {
+                type: "Side project",
+                agentName: "Research Assistant",
+                price: "$0.10",
+                dailyRuns: 50,
+                monthly: "$150",
+                color: "#2563EB", bg: "#EFF6FF",
+                desc: "A simple research agent. 50 runs per day. One weekend to build.",
+              },
+              {
+                type: "Growing product",
+                agentName: "Legal Review Agent",
+                price: "$0.50",
+                dailyRuns: 100,
+                monthly: "$1,500",
+                color: "#7c3aed", bg: "#f5f3ff",
+                desc: "A legal review agent. Law firms automate document analysis.",
+                featured: true,
+              },
+              {
+                type: "Full business",
+                agentName: "Data Pipeline Suite",
+                price: "$2.00",
+                dailyRuns: 200,
+                monthly: "$12,000",
+                color: "#dc6b2f", bg: "#fff7ed",
+                desc: "A suite of data agents. B2B customers running at scale.",
+              },
+            ].map((s) => (
+              <div key={s.type} className="rounded-2xl overflow-hidden relative"
+                style={{
+                  background: s.featured ? "linear-gradient(150deg, #1a3a8f 0%, #2563EB 100%)" : "#fff",
+                  border: s.featured ? "1px solid rgba(99,153,255,0.4)" : "1px solid #E3E8EF",
+                  boxShadow: s.featured ? "0 20px 60px rgba(37,99,235,0.25)" : "0 2px 12px rgba(10,37,64,0.05)",
+                }}>
+                {s.featured && (
+                  <div className="absolute -top-px left-0 right-0 flex justify-center">
+                    <span className="text-[11px] font-bold px-4 py-1 rounded-b-lg" style={{ background: "#fff", color: "#2563EB" }}>
+                      MOST COMMON
+                    </span>
+                  </div>
+                )}
+                <div className="p-6" style={{ paddingTop: s.featured ? "28px" : "24px" }}>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full mb-4 inline-block"
+                    style={s.featured ? { background: "rgba(255,255,255,0.18)", color: "#fff" } : { background: s.bg, color: s.color }}>
+                    {s.type}
+                  </span>
+                  <p className="font-bold text-[16px] mb-2" style={{ color: s.featured ? "#fff" : "#0A2540" }}>{s.agentName}</p>
+                  <p className="text-[13px] mb-5" style={{ color: s.featured ? "rgba(255,255,255,0.65)" : "#64748B" }}>{s.desc}</p>
+                  <div className="space-y-2 mb-5">
+                    {[
+                      { label: "Price per execution", value: s.price },
+                      { label: "Daily executions",    value: String(s.dailyRuns) },
+                    ].map((r) => (
+                      <div key={r.label} className="flex items-center justify-between text-[13px]">
+                        <span style={{ color: s.featured ? "rgba(255,255,255,0.55)" : "#9CA3AF" }}>{r.label}</span>
+                        <span className="font-mono-custom font-semibold" style={{ color: s.featured ? "rgba(255,255,255,0.9)" : "#0A2540" }}>{r.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="rounded-xl p-4 text-center"
+                    style={{ background: s.featured ? "rgba(255,255,255,0.12)" : s.bg }}>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider mb-1"
+                      style={{ color: s.featured ? "rgba(255,255,255,0.55)" : s.color }}>
+                      Monthly earnings
+                    </p>
+                    <p className="font-display font-bold text-[30px] leading-none"
+                      style={{ color: s.featured ? "#fff" : s.color, letterSpacing: "-0.02em" }}>
+                      {s.monthly}
+                    </p>
+                    <p className="text-[10px] mt-1" style={{ color: s.featured ? "rgba(255,255,255,0.4)" : "#9CA3AF" }}>
+                      USDC · 99% to builder
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-[12px]" style={{ color: "#CBD5E1" }}>* Illustrative scenarios. Actual earnings depend on demand.</p>
+        </div>
+      </section>
+
+      {/* ── 8. VISUAL BUILDER SHOWCASE ──────────────────────────────────── */}
+      <section className="py-32 px-6 relative overflow-hidden"
+        style={{ background: "#05091a", borderTop: "1px solid rgba(37,99,235,0.15)" }}>
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+          animation: "gridSlide 12s linear infinite",
+        }} />
+        <div className="absolute left-1/2 pointer-events-none" style={{
+          top: "35%", transform: "translateX(-50%)",
+          width: "900px", height: "500px",
+          background: "radial-gradient(ellipse at center, rgba(37,99,235,0.14) 0%, transparent 70%)",
+          filter: "blur(48px)",
+        }} />
 
         <div className="max-w-[960px] mx-auto relative z-10">
-          {/* Heading */}
           <div className="text-center mb-16">
-            <span
-              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-7 text-[13px] font-semibold"
-              style={{
-                background: "rgba(37,99,235,0.12)",
-                color: "#60a5fa",
-                border: "1px solid rgba(37,99,235,0.25)",
-              }}
-            >
+            <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-7 text-[13px] font-semibold"
+              style={{ background: "rgba(37,99,235,0.12)", color: "#60a5fa", border: "1px solid rgba(37,99,235,0.25)" }}>
               <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-pulse" />
               Visual Builder — Live Demo
             </span>
-            <h2
-              className="font-display font-bold text-white mb-5"
-              style={{
-                fontSize: "clamp(36px, 5.5vw, 60px)",
-                letterSpacing: "-0.03em",
-                lineHeight: 1.08,
-              }}
-            >
+            <h2 className="font-display font-bold text-white mb-5"
+              style={{ fontSize: "clamp(36px, 5.5vw, 60px)", letterSpacing: "-0.03em", lineHeight: 1.08 }}>
               Chain agents into flows.
               <br />
               <span style={{ color: "#60a5fa" }}>Watch them execute.</span>
             </h2>
-            <p
-              className="text-[18px] max-w-[500px] mx-auto"
-              style={{ color: "#6e7681", lineHeight: 1.65 }}
-            >
-              Connect agents on a visual canvas. The output of one becomes the
-              input of the next. Pay once — USDC releases automatically when the
-              agentic flow completes.
+            <p className="text-[18px] max-w-[500px] mx-auto" style={{ color: "#6e7681", lineHeight: 1.65 }}>
+              Connect agents on a visual canvas. The output of one becomes the input of the next. Pay once — USDC releases when the flow completes.
             </p>
           </div>
 
-          {/* Animated builder canvas */}
           <AnimatedFlowCanvas />
 
-          {/* Feature callouts */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12">
             {[
-              {
-                title: "Drag & drop canvas",
-                desc: "No code. Click agents to add them to your agentic flow.",
-                icon: (
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
-                    />
-                  </svg>
-                ),
-              },
-              {
-                title: "Auto field matching",
-                desc: "Output types are mapped to inputs automatically.",
-                icon: (
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
-                    />
-                  </svg>
-                ),
-              },
-              {
-                title: "Escrow-guaranteed",
-                desc: "USDC paid via x402. Full refund if the agentic flow fails.",
-                icon: (
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-                    />
-                  </svg>
-                ),
-              },
+              { title: "Drag & drop canvas",    desc: "No code. Click agents to add them to your agentic flow.",               icon: "⊞" },
+              { title: "Auto field matching",   desc: "Output types are mapped to inputs automatically.",                       icon: "⇄" },
+              { title: "USDC-guaranteed",       desc: "Paid via x402. Full refund if the agentic flow fails.",                  icon: "🔒" },
             ].map((f) => (
-              <div
-                key={f.title}
-                className="rounded-xl p-5"
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                }}
-              >
-                <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center mb-3"
-                  style={{ background: "rgba(37,99,235,0.15)", color: "#60a5fa" }}
-                >
+              <div key={f.title} className="rounded-xl p-5"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 text-[18px]"
+                  style={{ background: "rgba(37,99,235,0.15)" }}>
                   {f.icon}
                 </div>
                 <p className="text-[14px] font-semibold text-white mb-1">{f.title}</p>
-                <p className="text-[13px]" style={{ color: "#6e7681" }}>
-                  {f.desc}
-                </p>
+                <p className="text-[13px]" style={{ color: "#6e7681" }}>{f.desc}</p>
               </div>
             ))}
           </div>
 
           <div className="text-center mt-12">
-            <Link
-              href="/builder"
-              className="inline-flex items-center gap-2 font-semibold text-[15px] px-8 py-3.5 rounded-lg transition-colors bg-[#2563EB] hover:bg-[#1d4ed8] text-white"
-            >
-              Open the builder
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13 7l5 5m0 0l-5 5m5-5H6"
-                />
-              </svg>
+            <Link href="/builder"
+              className="inline-flex items-center gap-2 font-semibold text-[15px] px-8 py-3.5 rounded-lg transition-colors bg-[#2563EB] hover:bg-[#1d4ed8] text-white">
+              Open the builder <Arrow />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────
-          THE PROTOCOL
-          Standards showcase — ERC-8004, x402, Arbitrum
-      ───────────────────────────────────────────────────────────── */}
-      <section
-        className="py-32 px-6 relative overflow-hidden"
-        style={{ background: "#05091a", borderTop: "1px solid rgba(37,99,235,0.12)" }}
-      >
-        {/* Subtle dot grid */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.018) 1px, transparent 1px)",
-            backgroundSize: "28px 28px",
-          }}
-        />
-        {/* Wide glow */}
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            top: "-80px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "1100px",
-            height: "400px",
-            background: "radial-gradient(ellipse at center, rgba(37,99,235,0.12) 0%, transparent 70%)",
-            filter: "blur(60px)",
-          }}
-        />
+      {/* ── 9. NETWORK EFFECTS ──────────────────────────────────────────── */}
+      <section className="py-28 px-6" style={{ background: "#F8FAFF", borderTop: "1px solid #E3E8EF" }}>
+        <div className="max-w-[900px] mx-auto">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div>
+              <span className="text-[13px] font-semibold uppercase tracking-widest mb-4 block" style={{ color: "#2563EB" }}>
+                Network effects
+              </span>
+              <h2 className="font-display font-bold mb-5"
+                style={{ fontSize: "clamp(28px, 4vw, 44px)", letterSpacing: "-0.02em", color: "#0A2540", lineHeight: 1.1 }}>
+                Built To Compound
+              </h2>
+              <p className="text-[17px] leading-[1.75] mb-6" style={{ color: "#425466" }}>
+                Every new agent makes every other agent more valuable. Every new builder expands the ecosystem for every user. Every new user creates more demand for builders.
+              </p>
+              <p className="text-[17px] leading-[1.75] mb-8" style={{ color: "#425466" }}>
+                MilkyWay becomes more powerful with every participant. That&apos;s the nature of economic infrastructure.
+              </p>
+              <Link href="/agents" className="inline-flex items-center gap-2 font-semibold text-[15px]" style={{ color: "#2563EB" }}>
+                Explore the ecosystem <Arrow />
+              </Link>
+            </div>
 
-        <div className="max-w-[1100px] mx-auto relative z-10">
+            {/* Compounding flywheel */}
+            <div className="rounded-2xl p-8"
+              style={{ background: "linear-gradient(135deg, #EFF6FF 0%, #f5f3ff 100%)", border: "1px solid #BFDBFE" }}>
+              <div className="space-y-0">
+                {[
+                  { label: "Developer builds an agent",  color: "#2563EB" },
+                  { label: "Agent earns USDC",           color: "#7c3aed" },
+                  { label: "Success attracts users",     color: "#0d9488" },
+                  { label: "Users fund more agents",     color: "#dc6b2f" },
+                  { label: "More developers join",       color: "#16a34a" },
+                  { label: "More agents, more value",    color: "#0ea5e9" },
+                  { label: "Network compounds",          color: "#2563EB" },
+                ].map((item, i, arr) => (
+                  <div key={item.label}>
+                    <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl"
+                      style={{ background: "#fff", border: `1.5px solid ${item.color}25`, color: item.color }}>
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: item.color }} />
+                      <span className="font-medium text-[13px]" style={{ color: "#0A2540" }}>{item.label}</span>
+                      {i === arr.length - 1 && (
+                        <span className="ml-auto text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                          style={{ background: `${item.color}15`, color: item.color }}>
+                          ∞
+                        </span>
+                      )}
+                    </div>
+                    {i < arr.length - 1 && (
+                      <div className="flex justify-center py-0.5">
+                        <span style={{ color: "#CBD5E1", fontSize: "14px" }}>↓</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          {/* Heading */}
-          <div className="text-center mb-20">
-            <span
-              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-7 text-[13px] font-semibold"
-              style={{ background: "rgba(37,99,235,0.12)", color: "#60a5fa", border: "1px solid rgba(37,99,235,0.25)" }}
-            >
-              Open standard
+      {/* ── 10. DEVELOPER EXPERIENCE ────────────────────────────────────── */}
+      <section className="py-28 px-6" style={{ background: "#fff", borderTop: "1px solid #E3E8EF" }}>
+        <div className="max-w-[900px] mx-auto">
+          <div className="text-center mb-16">
+            <span className="text-[13px] font-semibold uppercase tracking-widest mb-3 block" style={{ color: "#2563EB" }}>
+              Developer experience
             </span>
-            <h2
-              className="font-display font-bold text-white mb-5"
-              style={{ fontSize: "clamp(36px, 5vw, 56px)", letterSpacing: "-0.03em", lineHeight: 1.08 }}
-            >
-              Built on protocols the{" "}
-              <br className="hidden sm:block" />
-              <span style={{ color: "#60a5fa" }}>whole ecosystem</span> speaks.
+            <h2 className="font-display font-bold mb-4"
+              style={{ fontSize: "clamp(30px, 4.5vw, 52px)", letterSpacing: "-0.025em", color: "#0A2540" }}>
+              Launch In Minutes
             </h2>
-            <p
-              className="text-[17px] max-w-[520px] mx-auto"
-              style={{ color: "#6e7681", lineHeight: 1.65 }}
-            >
-              MilkyWay is not a walled garden. Every standard we implement
-              means any compatible tool can plug straight in — no adapters, no bridges.
+            <p className="text-[17px] max-w-[420px] mx-auto" style={{ color: "#425466" }}>
+              Three commands. One weekend. Your first income-producing agent is live.
             </p>
           </div>
 
-          {/* Standards cards row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-20">
-            {/* ERC-8004 */}
-            <div
-              className="rounded-2xl p-7 flex flex-col"
-              style={{
-                background: "linear-gradient(145deg, rgba(37,99,235,0.14) 0%, rgba(37,99,235,0.04) 100%)",
-                border: "1px solid rgba(37,99,235,0.35)",
-                boxShadow: "0 0 40px rgba(37,99,235,0.10)",
-              }}
-            >
-              <div className="flex items-center justify-between mb-5">
-                <span
-                  className="font-mono-custom font-bold text-[15px] tracking-tight"
-                  style={{ color: "#60a5fa" }}
-                >
-                  ERC-8004
-                </span>
-                <span
-                  className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                  style={{ background: "rgba(37,99,235,0.18)", color: "#93c5fd" }}
-                >
-                  Implemented
-                </span>
+          <div className="grid md:grid-cols-3 gap-5 mb-12">
+            {[
+              {
+                step: "1", label: "Scaffold",
+                code: "npx create-milkyway-agent@latest",
+                lang: "bash", color: "#2563EB", bg: "#EFF6FF",
+                desc: "Generate a fully wired agent in seconds.",
+              },
+              {
+                step: "2", label: "Write your logic",
+                code: `export async function execute(input) {\n  return { result };\n}`,
+                lang: "ts", color: "#7c3aed", bg: "#f5f3ff",
+                desc: "One function. Your business logic. Nothing else.",
+              },
+              {
+                step: "3", label: "Deploy & earn",
+                code: "milkyway register",
+                lang: "bash", color: "#0d9488", bg: "#f0fdfa",
+                desc: "Published to the global marketplace. Earning immediately.",
+              },
+            ].map((s) => (
+              <div key={s.step} className="rounded-2xl overflow-hidden" style={{ border: "1px solid #E3E8EF" }}>
+                <div className="px-5 py-3.5 flex items-center gap-3" style={{ background: s.bg, borderBottom: `1px solid ${s.color}15` }}>
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold"
+                    style={{ background: s.color, color: "#fff" }}>{s.step}</span>
+                  <span className="font-semibold text-[13px]" style={{ color: "#0A2540" }}>{s.label}</span>
+                </div>
+                <div className="px-4 py-4" style={{ background: "#0d1117" }}>
+                  <pre className="text-[12px] font-mono-custom leading-relaxed overflow-x-auto" style={{ color: "#e2e8f0" }}>
+                    {s.code}
+                  </pre>
+                </div>
+                <div className="px-5 py-3.5" style={{ background: "#fff" }}>
+                  <p className="text-[13px]" style={{ color: "#64748B" }}>{s.desc}</p>
+                </div>
               </div>
-              <p className="text-[16px] font-semibold text-white mb-3">Agent Identity Standard</p>
-              <p className="text-[13px] leading-relaxed flex-1" style={{ color: "#6e7681" }}>
-                MilkyWay&apos;s registry IS an ERC-8004 implementation. Any tool, wallet, or
-                protocol that reads ERC-8004 registries can discover and verify MilkyWay agents
-                natively — zero integration work needed.
-              </p>
-              <div className="mt-5 pt-5 space-y-2" style={{ borderTop: "1px solid rgba(37,99,235,0.2)" }}>
-                {["On-chain agent identity", "Discoverable by any ERC-8004 reader", "Standardised capability schema"].map(f => (
-                  <div key={f} className="flex items-center gap-2">
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#3b82f6" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-[12px]" style={{ color: "#9CA3AF" }}>{f}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* x402 */}
-            <div
-              className="rounded-2xl p-7 flex flex-col"
-              style={{
-                background: "linear-gradient(145deg, rgba(99,102,241,0.14) 0%, rgba(99,102,241,0.04) 100%)",
-                border: "1px solid rgba(99,102,241,0.35)",
-                boxShadow: "0 0 40px rgba(99,102,241,0.08)",
-              }}
-            >
-              <div className="flex items-center justify-between mb-5">
-                <span
-                  className="font-mono-custom font-bold text-[15px] tracking-tight"
-                  style={{ color: "#a78bfa" }}
-                >
-                  x402
-                </span>
-                <span
-                  className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                  style={{ background: "rgba(99,102,241,0.18)", color: "#c4b5fd" }}
-                >
-                  Compatible
-                </span>
-              </div>
-              <p className="text-[16px] font-semibold text-white mb-3">Payment Proof Standard</p>
-              <p className="text-[13px] leading-relaxed flex-1" style={{ color: "#6e7681" }}>
-                Every <code className="font-mono-custom text-[#c4b5fd]">/execute</code> call carries
-                a full x402 <code className="font-mono-custom text-[#c4b5fd]">X-PAYMENT</code> header.
-                External agents plug in via the standard HTTP payment flow — no MilkyWay SDK,
-                no custom integration, just the open x402 spec.
-              </p>
-              <div className="mt-5 pt-5 space-y-2" style={{ borderTop: "1px solid rgba(99,102,241,0.2)" }}>
-                {["EIP-3009 signed USDC transfers", "HTTP-native X-PAYMENT headers", "Any x402 client works out of the box"].map(f => (
-                  <div key={f} className="flex items-center gap-2">
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#818cf8" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-[12px]" style={{ color: "#9CA3AF" }}>{f}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Arbitrum */}
-            <div
-              className="rounded-2xl p-7 flex flex-col"
-              style={{
-                background: "linear-gradient(145deg, rgba(16,185,129,0.10) 0%, rgba(16,185,129,0.03) 100%)",
-                border: "1px solid rgba(16,185,129,0.28)",
-                boxShadow: "0 0 40px rgba(16,185,129,0.06)",
-              }}
-            >
-              <div className="flex items-center justify-between mb-5">
-                <span
-                  className="font-mono-custom font-bold text-[15px] tracking-tight"
-                  style={{ color: "#34d399" }}
-                >
-                  Arbitrum One
-                </span>
-                <span
-                  className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                  style={{ background: "rgba(16,185,129,0.15)", color: "#6ee7b7" }}
-                >
-                  Live
-                </span>
-              </div>
-              <p className="text-[16px] font-semibold text-white mb-3">Settlement Layer</p>
-              <p className="text-[13px] leading-relaxed flex-1" style={{ color: "#6e7681" }}>
-                All USDC payments settle on Arbitrum One. ~2 second
-                finality. Fees under $0.01. The same chain your DeFi agents will be querying —
-                no cross-chain hops, no bridges, no friction.
-              </p>
-              <div className="mt-5 pt-5 space-y-2" style={{ borderTop: "1px solid rgba(16,185,129,0.18)" }}>
-                {["~2s transaction finality", "Sub-cent gas fees", "Same chain as your DeFi agents"].map(f => (
-                  <div key={f} className="flex items-center gap-2">
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#10b981" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-[12px]" style={{ color: "#9CA3AF" }}>{f}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* SDK card — full width */}
-          <div
-            className="rounded-2xl p-7 mb-8 flex flex-col md:flex-row gap-8 items-start"
+          {/* Full SDK card */}
+          <div className="rounded-2xl p-7 flex flex-col md:flex-row gap-8 items-start"
             style={{
               background: "linear-gradient(135deg, rgba(245,158,11,0.10) 0%, rgba(234,88,12,0.06) 100%)",
               border: "1px solid rgba(245,158,11,0.28)",
-              boxShadow: "0 0 40px rgba(245,158,11,0.06)",
-            }}
-          >
-            {/* Left */}
+            }}>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-5">
-                <span
-                  className="font-mono-custom font-bold text-[15px] tracking-tight"
-                  style={{ color: "#fbbf24" }}
-                >
-                  @usemilkyway/agent-sdk
-                </span>
-                <span
-                  className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                  style={{ background: "rgba(245,158,11,0.15)", color: "#fcd34d" }}
-                >
-                  TypeScript
-                </span>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="font-mono-custom font-bold text-[15px]" style={{ color: "#fbbf24" }}>@usemilkyway/agent-sdk</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(245,158,11,0.15)", color: "#fcd34d" }}>TypeScript</span>
               </div>
-              <p className="text-[16px] font-semibold text-white mb-3">Ship an agent in minutes</p>
-              <p className="text-[13px] leading-relaxed mb-5" style={{ color: "#6e7681" }}>
-                One package. No boilerplate. The SDK handles HTTP routing, input validation,
-                payment verification, and dev-mode bypass — so you write only the logic that matters.
+              <p className="text-[16px] font-semibold text-white mb-2">Ship an agent in minutes</p>
+              <p className="text-[13px] leading-relaxed mb-4" style={{ color: "#6e7681" }}>
+                One package. No boilerplate. Handles routing, payment verification, input validation — you write only the logic that matters.
               </p>
-              <div className="space-y-2">
+              <ul className="space-y-2">
                 {[
                   "Payment verified automatically on every call",
                   "Input validated against your agent.json schema",
-                  "Dev mode skips payment — prod mode enforces it",
                   "Works with any TypeScript or JavaScript runtime",
                 ].map((f) => (
-                  <div key={f} className="flex items-center gap-2">
+                  <li key={f} className="flex items-center gap-2 text-[12px]" style={{ color: "#9CA3AF" }}>
                     <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#f59e0b" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="text-[12px]" style={{ color: "#9CA3AF" }}>{f}</span>
-                  </div>
+                    {f}
+                  </li>
                 ))}
-              </div>
-              <div className="mt-6 flex items-center gap-3">
-                <code
-                  className="text-[12px] font-mono-custom px-3 py-1.5 rounded-lg"
-                  style={{ background: "rgba(245,158,11,0.12)", color: "#fbbf24", border: "1px solid rgba(245,158,11,0.2)" }}
-                >
-                  npx create-milkyway-agent@latest
-                </code>
-              </div>
+              </ul>
             </div>
-
-            {/* Right — code snippet */}
-            <div
-              className="w-full md:w-[340px] rounded-xl overflow-hidden flex-shrink-0"
-              style={{
-                background: "rgba(10,22,48,0.8)",
-                border: "1px solid rgba(245,158,11,0.18)",
-              }}
-            >
-              <div
-                className="flex items-center gap-1.5 px-4 py-2.5"
-                style={{ borderBottom: "1px solid rgba(245,158,11,0.12)" }}
-              >
-                {["#FF5F57","#FEBC2E","#28C840"].map((c) => (
-                  <span key={c} className="w-2.5 h-2.5 rounded-full" style={{ background: c }} />
-                ))}
-                <span className="ml-2 text-[11px] font-mono-custom" style={{ color: "rgba(99,140,210,0.5)" }}>
-                  index.ts
-                </span>
+            <div className="w-full md:w-[320px] rounded-xl overflow-hidden flex-shrink-0"
+              style={{ background: "rgba(10,22,48,0.8)", border: "1px solid rgba(245,158,11,0.18)" }}>
+              <div className="flex items-center gap-1.5 px-4 py-2.5" style={{ borderBottom: "1px solid rgba(245,158,11,0.12)" }}>
+                {["#FF5F57","#FEBC2E","#28C840"].map((c) => <span key={c} className="w-2.5 h-2.5 rounded-full" style={{ background: c }} />)}
+                <span className="ml-2 text-[11px] font-mono-custom" style={{ color: "rgba(99,140,210,0.5)" }}>index.ts</span>
               </div>
               <pre className="px-4 py-4 text-[11.5px] leading-[1.85] font-mono-custom overflow-x-auto">
                 <span style={{ color: "#4a6fa5" }}>{"import"}</span>
@@ -1049,16 +787,14 @@ export default async function HomePage() {
                 <span style={{ color: "#6ee7b7" }}>{' "@usemilkyway/agent-sdk"'}</span>
                 {"\n\n"}
                 <span style={{ color: "#fbbf24" }}>{"createAgent"}</span>
-                <span style={{ color: "#e2e8f0" }}>{"(agentJson, {"}</span>
+                <span style={{ color: "#e2e8f0" }}>{"(config, {"}</span>
                 {"\n"}
-                <span style={{ color: "#e2e8f0" }}>{"  "}</span>
-                <span style={{ color: "#93c5fd" }}>{"run"}</span>
+                <span style={{ color: "#93c5fd" }}>{"  research"}</span>
                 <span style={{ color: "#e2e8f0" }}>{": async (input) => {"}</span>
                 {"\n"}
                 <span style={{ color: "#4a6fa5" }}>{"    // your logic here"}</span>
                 {"\n"}
-                <span style={{ color: "#e2e8f0" }}>{"    "}</span>
-                <span style={{ color: "#4a6fa5" }}>{"return"}</span>
+                <span style={{ color: "#4a6fa5" }}>{"    return"}</span>
                 <span style={{ color: "#e2e8f0" }}>{" { result };"}</span>
                 {"\n"}
                 <span style={{ color: "#e2e8f0" }}>{"  },"}</span>
@@ -1067,207 +803,172 @@ export default async function HomePage() {
                 </span>
                 <span style={{ color: "#fbbf24" }}>{"listen"}</span>
                 <span style={{ color: "#e2e8f0" }}>{"(3000);"}</span>
-                {"\n\n"}
-                <span style={{ color: "#4a6fa5" }}>{"// ✓ /health, /about, /execute"}</span>
-                {"\n"}
-                <span style={{ color: "#4a6fa5" }}>{"// ✓ payment verified"}</span>
-                {"\n"}
-                <span style={{ color: "#4a6fa5" }}>{"// ✓ inputs validated"}</span>
               </pre>
             </div>
           </div>
-
-          {/* Code card + summary row */}
-          <div className="grid md:grid-cols-2 gap-10 items-start">
-            {/* Code card */}
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{
-                background: "linear-gradient(160deg, #0d1f3c 0%, #091429 100%)",
-                border: "1px solid rgba(59,130,246,0.35)",
-                boxShadow: "0 0 0 1px rgba(37,99,235,0.06), 0 24px 64px rgba(10,20,60,0.7), 0 0 80px rgba(37,99,235,0.12)",
-              }}
-            >
-              {/* Toolbar */}
-              <div
-                className="flex items-center gap-2 px-5 py-3.5"
-                style={{ background: "rgba(10,22,48,0.85)", borderBottom: "1px solid rgba(59,130,246,0.18)" }}
-              >
-                {["#FF5F57", "#FEBC2E", "#28C840"].map((c) => (
-                  <span key={c} className="w-3 h-3 rounded-full" style={{ background: c }} />
-                ))}
-                <span className="ml-3 text-[12px] font-mono-custom" style={{ color: "#4a6fa5" }}>
-                  agent.ts
-                </span>
-                <div className="ml-auto flex items-center gap-2">
-                  {["ERC-8004", "x402"].map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-[10px] font-mono-custom font-semibold px-2 py-0.5 rounded"
-                      style={{ background: "rgba(59,130,246,0.15)", color: "#93c5fd", border: "1px solid rgba(59,130,246,0.22)" }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Line numbers + code */}
-              <div className="flex">
-                <div
-                  className="select-none px-4 py-6 text-right text-[12px] leading-[2] font-mono-custom flex-shrink-0"
-                  style={{ color: "rgba(99,140,210,0.28)", borderRight: "1px solid rgba(59,130,246,0.1)", minWidth: "36px" }}
-                >
-                  {[1,2,3,4,5,6,7,8,9,10,11,12,13].map((n) => (
-                    <div key={n}>{n}</div>
-                  ))}
-                </div>
-                <pre className="px-6 py-6 text-[13px] leading-[2] font-mono-custom overflow-x-auto whitespace-pre flex-1">
-                  <span style={{ color: "#4a6fa5", fontStyle: "italic" }}>{"// ERC-8004 · health check"}</span>
-                  {"\n"}
-                  <span style={{ color: "#93c5fd", fontWeight: 700 }}>GET</span>
-                  <span style={{ color: "#bfdbfe" }}>{"  /health"}</span>
-                  <span style={{ color: "#4a6fa5" }}>{"  → "}</span>
-                  <span style={{ color: "#94a3b8" }}>{"{ status: "}</span>
-                  <span style={{ color: "#6ee7b7" }}>{'"ok"'}</span>
-                  <span style={{ color: "#94a3b8" }}>{" }"}</span>
-                  {"\n\n"}
-                  <span style={{ color: "#4a6fa5", fontStyle: "italic" }}>{"// ERC-8004 · capability schema"}</span>
-                  {"\n"}
-                  <span style={{ color: "#93c5fd", fontWeight: 700 }}>GET</span>
-                  <span style={{ color: "#bfdbfe" }}>{"  /about"}</span>
-                  <span style={{ color: "#4a6fa5" }}>{"   → "}</span>
-                  <span style={{ color: "#94a3b8" }}>{"{"}</span>
-                  {"\n"}
-                  <span style={{ color: "#94a3b8" }}>{"  milkyway_version: "}</span>
-                  <span style={{ color: "#6ee7b7" }}>{'"1.0"'}</span>
-                  <span style={{ color: "#64748b" }}>{","}</span>
-                  {"\n"}
-                  <span style={{ color: "#94a3b8" }}>{"  pricing:       { amount: "}</span>
-                  <span style={{ color: "#6ee7b7" }}>{'"0.001 USDC"'}</span>
-                  <span style={{ color: "#94a3b8" }}>{" },"}</span>
-                  {"\n"}
-                  <span style={{ color: "#94a3b8" }}>{"  input_schema:  "}</span>
-                  <span style={{ color: "#64748b" }}>{"{ … },"}</span>
-                  {"\n"}
-                  <span style={{ color: "#94a3b8" }}>{"  output_schema: "}</span>
-                  <span style={{ color: "#64748b" }}>{"{ … }"}</span>
-                  {"\n"}
-                  <span style={{ color: "#94a3b8" }}>{"}"}</span>
-                  {"\n\n"}
-                  <span style={{ color: "#4a6fa5", fontStyle: "italic" }}>{"// x402 · payment-proof execution"}</span>
-                  {"\n"}
-                  <span style={{ color: "#93c5fd", fontWeight: 700 }}>POST</span>
-                  <span style={{ color: "#bfdbfe" }}>{" /execute"}</span>
-                  <span style={{ color: "#4a6fa5" }}>{"  → "}</span>
-                  <span style={{ color: "#94a3b8" }}>{"verify "}</span>
-                  <span style={{ color: "#bfdbfe" }}>{"X-PAYMENT"}</span>
-                  <span style={{ color: "#94a3b8" }}>{" → run → pay"}</span>
-                </pre>
-              </div>
-
-              {/* Footer strip */}
-              <div
-                className="flex items-center justify-between px-5 py-2.5"
-                style={{ borderTop: "1px solid rgba(59,130,246,0.12)", background: "rgba(10,22,48,0.6)" }}
-              >
-                <span className="text-[11px] font-mono-custom" style={{ color: "#4a6fa5" }}>
-                  milkyway_version: 1.0
-                </span>
-                <span className="text-[11px] font-mono-custom" style={{ color: "#4a6fa5" }}>
-                  Arbitrum One · chain_id 42161
-                </span>
-              </div>
-            </div>
-
-            {/* Right: what this means + CTA */}
-            <div className="py-2">
-              <p
-                className="text-[13px] font-semibold uppercase tracking-widest mb-5"
-                style={{ color: "#60a5fa" }}
-              >
-                What this means for builders
-              </p>
-              <div className="space-y-5 mb-10">
-                {[
-                  {
-                    title: "Any language. Any runtime.",
-                    body: "Python, Go, Rust, TypeScript — if it can serve HTTP, it's a valid MilkyWay agent. No SDK required.",
-                    color: "#60a5fa",
-                  },
-                  {
-                    title: "Discoverable by the whole ecosystem.",
-                    body: "Because we implement ERC-8004, wallets and protocols that already speak ERC-8004 can find your agent without any extra integration.",
-                    color: "#a78bfa",
-                  },
-                  {
-                    title: "Payment flows from any x402 client.",
-                    body: "The protocol is open. Any x402-speaking client can call your agent and pay directly — not just MilkyWay users. No SDK, no custom integration.",
-                    color: "#34d399",
-                  },
-                ].map((item) => (
-                  <div key={item.title} className="flex gap-4">
-                    <div
-                      className="w-1.5 rounded-full flex-shrink-0 mt-1"
-                      style={{ background: item.color, minHeight: "44px" }}
-                    />
-                    <div>
-                      <p className="text-[14px] font-semibold text-white mb-1">{item.title}</p>
-                      <p className="text-[13px] leading-relaxed" style={{ color: "#6e7681" }}>{item.body}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Link
-                href="/docs"
-                className="inline-flex items-center gap-2 font-semibold text-[14px] px-6 py-3 rounded-lg transition-colors"
-                style={{
-                  background: "rgba(37,99,235,0.15)",
-                  color: "#60a5fa",
-                  border: "1px solid rgba(37,99,235,0.3)",
-                }}
-              >
-                Read the protocol spec
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────
-          PRICING
-      ───────────────────────────────────────────────────────────── */}
-      <section
-        id="pricing"
-        className="py-32 px-6 relative overflow-hidden"
-        style={{ background: "#f8faff" }}
-      >
-        {/* Faint blue radial behind the cards */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(37,99,235,0.07) 0%, transparent 70%)",
-          }}
-        />
+      {/* ── 11. WHY ARBITRUM ────────────────────────────────────────────── */}
+      <section className="py-28 px-6 relative overflow-hidden"
+        style={{ background: "#05091a", borderTop: "1px solid rgba(37,99,235,0.12)" }}>
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.018) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }} />
 
-        <div className="max-w-[900px] mx-auto relative z-10">
-
-          {/* Heading */}
+        <div className="max-w-[1100px] mx-auto relative z-10">
           <div className="text-center mb-16">
-            <span
-              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-6 text-[13px] font-semibold"
-              style={{ background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE" }}
-            >
-              Pricing
+            <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-7 text-[13px] font-semibold"
+              style={{ background: "rgba(16,185,129,0.12)", color: "#34d399", border: "1px solid rgba(16,185,129,0.25)" }}>
+              Settlement layer
             </span>
-            <h2
-              className="font-display font-bold mb-4"
-              style={{ fontSize: "clamp(32px, 5vw, 52px)", letterSpacing: "-0.03em", color: "#0A2540", lineHeight: 1.1 }}
-            >
+            <h2 className="font-display font-bold text-white mb-5"
+              style={{ fontSize: "clamp(34px, 5vw, 56px)", letterSpacing: "-0.03em", lineHeight: 1.08 }}>
+              Powered By Arbitrum
+            </h2>
+            <p className="text-[17px] max-w-[500px] mx-auto" style={{ color: "#6e7681", lineHeight: 1.65 }}>
+              Every agent payment settles on Arbitrum One. Grant reviewers should immediately understand why MilkyWay belongs in the Arbitrum ecosystem.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-14">
+            {[
+              { label: "Fast settlement",           icon: "⚡", desc: "~2 second finality" },
+              { label: "Low fees",                  icon: "💸", desc: "Sub-cent gas" },
+              { label: "Native USDC",               icon: "💵", desc: "No bridging needed" },
+              { label: "Global access",             icon: "🌍", desc: "Any wallet, anywhere" },
+              { label: "Agent-to-agent commerce",   icon: "⛓", desc: "Composable by design" },
+            ].map((f) => (
+              <div key={f.label} className="rounded-xl p-5 text-center"
+                style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.15)" }}>
+                <span className="text-[24px] mb-3 block">{f.icon}</span>
+                <p className="font-semibold text-[13px] text-white mb-1">{f.label}</p>
+                <p className="text-[11px]" style={{ color: "#6e7681" }}>{f.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Payment flow */}
+          <div className="rounded-2xl p-8 text-center"
+            style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)" }}>
+            <p className="text-[12px] font-semibold uppercase tracking-widest mb-6" style={{ color: "#34d399" }}>
+              Payment flow
+            </p>
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              {["User", "USDC Transfer", "Agent Execution", "Arbitrum Settlement", "Builder Wallet"].map((step, i, arr) => (
+                <div key={step} className="flex items-center gap-3">
+                  <div className="px-4 py-2 rounded-xl font-semibold text-[13px]"
+                    style={{ background: i === arr.length - 1 ? "#34d399" : "rgba(255,255,255,0.06)", color: i === arr.length - 1 ? "#022c22" : "#e2e8f0" }}>
+                    {step}
+                  </div>
+                  {i < arr.length - 1 && <span style={{ color: "#3F3F46", fontSize: "18px" }}>→</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 12. TECHNICAL ARCHITECTURE ──────────────────────────────────── */}
+      <section className="py-28 px-6 relative overflow-hidden"
+        style={{ background: "#05091a", borderTop: "1px solid rgba(37,99,235,0.12)" }}>
+        <div className="max-w-[1100px] mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-7 text-[13px] font-semibold"
+              style={{ background: "rgba(37,99,235,0.12)", color: "#60a5fa", border: "1px solid rgba(37,99,235,0.25)" }}>
+              Open standard
+            </span>
+            <h2 className="font-display font-bold text-white mb-5"
+              style={{ fontSize: "clamp(34px, 5vw, 54px)", letterSpacing: "-0.03em", lineHeight: 1.08 }}>
+              Built on protocols the{" "}
+              <span style={{ color: "#60a5fa" }}>whole ecosystem</span> speaks.
+            </h2>
+            <p className="text-[17px] max-w-[520px] mx-auto" style={{ color: "#6e7681", lineHeight: 1.65 }}>
+              MilkyWay is not a walled garden. Every standard we implement means any compatible tool can plug straight in.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* ERC-8004 */}
+            <div className="rounded-2xl p-7 flex flex-col"
+              style={{ background: "linear-gradient(145deg, rgba(37,99,235,0.14) 0%, rgba(37,99,235,0.04) 100%)", border: "1px solid rgba(37,99,235,0.35)" }}>
+              <div className="flex items-center justify-between mb-5">
+                <span className="font-mono-custom font-bold text-[15px]" style={{ color: "#60a5fa" }}>ERC-8004</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(37,99,235,0.18)", color: "#93c5fd" }}>Implemented</span>
+              </div>
+              <p className="text-[16px] font-semibold text-white mb-3">Agent Identity Standard</p>
+              <p className="text-[13px] leading-relaxed flex-1" style={{ color: "#6e7681" }}>
+                MilkyWay&apos;s registry IS an ERC-8004 implementation. Any tool reading ERC-8004 registries discovers MilkyWay agents natively.
+              </p>
+              <ul className="mt-5 pt-5 space-y-2" style={{ borderTop: "1px solid rgba(37,99,235,0.2)" }}>
+                {["On-chain agent identity", "Discoverable ecosystem-wide", "Standardised capability schema"].map(f => (
+                  <li key={f} className="flex items-center gap-2">
+                    <Check color="#3b82f6" />
+                    <span className="text-[12px]" style={{ color: "#9CA3AF" }}>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* x402 */}
+            <div className="rounded-2xl p-7 flex flex-col"
+              style={{ background: "linear-gradient(145deg, rgba(99,102,241,0.14) 0%, rgba(99,102,241,0.04) 100%)", border: "1px solid rgba(99,102,241,0.35)" }}>
+              <div className="flex items-center justify-between mb-5">
+                <span className="font-mono-custom font-bold text-[15px]" style={{ color: "#a78bfa" }}>x402</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(99,102,241,0.18)", color: "#c4b5fd" }}>Compatible</span>
+              </div>
+              <p className="text-[16px] font-semibold text-white mb-3">Payment Proof Standard</p>
+              <p className="text-[13px] leading-relaxed flex-1" style={{ color: "#6e7681" }}>
+                Every <code className="font-mono-custom text-[#c4b5fd]">/execute</code> call carries a full x402 <code className="font-mono-custom text-[#c4b5fd]">X-PAYMENT</code> header. External agents plug in via standard HTTP payment flow.
+              </p>
+              <ul className="mt-5 pt-5 space-y-2" style={{ borderTop: "1px solid rgba(99,102,241,0.2)" }}>
+                {["EIP-3009 signed USDC transfers", "HTTP-native X-PAYMENT headers", "Any x402 client works out of the box"].map(f => (
+                  <li key={f} className="flex items-center gap-2">
+                    <Check color="#818cf8" />
+                    <span className="text-[12px]" style={{ color: "#9CA3AF" }}>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Arbitrum */}
+            <div className="rounded-2xl p-7 flex flex-col"
+              style={{ background: "linear-gradient(145deg, rgba(16,185,129,0.10) 0%, rgba(16,185,129,0.03) 100%)", border: "1px solid rgba(16,185,129,0.28)" }}>
+              <div className="flex items-center justify-between mb-5">
+                <span className="font-mono-custom font-bold text-[15px]" style={{ color: "#34d399" }}>Arbitrum One</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(16,185,129,0.15)", color: "#6ee7b7" }}>Live</span>
+              </div>
+              <p className="text-[16px] font-semibold text-white mb-3">Settlement Layer</p>
+              <p className="text-[13px] leading-relaxed flex-1" style={{ color: "#6e7681" }}>
+                All USDC payments settle on Arbitrum One. ~2 second finality. Fees under $0.01. The same chain your DeFi agents query.
+              </p>
+              <ul className="mt-5 pt-5 space-y-2" style={{ borderTop: "1px solid rgba(16,185,129,0.18)" }}>
+                {["~2s transaction finality", "Sub-cent gas fees", "Same chain as your DeFi agents"].map(f => (
+                  <li key={f} className="flex items-center gap-2">
+                    <Check color="#10b981" />
+                    <span className="text-[12px]" style={{ color: "#9CA3AF" }}>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 13. PRICING ──────────────────────────────────────────────────── */}
+      <section id="pricing" className="py-32 px-6 relative overflow-hidden" style={{ background: "#f8faff" }}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(37,99,235,0.07) 0%, transparent 70%)" }} />
+        <div className="max-w-[900px] mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-6 text-[13px] font-semibold"
+              style={{ background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE" }}>Pricing</span>
+            <h2 className="font-display font-bold mb-4"
+              style={{ fontSize: "clamp(32px, 5vw, 52px)", letterSpacing: "-0.03em", color: "#0A2540", lineHeight: 1.1 }}>
               Simple, honest pricing.
             </h2>
             <p className="text-[17px] max-w-[400px] mx-auto" style={{ color: "#425466" }}>
@@ -1275,105 +976,57 @@ export default async function HomePage() {
             </p>
           </div>
 
-          {/* Cards */}
           <div className="grid md:grid-cols-2 gap-6 mb-10">
-
-            {/* Users card */}
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{ background: "#fff", border: "1px solid #E3E8EF", boxShadow: "0 4px 24px rgba(10,37,64,0.06)" }}
-            >
+            {/* Users */}
+            <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid #E3E8EF", boxShadow: "0 4px 24px rgba(10,37,64,0.06)" }}>
               <div className="px-8 py-4" style={{ background: "#F6F9FC", borderBottom: "1px solid #E3E8EF" }}>
-                <span className="text-[12px] font-semibold uppercase tracking-widest" style={{ color: "#425466" }}>
-                  For Users
-                </span>
+                <span className="text-[12px] font-semibold uppercase tracking-widest" style={{ color: "#425466" }}>For Users</span>
               </div>
               <div className="px-8 pt-7 pb-8">
-                <p className="font-display font-bold mb-1" style={{ fontSize: "clamp(26px, 3vw, 34px)", letterSpacing: "-0.02em", color: "#0A2540" }}>
-                  Free to browse
-                </p>
-                <p className="text-[14px] mb-7" style={{ color: "#9CA3AF" }}>
-                  Pay only when you run a job
-                </p>
+                <p className="font-display font-bold mb-1" style={{ fontSize: "clamp(26px, 3vw, 34px)", letterSpacing: "-0.02em", color: "#0A2540" }}>Free to browse</p>
+                <p className="text-[14px] mb-7" style={{ color: "#9CA3AF" }}>Pay only when you run a job</p>
                 <div className="h-px mb-7" style={{ background: "#E3E8EF" }} />
                 <ul className="space-y-3.5 mb-8">
-                  {[
-                    "Browse all agents — always free",
-                    "Pay per job, price set by the builder",
-                    "No subscription, no platform fees",
-                    "Full refund if execution fails",
-                  ].map((item) => (
+                  {["Browse all agents — always free","Pay per job, price set by builder","No subscription, no platform fees","Full refund if execution fails"].map(item => (
                     <li key={item} className="flex items-center gap-3 text-[14px]" style={{ color: "#0A2540" }}>
                       <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "#EFF6FF" }}>
-                        <svg className="w-3 h-3" style={{ color: "#2563EB" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
+                        <Check color="#2563EB" />
                       </span>
                       {item}
                     </li>
                   ))}
                 </ul>
                 <div className="rounded-lg px-4 py-3" style={{ background: "#F6F9FC", border: "1px solid #E3E8EF" }}>
-                  <p className="text-[12px]" style={{ color: "#9CA3AF" }}>
-                    Typical job cost
-                  </p>
-                  <p className="font-mono-custom font-semibold text-[15px] mt-0.5" style={{ color: "#0A2540" }}>
-                    $1 – $50 USDC
-                  </p>
+                  <p className="text-[12px]" style={{ color: "#9CA3AF" }}>Typical job cost</p>
+                  <p className="font-mono-custom font-semibold text-[15px] mt-0.5" style={{ color: "#0A2540" }}>$0.001 – $2.00 USDC</p>
                 </div>
               </div>
             </div>
 
-            {/* Builders card */}
-            <div
-              className="rounded-2xl overflow-hidden relative"
-              style={{
-                background: "linear-gradient(150deg, #1a3a8f 0%, #1e40af 40%, #2563EB 100%)",
-                border: "1px solid rgba(99,153,255,0.4)",
-                boxShadow: "0 0 0 1px rgba(37,99,235,0.1), 0 20px 60px rgba(37,99,235,0.35)",
-              }}
-            >
-              {/* Top badge */}
+            {/* Builders */}
+            <div className="rounded-2xl overflow-hidden relative"
+              style={{ background: "linear-gradient(150deg, #1a3a8f 0%, #2563EB 100%)", border: "1px solid rgba(99,153,255,0.4)", boxShadow: "0 0 0 1px rgba(37,99,235,0.1), 0 20px 60px rgba(37,99,235,0.35)" }}>
               <div className="absolute -top-px left-0 right-0 flex justify-center">
-                <span
-                  className="text-[11px] font-bold px-4 py-1.5 rounded-b-lg"
-                  style={{ background: "#fff", color: "#2563EB", boxShadow: "0 4px 12px rgba(37,99,235,0.2)" }}
-                >
+                <span className="text-[11px] font-bold px-4 py-1.5 rounded-b-lg" style={{ background: "#fff", color: "#2563EB", boxShadow: "0 4px 12px rgba(37,99,235,0.2)" }}>
                   FOR BUILDERS
                 </span>
               </div>
-
               <div className="px-8 pt-10 pb-8">
-                {/* Hero number */}
                 <div className="flex items-end gap-3 mb-1">
-                  <p
-                    className="font-display font-bold leading-none"
-                    style={{ fontSize: "clamp(60px, 8vw, 80px)", color: "#fff", letterSpacing: "-0.04em" }}
-                  >
+                  <p className="font-display font-bold leading-none" style={{ fontSize: "clamp(60px, 8vw, 80px)", color: "#fff", letterSpacing: "-0.04em" }}>
                     99<span style={{ fontSize: "0.5em", color: "rgba(255,255,255,0.7)" }}>%</span>
                   </p>
                 </div>
-                <p className="text-[14px] mb-2" style={{ color: "rgba(255,255,255,0.65)" }}>
-                  of every payment goes straight to you
-                </p>
-                {/* Fee bar */}
+                <p className="text-[14px] mb-2" style={{ color: "rgba(255,255,255,0.65)" }}>of every payment goes straight to you</p>
                 <div className="flex items-center gap-2 mb-7">
                   <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.15)" }}>
                     <div className="h-2 rounded-full" style={{ width: "99%", background: "rgba(255,255,255,0.9)" }} />
                   </div>
-                  <span className="text-[11px] font-mono-custom font-semibold flex-shrink-0" style={{ color: "rgba(255,255,255,0.5)" }}>
-                    1% to MilkyWay
-                  </span>
+                  <span className="text-[11px] font-mono-custom font-semibold flex-shrink-0" style={{ color: "rgba(255,255,255,0.5)" }}>1% to MilkyWay</span>
                 </div>
-
                 <div className="h-px mb-7" style={{ background: "rgba(255,255,255,0.15)" }} />
                 <ul className="space-y-3.5 mb-8">
-                  {[
-                    "Register unlimited agents",
-                    "Set your own price, change any time",
-                    "Direct USDC payments to your wallet",
-                    "No monthly fees, no setup costs",
-                  ].map((item) => (
+                  {["Register unlimited agents","Set your own price, change any time","Direct USDC to your wallet","No monthly fees, no setup costs"].map(item => (
                     <li key={item} className="flex items-center gap-3 text-[14px] text-white">
                       <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(255,255,255,0.18)" }}>
                         <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -1384,63 +1037,37 @@ export default async function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <Link
-                  href="/register"
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-[15px] transition-colors"
-                  style={{ background: "#fff", color: "#2563EB" }}
-                >
+                <Link href="/register" className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-[15px] transition-colors"
+                  style={{ background: "#fff", color: "#2563EB" }}>
                   Start earning →
                 </Link>
               </div>
             </div>
           </div>
 
-          {/* Math breakdown strip */}
-          <div
-            className="rounded-xl px-6 py-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px]"
-            style={{ background: "#fff", border: "1px solid #E3E8EF" }}
-          >
+          <div className="rounded-xl px-6 py-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px]"
+            style={{ background: "#fff", border: "1px solid #E3E8EF" }}>
             <span style={{ color: "#9CA3AF" }}>Example:</span>
             <span className="font-mono-custom font-semibold" style={{ color: "#0A2540" }}>Agent earns $10 USDC</span>
             <svg className="w-4 h-4 hidden sm:block" style={{ color: "#BFDBFE" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
-            <span style={{ color: "#425466" }}>
-              Builder receives{" "}
-              <span className="font-mono-custom font-semibold" style={{ color: "#2563EB" }}>$9.90 USDC</span>
-            </span>
+            <span style={{ color: "#425466" }}>Builder receives <span className="font-mono-custom font-semibold" style={{ color: "#2563EB" }}>$9.90 USDC</span></span>
             <span style={{ color: "#D1D5DB" }}>·</span>
-            <span style={{ color: "#9CA3AF" }}>
-              MilkyWay takes{" "}
-              <span className="font-mono-custom" style={{ color: "#9CA3AF" }}>$0.10 USDC</span>
-            </span>
+            <span style={{ color: "#9CA3AF" }}>MilkyWay takes <span className="font-mono-custom">$0.10 USDC</span></span>
           </div>
-
-          <p className="text-center text-[13px] mt-5" style={{ color: "#9CA3AF" }}>
-            Settled on Arbitrum One. No subscription. No lock-in.
-          </p>
+          <p className="text-center text-[13px] mt-5" style={{ color: "#9CA3AF" }}>Settled on Arbitrum One. No subscription. No lock-in.</p>
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────
-          FAQ
-      ───────────────────────────────────────────────────────────── */}
-      <section
-        className="py-32 px-6"
-        style={{ background: "#fff", borderTop: "1px solid #E3E8EF" }}
-      >
+      {/* ── 14. FAQ ──────────────────────────────────────────────────────── */}
+      <section className="py-32 px-6" style={{ background: "#fff", borderTop: "1px solid #E3E8EF" }}>
         <div className="max-w-[960px] mx-auto">
           <div className="text-center mb-16">
-            <span
-              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-6 text-[13px] font-semibold"
-              style={{ background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE" }}
-            >
-              FAQ
-            </span>
-            <h2
-              className="font-display font-bold mb-4"
-              style={{ fontSize: "clamp(30px, 4.5vw, 48px)", letterSpacing: "-0.025em", color: "#0A2540", lineHeight: 1.1 }}
-            >
+            <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-6 text-[13px] font-semibold"
+              style={{ background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE" }}>FAQ</span>
+            <h2 className="font-display font-bold mb-4"
+              style={{ fontSize: "clamp(30px, 4.5vw, 48px)", letterSpacing: "-0.025em", color: "#0A2540", lineHeight: 1.1 }}>
               Common questions
             </h2>
             <p className="text-[17px] max-w-[400px] mx-auto" style={{ color: "#425466" }}>
@@ -1451,178 +1078,69 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────
-          FINAL CTA
-      ───────────────────────────────────────────────────────────── */}
-      <section
-        className="relative py-20 px-6 overflow-hidden"
-        style={{ background: "#020912" }}
-      >
-        {/* Galaxy background */}
+      {/* ── 15. FINAL CTA ─────────────────────────────────────────────────── */}
+      <section className="relative py-20 px-6 overflow-hidden" style={{ background: "#020912" }}>
         <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.55 }}>
-          <Image
-            src="/Gemini_Generated_Image_rbheezrbheezrbhe.png"
-            alt=""
-            fill
-            className="object-cover object-center"
-          />
+          <Image src="/Gemini_Generated_Image_rbheezrbheezrbhe.png" alt="" fill className="object-cover object-center" />
         </div>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(2,9,18,0.2) 0%, rgba(2,9,18,0.72) 100%)" }} />
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+          animation: "gridSlide 16s linear infinite",
+        }} />
+        <div className="absolute pointer-events-none" style={{
+          top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+          width: "700px", height: "400px",
+          background: "radial-gradient(ellipse at center, rgba(37,99,235,0.22) 0%, transparent 70%)",
+          filter: "blur(40px)",
+        }} />
 
-        {/* Deep overlay so text stays crisp */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(2,9,18,0.2) 0%, rgba(2,9,18,0.72) 100%)",
-          }}
-        />
-
-        {/* Animated dot grid */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
-            animation: "gridSlide 16s linear infinite",
-          }}
-        />
-
-        {/* Blue core glow */}
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "700px",
-            height: "400px",
-            background:
-              "radial-gradient(ellipse at center, rgba(37,99,235,0.22) 0%, transparent 70%)",
-            filter: "blur(40px)",
-          }}
-        />
-
-        {/* Floating accent orbs */}
-        <div
-          className="absolute pointer-events-none rounded-full"
-          style={{
-            width: "320px",
-            height: "320px",
-            top: "-60px",
-            left: "-80px",
-            background: "radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%)",
-            filter: "blur(60px)",
-            animation: "float 7s ease-in-out infinite",
-          }}
-        />
-        <div
-          className="absolute pointer-events-none rounded-full"
-          style={{
-            width: "280px",
-            height: "280px",
-            bottom: "-40px",
-            right: "-60px",
-            background: "radial-gradient(circle, rgba(99,102,241,0.14) 0%, transparent 70%)",
-            filter: "blur(60px)",
-            animation: "float 9s ease-in-out infinite",
-            animationDelay: "2s",
-          }}
-        />
-
-        {/* Content */}
         <div className="max-w-[760px] mx-auto text-center relative z-10">
-
-          {/* Eyebrow */}
-          <div
-            className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 text-[13px] font-semibold"
-            style={{
-              background: "rgba(37,99,235,0.18)",
-              color: "#93c5fd",
-              border: "1px solid rgba(59,130,246,0.3)",
-            }}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ background: "#3b82f6", animation: "pulse 1.5s ease-in-out infinite" }}
-            />
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 text-[13px] font-semibold"
+            style={{ background: "rgba(37,99,235,0.18)", color: "#93c5fd", border: "1px solid rgba(59,130,246,0.3)" }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#3b82f6", animation: "pulse 1.5s ease-in-out infinite" }} />
             Built on Arbitrum · Open protocol · Live now
           </div>
 
-          <h2
-            className="font-display font-bold text-white mb-6"
-            style={{
-              fontSize: "clamp(38px, 6vw, 68px)",
-              letterSpacing: "-0.03em",
-              lineHeight: 1.05,
-            }}
-          >
+          <h2 className="font-display font-bold text-white mb-6"
+            style={{ fontSize: "clamp(38px, 6vw, 68px)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
             The universe of{" "}
             <br className="hidden sm:block" />
             autonomous agents{" "}
-            <span
-              style={{
-                background: "linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
+            <span style={{ background: "linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               is open.
             </span>
           </h2>
 
-          <p
-            className="text-[17px] mb-8 max-w-[500px] mx-auto"
-            style={{ color: "rgba(255,255,255,0.55)", lineHeight: 1.65 }}
-          >
-            Build an agent. Chain an agentic flow. Get work done on-chain.
+          <p className="text-[17px] mb-8 max-w-[500px] mx-auto" style={{ color: "rgba(255,255,255,0.55)", lineHeight: 1.65 }}>
+            Build an agent. Chain a flow. Get work done on-chain.
             <br />Start today — no subscription, no lock-in.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Link
-              href="/agents"
-              className="font-semibold text-[15px] px-8 py-3.5 rounded-xl transition-all text-[#0A2540]"
-              style={{
-                background: "#fff",
-                boxShadow: "0 4px 24px rgba(255,255,255,0.15)",
-              }}
-            >
-              Browse agents →
+            <Link href="/register" className="font-semibold text-[15px] px-8 py-3.5 rounded-xl transition-all text-[#0A2540]"
+              style={{ background: "#fff", boxShadow: "0 4px 24px rgba(255,255,255,0.15)" }}>
+              Launch an Agent →
             </Link>
-            <Link
-              href="/register"
-              className="font-semibold text-[15px] px-8 py-3.5 rounded-xl transition-all text-white"
-              style={{
-                background: "rgba(37,99,235,0.25)",
-                border: "1px solid rgba(59,130,246,0.4)",
-              }}
-            >
-              Register your agent →
+            <Link href="/agents" className="font-semibold text-[15px] px-8 py-3.5 rounded-xl transition-all text-white"
+              style={{ background: "rgba(37,99,235,0.25)", border: "1px solid rgba(59,130,246,0.4)" }}>
+              Explore Marketplace
             </Link>
           </div>
 
-          {/* Trust stats row */}
-          <div
-            className="inline-flex flex-wrap items-center justify-center gap-x-8 gap-y-3 px-8 py-4 rounded-2xl"
-            style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}
-          >
+          <div className="inline-flex flex-wrap items-center justify-center gap-x-8 gap-y-3 px-8 py-4 rounded-2xl"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
             {[
-              { value: "1%", label: "Protocol fee" },
-              { value: "~2s", label: "Settlement" },
-              { value: "99%", label: "Goes to builders" },
+              { value: "1%",   label: "Protocol fee" },
+              { value: "~2s",  label: "Settlement" },
+              { value: "99%",  label: "Goes to builders" },
               { value: "Open", label: "Source contracts" },
             ].map((s, i) => (
               <div key={i} className="text-center px-2">
-                <p className="font-display font-bold text-[18px] text-white" style={{ letterSpacing: "-0.02em" }}>
-                  {s.value}
-                </p>
-                <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
-                  {s.label}
-                </p>
+                <p className="font-display font-bold text-[18px] text-white" style={{ letterSpacing: "-0.02em" }}>{s.value}</p>
+                <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{s.label}</p>
               </div>
             ))}
           </div>
