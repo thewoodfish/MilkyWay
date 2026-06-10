@@ -85,12 +85,12 @@ export default async function HomePage() {
           <div className="max-w-[1040px] mx-auto">
             <div className="flex gap-4 justify-center flex-wrap">
               {[
-                { name: "Research Analyst",    category: "Data",       price: "$0.10 USDC",  executions: "24,328", earnings: "$2,432",  color: "#2563EB", bg: "#EFF6FF",  bars: [4,7,5,9,6,8,10], delay: "0s" },
-                { name: "Legal Review Agent",  category: "Productivity",price: "$0.25 USDC", executions: "9,281",  earnings: "$2,320",  color: "#7c3aed", bg: "#f5f3ff",  bars: [6,4,8,5,7,6,9],  delay: "0.7s" },
-                { name: "Marketing Copy Agent",category: "Productivity",price: "$0.05 USDC", executions: "53,902", earnings: "$2,695",  color: "#0d9488", bg: "#f0fdfa",  bars: [3,6,4,7,5,8,6],  delay: "1.4s" },
+                { name: "Research Analyst",    category: "Data",        price: "$0.10", executions: "24,328", earnings: "$2,432",  color: "#2563EB", bg: "#EFF6FF",  bars: [4,7,5,9,6,8,10], delay: "0s" },
+                { name: "Legal Review Agent",  category: "Productivity", price: "$0.25", executions: "9,281",  earnings: "$2,320",  color: "#7c3aed", bg: "#f5f3ff",  bars: [6,4,8,5,7,6,9],  delay: "0.7s" },
+                { name: "Marketing Copy Agent",category: "Productivity", price: "$0.05", executions: "53,902", earnings: "$2,695",  color: "#0d9488", bg: "#f0fdfa",  bars: [3,6,4,7,5,8,6],  delay: "1.4s" },
               ].map((a) => (
                 <div key={a.name}
-                  className="flex-shrink-0 w-[300px] text-left rounded-2xl overflow-hidden"
+                  className="flex-shrink-0 w-[340px] text-left rounded-2xl px-4 py-3.5 flex items-center gap-3"
                   style={{
                     background: "#fff",
                     border: "1px solid #E3E8EF",
@@ -98,45 +98,31 @@ export default async function HomePage() {
                     animation: `float 4s ease-in-out infinite`,
                     animationDelay: a.delay,
                   }}>
-                  <div className="px-5 pt-5 pb-4" style={{ borderBottom: `1px solid ${a.bg}` }}>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0" style={{ background: a.bg }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=transparent`} alt={a.name} width={40} height={40} />
-                      </div>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full" style={{ background: a.bg, color: a.color }}>
-                        {a.category}
-                      </span>
-                    </div>
-                    <p className="font-semibold text-[15px] leading-snug mb-1" style={{ color: "#0A2540" }}>{a.name}</p>
-                    <div className="flex items-center gap-3 mt-2">
-                      <div>
-                        <p className="text-[10px]" style={{ color: "#9CA3AF" }}>Executions</p>
-                        <p className="font-mono-custom font-semibold text-[13px]" style={{ color: "#0A2540" }}>{a.executions}</p>
-                      </div>
-                      <div className="w-px h-6 bg-[#E3E8EF]" />
-                      <div>
-                        <p className="text-[10px]" style={{ color: "#9CA3AF" }}>Total earned</p>
-                        <p className="font-mono-custom font-semibold text-[13px]" style={{ color: "#16a34a" }}>{a.earnings} USDC</p>
-                      </div>
-                    </div>
+                  {/* Avatar */}
+                  <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0" style={{ background: a.bg }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=transparent`} alt={a.name} width={36} height={36} />
                   </div>
-                  <div className="px-5 py-3" style={{ borderBottom: "1px solid #F3F4F6" }}>
-                    <p className="text-[10px] font-medium mb-2" style={{ color: "#9CA3AF" }}>Activity — last 7 days</p>
-                    <div className="flex items-end gap-1 h-6">
-                      {a.bars.map((h, bi) => (
-                        <div key={bi} className="flex-1 rounded-sm" style={{ height: `${(h / 10) * 100}%`, background: bi === a.bars.length - 1 ? a.color : `${a.color}40` }} />
-                      ))}
-                    </div>
+                  {/* Name + category */}
+                  <div className="min-w-0 flex-shrink-0" style={{ width: "130px" }}>
+                    <p className="font-semibold text-[13px] leading-snug truncate" style={{ color: "#0A2540" }}>{a.name}</p>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: a.color }}>{a.category}</span>
                   </div>
-                  <div className="px-5 py-3.5 flex items-center justify-between">
-                    <div>
-                      <p className="font-mono-custom font-semibold text-[14px]" style={{ color: a.color }}>{a.price}</p>
-                      <p className="text-[10px] mt-0.5" style={{ color: "#9CA3AF" }}>per execution</p>
-                    </div>
-                    <span className="text-[12px] font-semibold px-3 py-1.5 rounded-lg" style={{ background: a.bg, color: a.color }}>
-                      Run →
-                    </span>
+                  {/* Sparkline */}
+                  <div className="flex items-end gap-0.5 h-5 flex-shrink-0" style={{ width: "40px" }}>
+                    {a.bars.map((h, bi) => (
+                      <div key={bi} className="flex-1 rounded-sm" style={{ height: `${(h / 10) * 100}%`, background: bi === a.bars.length - 1 ? a.color : `${a.color}35` }} />
+                    ))}
+                  </div>
+                  {/* Stats */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-mono-custom font-semibold text-[12px]" style={{ color: "#16a34a" }}>{a.earnings} USDC</p>
+                    <p className="text-[10px]" style={{ color: "#9CA3AF" }}>{a.executions} runs</p>
+                  </div>
+                  {/* Price + CTA */}
+                  <div className="flex-shrink-0 text-right">
+                    <p className="font-mono-custom font-semibold text-[12px]" style={{ color: a.color }}>{a.price}</p>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md inline-block mt-0.5" style={{ background: a.bg, color: a.color }}>Run →</span>
                   </div>
                 </div>
               ))}
