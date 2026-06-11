@@ -1,5 +1,6 @@
 import { ethers }             from "ethers";
 import { buildPaymentHeader }  from "./payment";
+import { _lookupEndpoint }     from "./discover";
 import { DiscoveredAgent, CallOptions, CallResult } from "./types";
 
 function uuidv4(): string {
@@ -18,8 +19,11 @@ export async function callAgent(
   const jobId    = options.jobId ?? uuidv4();
   const deadline = Math.floor(Date.now() / 1000) + (options.deadline ?? 30);
   const network  = process.env.X402_NETWORK ?? "eip155:42161";
-  const endpoint = agent.endpoint.replace(/\/$/, "");
-  const url      = `${endpoint}/execute`;
+  const cached   = _lookupEndpoint(agent.agentId);
+  if (!cached) {
+    return { success: false, error: "Agent endpoint unknown — call discoverAgents() or getAgent() first", jobId, durationMs: 0 };
+  }
+  const url      = `${cached.replace(/\/$/, "")}/execute`;
 
   const body = JSON.stringify({
     milkyway_version: "1.0",

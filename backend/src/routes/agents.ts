@@ -238,18 +238,17 @@ router.get("/discover", async (req: Request, res: Response) => {
       const isLive    = a.verifiedAt && now - new Date(a.verifiedAt).getTime() < 26 * 3600 * 1000;
 
       return {
-        agentId:     a.agentId,
-        name:        a.name,
-        description: a.description,
-        endpoint:    a.endpoint,
-        agentWallet: a.ownerAddress,
-        capability:  capName ?? null,
-        priceUsdc:   a.priceUsdc,
+        agentId:      a.agentId,
+        name:         a.name,
+        description:  a.description,
+        agentWallet:  a.ownerAddress,
+        capability:   capName ?? null,
+        priceUsdc:    a.priceUsdc,
         pricingModel: a.pricingModel,
-        badgeTier:   a.badgeTier,
-        successRate: rate,
-        totalJobs:   stats.total,
-        status:      isLive ? "live" : "degraded",
+        badgeTier:    a.badgeTier,
+        successRate:  rate,
+        totalJobs:    stats.total,
+        status:       isLive ? "live" : "degraded",
         inputSchema:  (capSchema as Record<string, unknown> | undefined)?.input_schema  ?? {},
         outputSchema: (capSchema as Record<string, unknown> | undefined)?.output_schema ?? {},
       };
@@ -273,7 +272,9 @@ router.get("/:agentIdOrSlug", async (req: Request, res: Response) => {
       include: { builder: true },
     });
     if (!agent) return res.status(404).json({ error: "Agent not found" });
-    res.json(agent);
+    // Never expose the agent's endpoint URL — callers must route through the SDK
+    const { endpoint: _omit, ...public_ } = agent;
+    res.json(public_);
   } catch (err) {
     res.status(500).json({ error: "Internal server error" });
   }

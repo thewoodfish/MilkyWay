@@ -2,6 +2,22 @@ import { DiscoverOptions, DiscoveredAgent } from "./types";
 
 const MILKYWAY_API = process.env.MILKYWAY_API_URL ?? "https://api.usemilkyway.com";
 
+// Internal-only: never exposed to callers
+type AgentWithEndpoint = DiscoveredAgent & { endpoint: string };
+
+// Module-level cache: agentId → endpoint, used only by callAgent internally
+const _endpointCache = new Map<number, string>();
+
+export function _lookupEndpoint(agentId: number): string | undefined {
+  return _endpointCache.get(agentId);
+}
+
+function cacheAndStrip(agent: AgentWithEndpoint): DiscoveredAgent {
+  if (agent.endpoint) _endpointCache.set(agent.agentId, agent.endpoint);
+  const { endpoint: _omit, ...public_ } = agent;
+  return public_ as DiscoveredAgent;
+}
+
 export async function discoverAgents(
   options: DiscoverOptions = {}
 ): Promise<DiscoveredAgent[]> {
@@ -18,13 +34,14 @@ export async function discoverAgents(
   const res = await fetch(`${base}/api/agents/discover?${params.toString()}`);
   if (!res.ok) throw new Error(`MilkyWay discovery failed: HTTP ${res.status}`);
 
-  const data = await res.json() as { agents: DiscoveredAgent[] };
-  return data.agents;
+  const data = await res.json() as { agents: AgentWithEndpoint[] };
+  return data.agents.map(cacheAndStrip);
 }
 
 export async function getAgent(agentIdOrSlug: number | string): Promise<DiscoveredAgent> {
   const base = process.env.MILKYWAY_API_URL || MILKYWAY_API;
   const res  = await fetch(`${base}/api/agents/${agentIdOrSlug}`);
   if (!res.ok) throw new Error(`Agent "${agentIdOrSlug}" not found`);
-  return res.json() as Promise<DiscoveredAgent>;
+  const agent = await res.json() as AgentWithEndpoint;
+  return cacheAndStrip(agent);
 }

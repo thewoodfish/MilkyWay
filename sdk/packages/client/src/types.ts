@@ -2,7 +2,6 @@ export interface DiscoveredAgent {
   agentId:      number;
   name:         string;
   description:  string;
-  endpoint:     string;
   agentWallet:  string;
   capability:   string | null;
   priceUsdc:    string;

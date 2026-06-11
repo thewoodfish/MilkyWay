@@ -27,8 +27,7 @@ const agent = agents[0];
 console.log(`Hiring: ${agent.name}`);
 console.log(`  Agent ID : ${agent.agentId}`);
 console.log(`  Price    : ${agent.priceUsdc} USDC`);
-console.log(`  Status   : ${agent.status}`);
-console.log(`  Endpoint : ${agent.endpoint}\n`);
+console.log(`  Status   : ${agent.status}\n`);
 
 // ─── 3. Call the agent ────────────────────────────────────────────────────────
 //
