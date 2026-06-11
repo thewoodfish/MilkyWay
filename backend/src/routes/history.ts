@@ -107,7 +107,7 @@ router.get("/stats", async (_req: Request, res: Response) => {
         where:  { status: "COMPLETED" },
         select: { amountUsdc: true }
       }),
-      prisma.agent.count()
+      prisma.agent.count({ where: { agentId: { not: null } } })
     ]);
 
     const usdcTotal = jobs.reduce(
