@@ -7,7 +7,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@usemilkyway/client": "latest",
+    "@usemilkyway/client": "^0.4.2",
     "dotenv": "^16.0.0"
   }
 }
