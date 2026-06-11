@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 export interface Transaction {
   id:            string;
+  flowJobId:     string;
   agentId:       number;
   agentName:     string;
   agentLogoUrl:  string | null;
@@ -27,8 +28,12 @@ export function TransactionCard({ tx }: { tx: Transaction }) {
   }, [highlight]);
 
   const shortCaller = `${tx.callerAddress.slice(0, 6)}…${tx.callerAddress.slice(-4)}`;
-  const shortTx     = tx.txHash ? `${tx.txHash.slice(0, 6)}…${tx.txHash.slice(-4)}` : "—";
   const arbiscanUrl = tx.txHash ? `https://arbiscan.io/tx/${tx.txHash}` : null;
+  const flowUrl     = `/flows/${tx.flowJobId}`;
+  const linkUrl     = arbiscanUrl ?? flowUrl;
+  const shortTx     = tx.txHash
+    ? `${tx.txHash.slice(0, 6)}…${tx.txHash.slice(-4)}`
+    : `flow:${tx.flowJobId.slice(0, 8)}…`;
   const timeAgo     = formatTimeAgo(tx.settledAt);
 
   return (
@@ -137,37 +142,31 @@ export function TransactionCard({ tx }: { tx: Transaction }) {
             <span style={{ fontSize: "13px", color: "#2d4a7a", fontWeight: 500 }}>USDC</span>
           </div>
 
-          {arbiscanUrl ? (
-            <a
-              href={arbiscanUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display:        "inline-flex",
-                alignItems:     "center",
-                gap:            "4px",
-                fontSize:       "11px",
-                color:          "#2d4a7a",
-                fontFamily:     "'JetBrains Mono', monospace",
-                textDecoration: "none",
-                marginTop:      "4px",
-                transition:     "color 0.15s",
-              }}
-              onMouseEnter={e => (e.currentTarget.style.color = "#60a5fa")}
-              onMouseLeave={e => (e.currentTarget.style.color = "#2d4a7a")}
-            >
-              {shortTx}
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                <polyline points="15 3 21 3 21 9"/>
-                <line x1="10" y1="14" x2="21" y2="3"/>
-              </svg>
-            </a>
-          ) : (
-            <p style={{ fontSize: "11px", color: "#1e3557", fontFamily: "'JetBrains Mono', monospace", margin: "4px 0 0", textAlign: "right" }}>
-              {shortTx}
-            </p>
-          )}
+          <a
+            href={linkUrl}
+            target={arbiscanUrl ? "_blank" : "_self"}
+            rel="noopener noreferrer"
+            style={{
+              display:        "inline-flex",
+              alignItems:     "center",
+              gap:            "4px",
+              fontSize:       "11px",
+              color:          "#2d4a7a",
+              fontFamily:     "'JetBrains Mono', monospace",
+              textDecoration: "none",
+              marginTop:      "4px",
+              transition:     "color 0.15s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = "#60a5fa")}
+            onMouseLeave={e => (e.currentTarget.style.color = "#2d4a7a")}
+          >
+            {shortTx}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </a>
         </div>
       </div>
     </div>

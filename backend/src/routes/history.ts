@@ -3,6 +3,12 @@ import { prisma } from "../lib/db";
 
 const router = Router();
 
+// x402 stores authorization JSON in paymentTxHash — only return real 0x... hashes
+function isRealTxHash(val: string | null | undefined): string {
+  if (!val) return "";
+  return val.startsWith("0x") && val.length >= 60 ? val : "";
+}
+
 // GET /api/history/transactions — latest 100 completed flows, public
 router.get("/transactions", async (_req: Request, res: Response) => {
   try {
@@ -86,7 +92,7 @@ router.get("/transactions", async (_req: Request, res: Response) => {
           badgeTier:    agentDetails[0]?.badgeTier ?? "NONE",
           capability:   agentDetails[0]?.capability,
           amountUsdc:   agentDetails[0]?.amountUsdc,
-          txHash:       flow.paymentTxHash ?? "",
+          txHash:       isRealTxHash(flow.paymentTxHash),
           settledAt:    flow.completedAt?.toISOString() ?? new Date().toISOString()
         };
       })

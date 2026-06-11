@@ -169,23 +169,63 @@ export default function HistoryPage() {
 
       {/* Feed */}
       <div style={{ maxWidth: "720px", margin: "0 auto", padding: "32px 24px 0" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {txs.length === 0 ? (
-            <EmptyState />
-          ) : (
-            txs.map((tx) => {
-              const key = tx.type === "flow" ? tx.flowJobId : tx.id;
-              return (
-                <div key={key} style={{ animation: tx.isNew ? "slideIn 0.3s ease forwards" : "none" }}>
-                  {tx.type === "flow"
-                    ? <FlowCard tx={tx} />
-                    : <TransactionCard tx={tx} />
-                  }
-                </div>
-              );
-            })
-          )}
-        </div>
+
+        {txs.length === 0 ? (
+          <EmptyState />
+        ) : (
+          /* Scroll container with top/bottom fade masks */
+          <div style={{ position: "relative" }}>
+            {/* top fade */}
+            <div style={{
+              position:   "absolute",
+              top:        0,
+              left:       0,
+              right:      0,
+              height:     "80px",
+              background: "linear-gradient(to bottom, #060d1f 0%, transparent 100%)",
+              zIndex:     10,
+              pointerEvents: "none",
+            }} />
+            {/* bottom fade */}
+            <div style={{
+              position:   "absolute",
+              bottom:     0,
+              left:       0,
+              right:      0,
+              height:     "80px",
+              background: "linear-gradient(to top, #060d1f 0%, transparent 100%)",
+              zIndex:     10,
+              pointerEvents: "none",
+            }} />
+
+            {/* scrolling ticker */}
+            <div style={{
+              height:     "640px",
+              overflow:   "hidden",
+              position:   "relative",
+            }}>
+              <div style={{
+                display:   "flex",
+                flexDirection: "column",
+                gap:       "10px",
+                animation: "scrollTicker 40s linear infinite",
+              }}>
+                {/* render list twice so it loops seamlessly */}
+                {[...txs, ...txs].map((tx, i) => {
+                  const key = `${tx.type === "flow" ? tx.flowJobId : tx.id}-${i}`;
+                  return (
+                    <div key={key}>
+                      {tx.type === "flow"
+                        ? <FlowCard tx={tx} />
+                        : <TransactionCard tx={tx} />
+                      }
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <div style={{
