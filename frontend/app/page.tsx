@@ -98,15 +98,24 @@ export default async function HomePage() {
                     animation: `float 4s ease-in-out infinite`,
                     animationDelay: a.delay,
                   }}>
-                  {/* Letter avatar */}
-                  <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center font-bold text-[11px]"
-                    style={{ background: a.bg, color: a.color, letterSpacing: "0.03em" }}>
-                    {a.init}
+                  {/* Robot avatar */}
+                  <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center"
+                    style={{ background: a.bg, color: a.color }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="8" width="18" height="12" rx="2"/>
+                      <circle cx="9" cy="13" r="1.5" fill="currentColor" stroke="none"/>
+                      <circle cx="15" cy="13" r="1.5" fill="currentColor" stroke="none"/>
+                      <path d="M9.5 17.5h5"/>
+                      <path d="M12 8V5"/>
+                      <circle cx="12" cy="4" r="1" fill="currentColor" stroke="none"/>
+                      <path d="M3 13H1M23 13h-2"/>
+                    </svg>
                   </div>
-                  {/* Name + category */}
+                  {/* Name + category + runs */}
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-[13px] leading-snug truncate" style={{ color: "#0A2540" }}>{a.name}</p>
                     <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: a.color }}>{a.category}</span>
+                    <p className="text-[10px] mt-0.5" style={{ color: "#9CA3AF" }}>{a.executions} runs</p>
                   </div>
                   {/* Sparkline */}
                   <div className="flex items-end gap-0.5 h-5 flex-shrink-0" style={{ width: "34px" }}>
