@@ -20,15 +20,20 @@ export interface FlowTx {
   callerAddress: string;
   durationMs:    number;
   completedAt:   string;
+  txHash?:       string;
   isNew?:        boolean;
 }
 
 export function FlowCard({ tx }: { tx: FlowTx }) {
-  const shortCaller = `${tx.callerAddress.slice(0, 6)}…${tx.callerAddress.slice(-4)}`;
-  const duration    = tx.durationMs < 1000
+  const shortCaller  = `${tx.callerAddress.slice(0, 6)}…${tx.callerAddress.slice(-4)}`;
+  const duration     = tx.durationMs < 1000
     ? `${tx.durationMs}ms`
     : `${(tx.durationMs / 1000).toFixed(1)}s`;
-  const timeAgo = formatTimeAgo(tx.completedAt);
+  const timeAgo      = formatTimeAgo(tx.completedAt);
+  const arbiscanUrl  = tx.txHash ? `https://arbiscan.io/tx/${tx.txHash}` : null;
+  const shortTx      = tx.txHash
+    ? `${tx.txHash.slice(0, 6)}…${tx.txHash.slice(-4)}`
+    : `flow:${tx.flowJobId.slice(0, 8)}…`;
 
   return (
     <div style={{
@@ -197,6 +202,44 @@ export function FlowCard({ tx }: { tx: FlowTx }) {
             </span>
           ))}
         </div>
+
+        {/* Tx / flow link */}
+        {arbiscanUrl ? (
+          <a
+            href={arbiscanUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display:        "inline-flex",
+              alignItems:     "center",
+              gap:            "4px",
+              fontSize:       "11px",
+              color:          "#94A3B8",
+              fontFamily:     "'JetBrains Mono', monospace",
+              textDecoration: "none",
+              marginLeft:     "auto",
+              transition:     "color 0.15s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = "#2563EB")}
+            onMouseLeave={e => (e.currentTarget.style.color = "#94A3B8")}
+          >
+            {shortTx}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </a>
+        ) : (
+          <span style={{
+            fontSize:   "11px",
+            color:      "#CBD5E1",
+            fontFamily: "'JetBrains Mono', monospace",
+            marginLeft: "auto",
+          }}>
+            {shortTx}
+          </span>
+        )}
       </div>
     </div>
   );
