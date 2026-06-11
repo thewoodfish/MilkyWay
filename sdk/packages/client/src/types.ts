@@ -23,6 +23,35 @@ export interface DiscoverOptions {
   sort?:       "rating" | "price_asc" | "price_desc" | "jobs";
 }
 
+export interface FlowAgentConfig {
+  agentId:       number;
+  orderIndex:    number;
+  staticInputs?: Record<string, unknown>;
+  inputMapping?: Record<string, string>; // { targetField: sourceFieldFromPreviousOutput }
+}
+
+export interface FlowOptions {
+  agents:           FlowAgentConfig[];
+  deadlineSeconds?: number;
+}
+
+export interface FlowAgentResult {
+  agentId:    number;
+  agentName:  string;
+  status:     "COMPLETED" | "FAILED" | "RUNNING" | "PENDING";
+  output:     Record<string, unknown> | null;
+  amountUsdc: string;
+  executedAt: string | null;
+}
+
+export interface FlowResult {
+  jobId:      string;
+  status:     "COMPLETED" | "FAILED";
+  agents:     FlowAgentResult[];
+  totalUsdc:  string;
+  durationMs: number;
+}
+
 export interface CallOptions {
   capability?: string;
   input:       Record<string, unknown>;

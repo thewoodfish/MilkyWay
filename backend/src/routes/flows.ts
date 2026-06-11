@@ -43,7 +43,7 @@ router.post("/preview", async (req: AuthRequest, res: Response) => {
 });
 
 // POST /api/flows/create — creates flow, returns payment details
-router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) => {
+router.post("/create", authenticateAny, async (req: AuthRequest, res: Response) => {
   try {
     const { agents, trigger = "IMMEDIATE", triggerValue, deadlineSeconds = 300 } = req.body;
     if (!agents?.length) return res.status(400).json({ error: "agents required" });
@@ -140,7 +140,7 @@ router.post("/create", authenticateJWT, async (req: AuthRequest, res: Response) 
 });
 
 // POST /api/flows/confirm — called after user signs EIP-3009 authorizations in wallet
-router.post("/confirm", authenticateJWT, async (req: AuthRequest, res: Response) => {
+router.post("/confirm", authenticateAny, async (req: AuthRequest, res: Response) => {
   try {
     const { internalId, signatures, eip3009Params } = req.body;
     if (!internalId || !signatures?.length || !eip3009Params?.length) {
