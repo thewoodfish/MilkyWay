@@ -90,7 +90,6 @@ export default function HistoryPage() {
       {/* Hero header */}
       <div style={{
         background:   "linear-gradient(180deg, #0a1628 0%, #060d1f 100%)",
-        borderBottom: "1px solid rgba(59,130,246,0.12)",
         padding:      "56px 24px 44px",
       }}>
         {/* subtle grid */}
