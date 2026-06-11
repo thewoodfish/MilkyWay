@@ -30,158 +30,142 @@ export function TransactionCard({ tx }: Props) {
     return () => clearTimeout(timer);
   }, [highlight]);
 
-  const shortCaller = `${tx.callerAddress.slice(0, 6)}...${tx.callerAddress.slice(-4)}`;
-  const shortTx     = tx.txHash ? `${tx.txHash.slice(0, 6)}...${tx.txHash.slice(-4)}` : "—";
+  const shortCaller = `${tx.callerAddress.slice(0, 6)}…${tx.callerAddress.slice(-4)}`;
+  const shortTx     = tx.txHash ? `${tx.txHash.slice(0, 6)}…${tx.txHash.slice(-4)}` : "—";
   const arbiscanUrl = tx.txHash ? `https://arbiscan.io/tx/${tx.txHash}` : null;
   const timeAgo     = formatTimeAgo(tx.settledAt);
 
   return (
     <div style={{
-      background:   highlight ? "#1C1C28" : "#18181B",
-      border:       `1px solid ${highlight ? "#2563EB" : "#27272A"}`,
+      background:   highlight ? "#EFF6FF" : "#fff",
+      border:       `1px solid ${highlight ? "#93C5FD" : "#E3E8EF"}`,
       borderRadius: "16px",
-      padding:      "20px 24px",
-      transition:   "all 0.4s ease",
-      position:     "relative",
-      overflow:     "hidden"
+      overflow:     "hidden",
+      transition:   "border-color 0.4s ease, background 0.4s ease",
+      boxShadow:    "0 1px 6px rgba(10,37,64,0.05)",
     }}>
 
-      {highlight && (
-        <div style={{
-          position:      "absolute",
-          top:           "16px",
-          left:          "24px",
-          background:    "#2563EB",
-          color:         "#ffffff",
-          fontSize:      "10px",
-          fontWeight:    700,
-          padding:       "2px 8px",
-          borderRadius:  "20px",
-          letterSpacing: "0.08em",
-          textTransform: "uppercase"
-        }}>
-          NEW
-        </div>
-      )}
-
-      <div style={{
-        position:  "absolute",
-        top:       "20px",
-        right:     "24px",
-        fontSize:  "12px",
-        color:     "#52525B",
-        fontFamily:"'JetBrains Mono', monospace"
-      }}>
-        {timeAgo}
-      </div>
-
-      <div style={{
-        display:     "flex",
-        alignItems:  "center",
-        gap:         "12px",
-        marginTop:   highlight ? "24px" : "0",
-        marginBottom:"14px"
-      }}>
-        <AgentAvatar
-          agentId={tx.agentId}
-          logoUrl={tx.agentLogoUrl}
-          badgeTier={tx.badgeTier}
-          size={40}
-          showTooltip={false}
-        />
-        <div>
-          <p style={{ fontSize: "15px", fontWeight: 600, color: "#FAFAFA", margin: 0 }}>
-            {tx.agentName}
-          </p>
-          <p style={{
-            fontSize:  "12px",
-            color:     "#52525B",
-            margin:    "2px 0 0 0",
-            fontFamily:"'JetBrains Mono', monospace"
-          }}>
-            {tx.capability}
-          </p>
-        </div>
-      </div>
-
-      <p style={{ fontSize: "13px", color: "#A1A1AA", margin: "0 0 14px 0" }}>
-        <span style={{ color: "#71717A", fontFamily: "'JetBrains Mono', monospace" }}>
-          {shortCaller}
-        </span>
-        {" "}called{" "}
-        <span style={{ color: "#60A5FA", fontFamily: "'JetBrains Mono', monospace" }}>
-          {tx.capability}
-        </span>
-      </p>
-
+      {/* Top bar */}
       <div style={{
         display:        "flex",
         alignItems:     "center",
         justifyContent: "space-between",
-        borderTop:      "1px solid #27272A",
-        paddingTop:     "14px"
+        padding:        "12px 20px",
+        borderBottom:   "1px solid #F1F5F9",
+        background:     highlight ? "#DBEAFE" : "#F8FAFF",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <div style={{
-            width:         "18px",
-            height:        "18px",
-            borderRadius:  "50%",
-            background:    "#2775CA",
-            display:       "flex",
-            alignItems:    "center",
-            justifyContent:"center",
-            fontSize:      "10px",
-            fontWeight:    700,
-            color:         "#fff",
-            flexShrink:    0
-          }}>
-            $
-          </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {highlight && (
+            <span style={{
+              fontSize:      "10px",
+              fontWeight:    700,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              background:    "#2563EB",
+              color:         "#fff",
+              padding:       "2px 8px",
+              borderRadius:  "20px",
+            }}>
+              New
+            </span>
+          )}
           <span style={{
-            fontSize:  "16px",
-            fontWeight:700,
-            color:     "#FAFAFA",
-            fontFamily:"'JetBrains Mono', monospace"
+            fontSize:   "12px",
+            fontWeight: 500,
+            color:      "#64748B",
+            fontFamily: "'JetBrains Mono', monospace",
           }}>
-            {tx.amountUsdc} USDC
+            {shortCaller}
+          </span>
+          <span style={{ fontSize: "12px", color: "#CBD5E1" }}>·</span>
+          <span style={{ fontSize: "12px", color: "#2563EB", fontFamily: "'JetBrains Mono', monospace" }}>
+            {tx.capability}
           </span>
         </div>
+        <span style={{ fontSize: "12px", color: "#94A3B8", fontFamily: "'JetBrains Mono', monospace" }}>
+          {timeAgo}
+        </span>
+      </div>
 
-        {arbiscanUrl ? (
-          <a
-            href={arbiscanUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display:       "flex",
-              alignItems:    "center",
-              gap:           "6px",
-              fontSize:      "12px",
-              color:         "#52525B",
-              fontFamily:    "'JetBrains Mono', monospace",
-              textDecoration:"none",
-              transition:    "color 0.15s"
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = "#A1A1AA")}
-            onMouseLeave={e => (e.currentTarget.style.color = "#52525B")}
-          >
-            {shortTx}
-            <svg width="12" height="12" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-          </a>
-        ) : (
-          <span style={{
-            fontSize:  "12px",
-            color:     "#3F3F46",
-            fontFamily:"'JetBrains Mono', monospace"
-          }}>
-            {shortTx}
-          </span>
-        )}
+      {/* Body */}
+      <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0 }}>
+          <AgentAvatar
+            agentId={tx.agentId}
+            logoUrl={tx.agentLogoUrl}
+            badgeTier={tx.badgeTier}
+            size={40}
+            showTooltip={false}
+          />
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontSize: "15px", fontWeight: 600, color: "#0A2540", margin: "0 0 2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {tx.agentName}
+            </p>
+            <p style={{ fontSize: "12px", color: "#94A3B8", margin: 0, fontFamily: "'JetBrains Mono', monospace" }}>
+              agent #{tx.agentId}
+            </p>
+          </div>
+        </div>
+
+        {/* Amount */}
+        <div style={{ textAlign: "right", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", justifyContent: "flex-end" }}>
+            <div style={{
+              width:          "18px",
+              height:         "18px",
+              borderRadius:   "50%",
+              background:     "#2775CA",
+              display:        "flex",
+              alignItems:     "center",
+              justifyContent: "center",
+              fontSize:       "10px",
+              fontWeight:     700,
+              color:          "#fff",
+              flexShrink:     0,
+            }}>$</div>
+            <span style={{
+              fontSize:   "18px",
+              fontWeight: 700,
+              color:      "#059669",
+              fontFamily: "'JetBrains Mono', monospace",
+              lineHeight: 1,
+            }}>
+              {tx.amountUsdc}
+            </span>
+            <span style={{ fontSize: "13px", color: "#94A3B8", fontWeight: 500 }}>USDC</span>
+          </div>
+          {arbiscanUrl ? (
+            <a
+              href={arbiscanUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display:        "inline-flex",
+                alignItems:     "center",
+                gap:            "4px",
+                fontSize:       "11px",
+                color:          "#94A3B8",
+                fontFamily:     "'JetBrains Mono', monospace",
+                textDecoration: "none",
+                marginTop:      "4px",
+                transition:     "color 0.15s",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#2563EB")}
+              onMouseLeave={e => (e.currentTarget.style.color = "#94A3B8")}
+            >
+              {shortTx}
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/>
+                <line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+            </a>
+          ) : (
+            <p style={{ fontSize: "11px", color: "#CBD5E1", fontFamily: "'JetBrains Mono', monospace", margin: "4px 0 0", textAlign: "right" }}>
+              {shortTx}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -190,7 +174,7 @@ export function TransactionCard({ tx }: Props) {
 export function formatTimeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const s = Math.floor(diff / 1000);
-  if (s < 60)   return `${s} sec ago`;
-  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
-  return `${Math.floor(s / 3600)} hr ago`;
+  if (s < 60)   return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  return `${Math.floor(s / 3600)}h ago`;
 }

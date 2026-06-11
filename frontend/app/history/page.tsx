@@ -40,7 +40,6 @@ export default function HistoryPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Mark stale if no new transaction in 5 minutes
   useEffect(() => {
     const staleCheck = setInterval(() => {
       if (Date.now() - lastTxTime.current > 5 * 60 * 1000) {
@@ -69,7 +68,7 @@ export default function HistoryPage() {
       } as TxItem));
 
       if (firstId && firstId !== lastTxId.current) {
-        lastTxId.current  = firstId;
+        lastTxId.current   = firstId;
         lastTxTime.current = Date.now();
         setLiveStatus("live");
       }
@@ -90,51 +89,66 @@ export default function HistoryPage() {
   }
 
   return (
-    <div style={{
-      minHeight:  "100vh",
-      background: "#09090B",
-      color:      "#FAFAFA",
-      fontFamily: "'Inter', sans-serif"
-    }}>
-      <div style={{ maxWidth: "680px", margin: "0 auto", padding: "64px 24px 0" }}>
+    <div style={{ minHeight: "100vh", background: "#F8FAFF", fontFamily: "'Inter', sans-serif" }}>
 
-        {/* Live indicator */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-          <LiveDot status={liveStatus} />
-          <span style={{ fontSize: "13px", color: "#52525B" }}>
-            {liveStatus === "live"  && "Live"}
-            {liveStatus === "stale" && "No new transactions"}
-            {liveStatus === "error" && "Reconnecting…"}
-          </span>
-        </div>
+      {/* Hero header strip */}
+      <div style={{
+        background:   "#fff",
+        borderBottom: "1px solid #E3E8EF",
+        padding:      "56px 24px 40px",
+      }}>
+        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
 
-        <h1 style={{
-          fontSize:      "36px",
-          fontWeight:    700,
-          margin:        "0 0 12px 0",
-          letterSpacing: "-0.02em"
-        }}>
-          Transaction History
-        </h1>
-        <p style={{ fontSize: "16px", color: "#71717A", margin: "0 0 48px 0" }}>
-          Every agent payment that settles on Arbitrum One. Updated every 4 seconds.
-        </p>
-
-        {/* Stats bar */}
-        {stats && (
+          {/* Live pill */}
           <div style={{
-            display:             "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap:                 "16px",
-            marginBottom:        "48px"
+            display:      "inline-flex",
+            alignItems:   "center",
+            gap:          "7px",
+            background:   liveStatus === "live" ? "#F0FDF4" : liveStatus === "stale" ? "#FFFBEB" : "#FEF2F2",
+            border:       `1px solid ${liveStatus === "live" ? "#BBF7D0" : liveStatus === "stale" ? "#FDE68A" : "#FECACA"}`,
+            borderRadius: "20px",
+            padding:      "5px 12px 5px 8px",
+            marginBottom: "20px",
           }}>
-            <StatCard label="Jobs today"    value={String(stats.jobsToday)}    />
-            <StatCard label="USDC settled"  value={`${stats.usdcToday} USDC`}  />
-            <StatCard label="Agents active" value={String(stats.agentsActive)} />
+            <LiveDot status={liveStatus} />
+            <span style={{
+              fontSize:   "12px",
+              fontWeight: 600,
+              color:      liveStatus === "live" ? "#15803D" : liveStatus === "stale" ? "#92400E" : "#991B1B",
+            }}>
+              {liveStatus === "live"  && "Live — updating every 4s"}
+              {liveStatus === "stale" && "No new transactions"}
+              {liveStatus === "error" && "Reconnecting…"}
+            </span>
           </div>
-        )}
 
-        {/* Transaction feed */}
+          <h1 style={{
+            fontSize:      "clamp(28px, 4vw, 40px)",
+            fontWeight:    700,
+            color:         "#0A2540",
+            margin:        "0 0 10px",
+            letterSpacing: "-0.025em",
+            lineHeight:    1.1,
+          }}>
+            Transaction History
+          </h1>
+          <p style={{ fontSize: "16px", color: "#64748B", margin: "0 0 36px", lineHeight: 1.6 }}>
+            Every agent payment that settles on Arbitrum One.
+          </p>
+
+          {/* Stat cards */}
+          {stats && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+              <StatCard label="Jobs today"    value={String(stats.jobsToday)}   color="#2563EB" />
+              <StatCard label="USDC settled"  value={`$${stats.usdcToday}`}     color="#059669" />
+              <StatCard label="Agents active" value={String(stats.agentsActive)} color="#7c3aed" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Feed */}
+      <div style={{ maxWidth: "720px", margin: "0 auto", padding: "32px 24px 0" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {txs.length === 0 ? (
             <EmptyState />
@@ -142,12 +156,7 @@ export default function HistoryPage() {
             txs.map((tx) => {
               const key = tx.type === "flow" ? tx.flowJobId : tx.id;
               return (
-                <div
-                  key={key}
-                  style={{
-                    animation: tx.isNew ? "slideIn 0.3s ease forwards" : "none"
-                  }}
-                >
+                <div key={key} style={{ animation: tx.isNew ? "slideIn 0.3s ease forwards" : "none" }}>
                   {tx.type === "flow"
                     ? <FlowCard tx={tx} />
                     : <TransactionCard tx={tx} />
@@ -158,27 +167,25 @@ export default function HistoryPage() {
           )}
         </div>
 
-        {/* Arbitrum badge */}
+        {/* Footer */}
         <div style={{
           display:        "flex",
           alignItems:     "center",
           justifyContent: "center",
           gap:            "8px",
           margin:         "48px 0 64px",
-          color:          "#3F3F46"
+          color:          "#94A3B8",
         }}>
           <span style={{ fontSize: "13px" }}>All transactions settle on</span>
-          <span style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB" }}>
-            Arbitrum One
-          </span>
+          <span style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB" }}>Arbitrum One</span>
           <span style={{
-            fontSize:    "11px",
-            background:  "#1C1C28",
-            border:      "1px solid #27272A",
-            padding:     "2px 8px",
-            borderRadius:"20px",
-            color:       "#52525B",
-            fontFamily:  "'JetBrains Mono', monospace"
+            fontSize:     "11px",
+            background:   "#EFF6FF",
+            border:       "1px solid #BFDBFE",
+            padding:      "2px 8px",
+            borderRadius: "20px",
+            color:        "#3B82F6",
+            fontFamily:   "'JetBrains Mono', monospace",
           }}>
             eip155:42161
           </span>
@@ -188,25 +195,27 @@ export default function HistoryPage() {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <div style={{
-      background:   "#18181B",
-      border:       "1px solid #27272A",
-      borderRadius: "12px",
-      padding:      "16px",
-      textAlign:    "center"
+      background:   "#fff",
+      border:       "1px solid #E3E8EF",
+      borderRadius: "14px",
+      padding:      "18px 16px",
+      textAlign:    "center",
+      boxShadow:    "0 1px 4px rgba(10,37,64,0.04)",
     }}>
       <p style={{
-        fontSize:  "22px",
-        fontWeight:700,
-        color:     "#FAFAFA",
-        margin:    "0 0 4px 0",
-        fontFamily:"'JetBrains Mono', monospace"
+        fontSize:   "24px",
+        fontWeight: 700,
+        color,
+        margin:     "0 0 4px",
+        fontFamily: "'JetBrains Mono', monospace",
+        lineHeight: 1,
       }}>
         {value}
       </p>
-      <p style={{ fontSize: "12px", color: "#52525B", margin: 0 }}>{label}</p>
+      <p style={{ fontSize: "12px", color: "#94A3B8", margin: 0, fontWeight: 500 }}>{label}</p>
     </div>
   );
 }
@@ -215,21 +224,42 @@ function LiveDot({ status }: { status: "live" | "stale" | "error" }) {
   const colors = { live: "#22C55E", stale: "#F59E0B", error: "#EF4444" };
   return (
     <div style={{
-      width:        "8px",
-      height:       "8px",
+      width:        "7px",
+      height:       "7px",
       borderRadius: "50%",
       background:   colors[status],
       animation:    status === "live" ? "pulse 2s ease-in-out infinite" : "none",
-      flexShrink:   0
+      flexShrink:   0,
     }} />
   );
 }
 
 function EmptyState() {
   return (
-    <div style={{ textAlign: "center", padding: "64px 0", color: "#3F3F46" }}>
-      <p style={{ fontSize: "15px", margin: 0 }}>No transactions yet.</p>
-      <p style={{ fontSize: "13px", margin: "8px 0 0 0" }}>
+    <div style={{
+      textAlign:    "center",
+      padding:      "72px 0",
+      background:   "#fff",
+      borderRadius: "16px",
+      border:       "1px solid #E3E8EF",
+    }}>
+      <div style={{
+        width:        "48px",
+        height:       "48px",
+        borderRadius: "50%",
+        background:   "#EFF6FF",
+        display:      "flex",
+        alignItems:   "center",
+        justifyContent:"center",
+        margin:       "0 auto 16px",
+        fontSize:     "22px",
+      }}>
+        📭
+      </div>
+      <p style={{ fontSize: "15px", fontWeight: 600, color: "#0A2540", margin: "0 0 6px" }}>
+        No transactions yet
+      </p>
+      <p style={{ fontSize: "13px", color: "#94A3B8", margin: 0 }}>
         Transactions appear here within seconds of settling.
       </p>
     </div>
