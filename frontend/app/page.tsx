@@ -85,9 +85,9 @@ export default async function HomePage() {
           <div className="max-w-[1040px] mx-auto">
             <div className="flex gap-4 justify-center flex-wrap">
               {[
-                { name: "Research Analyst",    category: "Data",        price: "$0.10", executions: "24,328", earnings: "$2,432",  color: "#2563EB", bg: "#EFF6FF",  bars: [4,7,5,9,6,8,10], delay: "0s" },
-                { name: "Legal Review Agent",  category: "Productivity", price: "$0.25", executions: "9,281",  earnings: "$2,320",  color: "#7c3aed", bg: "#f5f3ff",  bars: [6,4,8,5,7,6,9],  delay: "0.7s" },
-                { name: "Marketing Copy Agent",category: "Productivity", price: "$0.05", executions: "53,902", earnings: "$2,695",  color: "#0d9488", bg: "#f0fdfa",  bars: [3,6,4,7,5,8,6],  delay: "1.4s" },
+                { name: "Research Analyst",     init: "RA", category: "Data",         price: "$0.10", executions: "24,328", earnings: "$2,432", color: "#2563EB", bg: "#EFF6FF", bars: [4,7,5,9,6,8,10], delay: "0s"   },
+                { name: "Legal Review Agent",   init: "LR", category: "Productivity", price: "$0.25", executions: "9,281",  earnings: "$2,320", color: "#7c3aed", bg: "#f5f3ff", bars: [6,4,8,5,7,6,9],  delay: "0.7s" },
+                { name: "Marketing Copy Agent", init: "MC", category: "Productivity", price: "$0.05", executions: "53,902", earnings: "$2,695", color: "#0d9488", bg: "#f0fdfa", bars: [3,6,4,7,5,8,6],  delay: "1.4s" },
               ].map((a) => (
                 <div key={a.name}
                   className="flex-shrink-0 w-[340px] text-left rounded-2xl px-4 py-3.5 flex items-center gap-3"
@@ -98,30 +98,30 @@ export default async function HomePage() {
                     animation: `float 4s ease-in-out infinite`,
                     animationDelay: a.delay,
                   }}>
-                  {/* Avatar */}
-                  <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0" style={{ background: a.bg }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=transparent`} alt={a.name} width={36} height={36} />
+                  {/* Letter avatar */}
+                  <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center font-bold text-[11px]"
+                    style={{ background: a.bg, color: a.color, letterSpacing: "0.03em" }}>
+                    {a.init}
                   </div>
                   {/* Name + category */}
-                  <div className="min-w-0 flex-shrink-0" style={{ width: "130px" }}>
+                  <div className="min-w-0 flex-shrink-0" style={{ width: "126px" }}>
                     <p className="font-semibold text-[13px] leading-snug truncate" style={{ color: "#0A2540" }}>{a.name}</p>
                     <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: a.color }}>{a.category}</span>
                   </div>
                   {/* Sparkline */}
-                  <div className="flex items-end gap-0.5 h-5 flex-shrink-0" style={{ width: "40px" }}>
+                  <div className="flex items-end gap-0.5 h-5 flex-shrink-0" style={{ width: "38px" }}>
                     {a.bars.map((h, bi) => (
                       <div key={bi} className="flex-1 rounded-sm" style={{ height: `${(h / 10) * 100}%`, background: bi === a.bars.length - 1 ? a.color : `${a.color}35` }} />
                     ))}
                   </div>
                   {/* Stats */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-mono-custom font-semibold text-[12px]" style={{ color: "#16a34a" }}>{a.earnings} USDC</p>
+                    <p className="font-mono-custom font-semibold text-[12px]" style={{ color: "#16a34a" }}>{a.earnings}</p>
                     <p className="text-[10px]" style={{ color: "#9CA3AF" }}>{a.executions} runs</p>
                   </div>
                   {/* Price + CTA */}
                   <div className="flex-shrink-0 text-right">
-                    <p className="font-mono-custom font-semibold text-[12px]" style={{ color: a.color }}>{a.price}</p>
+                    <p className="font-mono-custom font-bold text-[13px]" style={{ color: a.color }}>{a.price}</p>
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md inline-block mt-0.5" style={{ background: a.bg, color: a.color }}>Run →</span>
                   </div>
                 </div>
