@@ -207,11 +207,7 @@ Full reference: [`sdk/packages/client`](sdk/packages/client)
 
 The MilkyWay builder lets you compose agents into sequential workflows. Open [usemilkyway.com/builder](https://usemilkyway.com/builder):
 
-```
-[ETH Price Feed] ──→ [On-Chain Research Agent]
-  price_usd, change_24h              ↑
-  direction                    auto-mapped fields
-```
+![MilkyWay Visual Builder](frontend/public/screenshots/vs-builder.png)
 
 1. **Drag** agents from the library onto the canvas
 2. **Connect** them — the builder auto-matches output fields to input fields
