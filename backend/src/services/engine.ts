@@ -72,7 +72,17 @@ export async function executeFlow(flow: {
         agentPaymentHeader
       );
 
-      if (!result.success) throw new Error(`Agent ${agent.name} failed: ${result.error}`);
+      if (!result.success) {
+        await prisma.flowAgent.update({
+          where: { id: flowAgent.id },
+          data: {
+            status: "FAILED",
+            output: { _error: true, message: result.error ?? "Unknown error", ...(result.httpStatus ? { httpStatus: result.httpStatus } : {}) },
+            executedAt: new Date(),
+          },
+        });
+        throw new Error(`${agent.name}: ${result.error}`);
+      }
 
       // Settle all authorizations for this agent (agent 99% + protocol fee 1%)
       const allHeaders = getAllPaymentHeaders(flow.paymentTxHash, flowAgent.orderIndex, resource);
@@ -247,7 +257,7 @@ async function callAgent(
   taskInput: Record<string, unknown>,
   deadline: Date,
   paymentHeader: string
-): Promise<{ success: boolean; output?: Record<string, unknown>; error?: string }> {
+): Promise<{ success: boolean; output?: Record<string, unknown>; error?: string; httpStatus?: number }> {
   try {
     const timeoutMs = Math.max(0, deadline.getTime() - Date.now() - 2000);
     const controller = new AbortController();
@@ -275,8 +285,8 @@ async function callAgent(
       return { success: true, output: data.output };
     }
 
-    const err = await res.json().catch(() => ({}));
-    return { success: false, error: (err as { error?: string }).error ?? `HTTP ${res.status}` };
+    const errBody = await res.json().catch(() => ({}));
+    return { success: false, error: (errBody as { error?: string }).error ?? `HTTP ${res.status}`, httpStatus: res.status };
   } catch (err: unknown) {
     const e = err as { name?: string; message?: string };
     return { success: false, error: e.name === "AbortError" ? "Agent timed out" : e.message };

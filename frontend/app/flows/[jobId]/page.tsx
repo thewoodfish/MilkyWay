@@ -19,7 +19,7 @@ interface FlowAgent {
   orderIndex: number;
   amountUsdc: string;
   status: AgentStatus;
-  output: unknown;
+  output: { _error?: boolean; message?: string; httpStatus?: number; [key: string]: unknown } | null;
   executedAt: string | null;
 }
 
@@ -82,7 +82,8 @@ function AgentCard({ agent, expanded, onToggle }: {
   onToggle: () => void;
 }) {
   const st = AGENT_STATUS[agent.status];
-  const hasOutput = !!agent.output && Object.keys(agent.output as object).length > 0;
+  const isErrorOutput = agent.output?._error === true;
+  const hasOutput = !!agent.output && Object.keys(agent.output).length > 0 && !isErrorOutput;
   const outputText = JSON.stringify(agent.output, null, 2);
 
   return (
@@ -91,15 +92,15 @@ function AgentCard({ agent, expanded, onToggle }: {
         onClick={hasOutput ? onToggle : undefined}
         style={{
           background: "#fff",
-          border: `1.5px solid ${expanded ? "#2563EB" : "#E3E8EF"}`,
+          border: `1.5px solid ${isErrorOutput ? "#FECACA" : expanded ? "#2563EB" : "#E3E8EF"}`,
           borderRadius: "14px",
           padding: "16px",
           cursor: hasOutput ? "pointer" : "default",
           transition: "border-color 0.15s, box-shadow 0.15s",
-          boxShadow: expanded ? "0 0 0 3px rgba(37,99,235,0.1)" : "none",
+          boxShadow: expanded ? "0 0 0 3px rgba(37,99,235,0.1)" : isErrorOutput ? "0 0 0 3px rgba(239,68,68,0.07)" : "none",
         }}
         onMouseEnter={(e) => { if (hasOutput) (e.currentTarget as HTMLElement).style.borderColor = "#93C5FD"; }}
-        onMouseLeave={(e) => { if (!expanded) (e.currentTarget as HTMLElement).style.borderColor = "#E3E8EF"; }}
+        onMouseLeave={(e) => { if (!expanded && !isErrorOutput) (e.currentTarget as HTMLElement).style.borderColor = "#E3E8EF"; }}
       >
         {/* Avatar + status dot */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "10px" }}>
@@ -140,6 +141,19 @@ function AgentCard({ agent, expanded, onToggle }: {
           </p>
         )}
       </div>
+
+      {/* Error callout */}
+      {isErrorOutput && (
+        <div style={{ marginTop: "8px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "10px", padding: "10px 12px" }}>
+          <p style={{ fontSize: "11px", fontWeight: 700, color: "#ef4444", marginBottom: "3px", display: "flex", alignItems: "center", gap: "5px" }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {agent.output?.httpStatus ? `Error ${agent.output.httpStatus}` : "Failed"}
+          </p>
+          <p style={{ fontSize: "11px", color: "#991b1b", margin: 0, lineHeight: 1.5, wordBreak: "break-word" }}>
+            {agent.output?.message as string}
+          </p>
+        </div>
+      )}
 
       {/* Output panel */}
       {expanded && hasOutput && (
@@ -203,6 +217,8 @@ export default function FlowPage() {
 
   const fs = FLOW_STATUS[flow.status];
   const completedCount = flow.agents.filter((a) => a.status === "COMPLETED").length;
+  const failedAgent = flow.agents.find((a) => a.status === "FAILED" && a.output?._error);
+  const failedError = failedAgent?.output ?? null;
   const feeUsdc = (parseFloat(flow.totalAmountUsdc) * 0.01 / 1.01).toFixed(4);
 
   return (
@@ -262,9 +278,17 @@ export default function FlowPage() {
           )}
 
           {flow.status === "FAILED" && (
-            <div style={{ marginTop: "16px", padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "10px" }}>
-              <p style={{ fontSize: "13px", color: "#991b1b", fontWeight: 600, marginBottom: "2px" }}>Execution failed</p>
-              <p style={{ fontSize: "12px", color: "#64748b" }}>Please try again.</p>
+            <div style={{ marginTop: "16px", padding: "12px 14px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "10px" }}>
+              <p style={{ fontSize: "13px", color: "#991b1b", fontWeight: 700, marginBottom: failedError ? "5px" : 0, display: "flex", alignItems: "center", gap: "6px" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {failedAgent ? `${failedAgent.agentName} failed${failedError?.httpStatus ? ` · ${failedError.httpStatus}` : ""}` : "Execution failed"}
+              </p>
+              {failedError?.message && (
+                <p style={{ fontSize: "12px", color: "#7f1d1d", margin: 0, lineHeight: 1.55 }}>{failedError.message as string}</p>
+              )}
+              {!failedError && (
+                <p style={{ fontSize: "12px", color: "#b91c1c", margin: 0 }}>See the agent pipeline below for details.</p>
+              )}
             </div>
           )}
         </div>
