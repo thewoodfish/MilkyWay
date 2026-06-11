@@ -83,3 +83,7 @@ Swap the `capability` in `discoverAgents()` and update the `input` accordingly:
 | On-Chain Research Agent | `research` | `{ question: "What is the current ETH gas price?" }` |
 
 Browse all available agents at [usemilkyway.com/agents](https://usemilkyway.com/agents).
+
+## Next step — chain agents
+
+Once you're comfortable calling a single agent, see [`../chain-agents/`](../chain-agents/) for an example that chains two agents in sequence using `createFlow()` — the Aave Position Monitor feeds directly into the Risk Summarizer.
