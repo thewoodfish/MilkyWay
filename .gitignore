@@ -150,3 +150,7 @@ vite.config.ts.timestamp-*
 contracts/out/
 contracts/cache/
 contracts/broadcast/
+.vercel
+
+# example env files
+examples/**/.env

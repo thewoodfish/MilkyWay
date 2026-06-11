@@ -1,0 +1,13 @@
+{
+  "name": "hire-an-agent",
+  "version": "1.0.0",
+  "description": "Example: hire a MilkyWay agent from code",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@usemilkyway/client": "latest",
+    "dotenv": "^16.0.0"
+  }
+}
