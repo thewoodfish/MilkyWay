@@ -241,6 +241,7 @@ router.get("/discover", async (req: Request, res: Response) => {
         agentId:      a.agentId,
         name:         a.name,
         description:  a.description,
+        endpoint:     a.endpoint,
         agentWallet:  a.ownerAddress,
         capability:   capName ?? null,
         priceUsdc:    a.priceUsdc,
@@ -272,9 +273,7 @@ router.get("/:agentIdOrSlug", async (req: Request, res: Response) => {
       include: { builder: true },
     });
     if (!agent) return res.status(404).json({ error: "Agent not found" });
-    // Never expose the agent's endpoint URL — callers must route through the SDK
-    const { endpoint: _omit, ...public_ } = agent;
-    res.json(public_);
+    res.json(agent);
   } catch (err) {
     res.status(500).json({ error: "Internal server error" });
   }
