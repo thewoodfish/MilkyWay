@@ -1,0 +1,76 @@
+{
+  "milkyway_version": "1.0",
+  "name": "Risk Summarizer",
+  "description": "Takes an Aave position snapshot and produces a plain-English risk summary with a severity rating and recommended action. Designed to chain after the Aave Position Monitor.",
+  "category": "DEFI",
+  "wallet": "${AGENT_WALLET_ADDRESS}",
+  "max_deadline_seconds": 10,
+  "capabilities": {
+    "summarize_risk": {
+      "description": "Analyze an Aave V3 position and return a risk summary, severity level, LTV ratio, and concrete action if required.",
+      "pricing": {
+        "model":    "per_job",
+        "amount":   "0.10",
+        "currency": "USDC"
+      },
+      "input_schema": {
+        "health_factor": {
+          "type":        "number",
+          "required":    true,
+          "description": "Aave health factor. Below 1.0 means liquidatable."
+        },
+        "collateral_usd": {
+          "type":        "number",
+          "required":    true,
+          "description": "Total collateral value in USD"
+        },
+        "debt_usd": {
+          "type":        "number",
+          "required":    true,
+          "description": "Total debt value in USD"
+        },
+        "status": {
+          "type":        "string",
+          "required":    true,
+          "description": "Risk status from position monitor: safe, warning, danger, or liquidatable"
+        },
+        "wallet": {
+          "type":        "string",
+          "required":    false,
+          "description": "Wallet address — passed through for context"
+        },
+        "available_borrow": {
+          "type":        "number",
+          "required":    false,
+          "description": "Available borrowing power in USD"
+        }
+      },
+      "output_schema": {
+        "risk_level": {
+          "type":        "string",
+          "description": "LOW, MEDIUM, HIGH, or CRITICAL"
+        },
+        "summary": {
+          "type":        "string",
+          "description": "Plain-English summary of the position and risk"
+        },
+        "action_required": {
+          "type":        "boolean",
+          "description": "Whether immediate action is needed"
+        },
+        "action": {
+          "type":        "string",
+          "description": "Concrete step to take, or null if no action required"
+        },
+        "ltv_pct": {
+          "type":        "number",
+          "description": "Loan-to-value ratio as a percentage"
+        },
+        "collateral_needed_usd": {
+          "type":        "number",
+          "description": "Extra collateral needed to reach a safe health factor of 2.0, or 0 if already safe"
+        }
+      }
+    }
+  }
+}

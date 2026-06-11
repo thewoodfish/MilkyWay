@@ -1,0 +1,19 @@
+{
+  "name": "risk-summarizer",
+  "version": "1.0.0",
+  "description": "Summarizes Risk",
+  "main": "src/index.js",
+  "scripts": {
+    "dev":      "milkyway dev --entry ./src/index.js",
+    "start":    "node src/index.js",
+    "validate": "milkyway validate",
+    "register": "milkyway register"
+  },
+  "dependencies": {
+    "@usemilkyway/agent-sdk": "latest",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@usemilkyway/cli": "latest"
+  }
+}
