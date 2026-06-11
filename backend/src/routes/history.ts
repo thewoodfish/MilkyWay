@@ -3,13 +3,13 @@ import { prisma } from "../lib/db";
 
 const router = Router();
 
-// GET /api/history/transactions — last 5 completed flows, public
+// GET /api/history/transactions — latest 100 completed flows, public
 router.get("/transactions", async (_req: Request, res: Response) => {
   try {
     const recentFlows = await prisma.flow.findMany({
       where:   { status: "COMPLETED" },
       orderBy: { completedAt: "desc" },
-      take:    5,
+      take:    100,
       include: {
         agents: {
           orderBy: { orderIndex: "asc" },
@@ -99,14 +99,12 @@ router.get("/transactions", async (_req: Request, res: Response) => {
   }
 });
 
-// GET /api/history/stats — rolling 24h stats, public
+// GET /api/history/stats — all-time totals, public
 router.get("/stats", async (_req: Request, res: Response) => {
   try {
-    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-
     const [jobs, agentCount] = await Promise.all([
       prisma.flowAgent.findMany({
-        where:  { status: "COMPLETED", executedAt: { gte: since24h } },
+        where:  { status: "COMPLETED" },
         select: { amountUsdc: true }
       }),
       prisma.agent.count()
