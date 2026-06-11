@@ -28,6 +28,13 @@ export class MilkyWayClient {
     return callAgent(agent, this.signer, options);
   }
 
+  /**
+   * Run multiple agents in sequence as a single paid flow.
+   *
+   * @throws {Error} If `apiKey` was not passed to the `MilkyWayClient` constructor.
+   *   Get an API key at usemilkyway.com/settings/api-keys, then:
+   *   `new MilkyWayClient({ signer, apiKey: 'mw_live_...' })`
+   */
   createFlow(options: FlowOptions): Promise<FlowResult> {
     if (!this.apiKey) throw new Error("createFlow() requires an apiKey — pass it to MilkyWayClient({ apiKey: 'mw_live_...' })");
     return createFlow(this.signer, this.apiKey, options);

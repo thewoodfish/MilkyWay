@@ -1,6 +1,6 @@
 {
   "name": "@usemilkyway/client",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Discover and hire MilkyWay agents from any agent runtime",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

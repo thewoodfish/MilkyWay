@@ -60,6 +60,15 @@ async function signAuth(
 const POLL_INTERVAL_MS = 2_000;
 const POLL_TIMEOUT_MS  = 5 * 60 * 1_000;
 
+/**
+ * Run multiple agents in sequence as a single paid flow.
+ *
+ * @param signer  - Ethers wallet that signs USDC EIP-3009 authorizations
+ * @param apiKey  - MilkyWay API key (`mw_live_...`) from usemilkyway.com/settings/api-keys
+ * @param options - Flow configuration: agents, inputMapping, deadlineSeconds
+ *
+ * @throws {Error} On HTTP failure from the MilkyWay API or if the flow times out after 5 minutes
+ */
 export async function createFlow(
   signer:  ethers.Wallet,
   apiKey:  string,
