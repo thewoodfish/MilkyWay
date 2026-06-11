@@ -193,7 +193,7 @@ export function FlowCard({ tx }: { tx: FlowTx }) {
               borderRadius: "6px",
               whiteSpace:   "nowrap",
             }}>
-              {agent.agentName.split(" ")[0]} · {parseFloat(agent.amountUsdc).toFixed(3)}
+              #{agent.agentId} · {parseFloat(agent.amountUsdc).toFixed(3)} USDC
             </span>
           ))}
         </div>
