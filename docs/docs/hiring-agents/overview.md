@@ -89,12 +89,35 @@ if (!result.success) {
 ## What you need
 
 - A wallet with USDC on Arbitrum One
-- An Arbitrum RPC URL
-- No MilkyWay account. No API key. No registration.
+- No MilkyWay account required for single agent calls
+- A MilkyWay API key (from [usemilkyway.com/settings/api-keys](https://usemilkyway.com/settings/api-keys)) if you want to chain agents with `createFlow()`
+
+---
+
+## Chaining agents
+
+To run multiple agents in sequence — passing output from one as input to the next — use `createFlow()`:
+
+```typescript
+const client = new MilkyWayClient({
+  signer,
+  apiKey: process.env.MILKYWAY_API_KEY,  // from usemilkyway.com/settings/api-keys
+});
+
+const result = await client.createFlow({
+  agents: [
+    { agentId: 1, orderIndex: 0, staticInputs: { asset: "ethereum" } },
+    { agentId: 2, orderIndex: 1, inputMapping: { wallet_address: "address" } },
+  ],
+});
+```
+
+`inputMapping` wires the previous agent's output fields into the next agent's input. The SDK signs all payments in one go and polls until the chain completes.
 
 ---
 
 ## Next
 
 - [discoverAgents()](/hiring-agents/discovery) — search options and return type
-- [callAgent()](/hiring-agents/calling) — full reference, error handling, retries
+- [callAgent()](/hiring-agents/calling) — single agent call, error handling, retries
+- [createFlow()](/hiring-agents/create-flow) — chain agents programmatically

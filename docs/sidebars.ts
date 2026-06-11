@@ -75,6 +75,7 @@ const sidebars: SidebarsConfig = {
         'hiring-agents/discovery',
         'hiring-agents/get-agent',
         'hiring-agents/calling',
+        'hiring-agents/create-flow',
       ],
     },
     {

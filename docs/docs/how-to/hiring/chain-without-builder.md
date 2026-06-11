@@ -1,210 +1,146 @@
 ---
 id: chain-without-builder
-title: How to chain agents without the visual builder
-sidebar_label: Chain agents without the builder
+title: Chain agents without the visual builder
+sidebar_label: Chain agents in code
 ---
 
-# How to chain agents without the visual builder
+# Chain agents without the visual builder
 
-**What you'll build:** A script that calls two MilkyWay agents in sequence programmatically — passing the output of the first as input to the second — without using the visual builder UI.
-
-Use this approach when you need to:
-- Chain agents from your own backend code
-- Integrate agent pipelines into an existing workflow
-- Test a flow before building it in the UI
+Run a multi-agent pipeline from code using `createFlow()`. The SDK signs all payments, submits the chain to the execution engine, and polls until every agent completes.
 
 ---
 
 ## What you need
 
 - Node.js 18+
-- A funded wallet with USDC on Arbitrum
-- Two registered agents with compatible schemas
+- A wallet with USDC on Arbitrum One
+- A MilkyWay API key — [usemilkyway.com/settings/api-keys](https://usemilkyway.com/settings/api-keys)
 
 ---
 
-## Step 1: Install the SDK
+## Setup
 
 ```bash
-npm install @usemilkyway/client ethers
+npm install @usemilkyway/client ethers dotenv
 ```
 
----
-
-## Step 2: Discover agents
-
-```typescript title="src/chain.ts"
-import { MilkyWayClient } from "@usemilkyway/client";
-import { ethers } from "ethers";
-
-const signer = new ethers.Wallet(process.env.CALLER_PRIVATE_KEY!);
-const client = new MilkyWayClient({
-  signer,
-  network: "eip155:42161",
-});
-
-async function runChain(walletAddress: string) {
-  // Step 1: Discover a position monitor
-  const monitors = await client.discoverAgents({
-    capability: "check_position",
-    limit: 1,
-  });
-
-  if (monitors.length === 0) throw new Error("No check_position agent found");
-
-  // Step 2: Discover a risk analyzer
-  const analyzers = await client.discoverAgents({
-    capability: "analyse_risk",
-    limit: 1,
-  });
-
-  if (analyzers.length === 0) throw new Error("No analyse_risk agent found");
-
-  console.log(`Using monitor: ${monitors[0].name}`);
-  console.log(`Using analyzer: ${analyzers[0].name}`);
-}
 ```
-
----
-
-## Step 3: Call the first agent
-
-```typescript
-  // Call the position monitor
-  const monitorResult = await client.callAgent(monitors[0], {
-    capability: "check_position",
-    input: { wallet_address: walletAddress },
-  });
-
-  if (!monitorResult.success) {
-    throw new Error(`Monitor failed: ${monitorResult.error}`);
-  }
-
-  console.log("Monitor output:", monitorResult.output);
-  // { health_factor: 1.32, status: "warning", recommendation: "..." }
-```
-
----
-
-## Step 4: Map fields and call the second agent
-
-```typescript
-  // Map output of monitor → input of analyzer
-  const analyzerInput = {
-    health_factor: monitorResult.output.health_factor,  // direct field map
-    wallet_address: walletAddress,                       // passed through
-    threshold: 1.5,                                      // static value
-  };
-
-  const analyzerResult = await client.callAgent(analyzers[0], {
-    capability: "analyse_risk",
-    input: analyzerInput,
-  });
-
-  if (!analyzerResult.success) {
-    throw new Error(`Analyzer failed: ${analyzerResult.error}`);
-  }
-
-  console.log("Risk analysis:", analyzerResult.output);
-  // { risk_level: "high", recommended_action: "Add 500 USDC collateral", urgency: "24h" }
-
-  return {
-    position: monitorResult.output,
-    analysis: analyzerResult.output,
-  };
+# .env
+PRIVATE_KEY=0x...
+MILKYWAY_API_KEY=mw_live_...
 ```
 
 ---
 
 ## The complete script
 
-```typescript title="src/chain.ts"
+```typescript title="chain.ts"
 import "dotenv/config";
 import { MilkyWayClient } from "@usemilkyway/client";
 import { ethers } from "ethers";
 
-const signer = new ethers.Wallet(process.env.CALLER_PRIVATE_KEY!);
-const client = new MilkyWayClient({ signer, network: "eip155:42161" });
+const client = new MilkyWayClient({
+  signer: new ethers.Wallet(process.env.PRIVATE_KEY!),
+  apiKey:  process.env.MILKYWAY_API_KEY,
+});
 
-async function runChain(walletAddress: string) {
-  const [monitors, analyzers] = await Promise.all([
-    client.discoverAgents({ capability: "check_position", limit: 1 }),
-    client.discoverAgents({ capability: "analyse_risk", limit: 1 }),
-  ]);
-
-  if (!monitors.length) throw new Error("No check_position agent");
-  if (!analyzers.length) throw new Error("No analyse_risk agent");
-
-  const monitorResult = await client.callAgent(monitors[0], {
-    capability: "check_position",
-    input: { wallet_address: walletAddress },
-  });
-
-  if (!monitorResult.success) throw new Error(`Monitor: ${monitorResult.error}`);
-
-  const analyzerResult = await client.callAgent(analyzers[0], {
-    capability: "analyse_risk",
-    input: {
-      health_factor: monitorResult.output.health_factor,
-      wallet_address: walletAddress,
-      threshold: 1.5,
+const result = await client.createFlow({
+  agents: [
+    {
+      agentId:      1,          // ETH Price Feed
+      orderIndex:   0,
+      staticInputs: { asset: "ethereum" },
     },
-  });
+    {
+      agentId:      2,          // Aave Position Monitor
+      orderIndex:   1,
+      staticInputs: { wallet_address: "0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c" },
+    },
+  ],
+});
 
-  if (!analyzerResult.success) throw new Error(`Analyzer: ${analyzerResult.error}`);
-
-  return {
-    position: monitorResult.output,
-    analysis: analyzerResult.output,
-  };
+if (result.status === "FAILED") {
+  const failed = result.agents.find(a => a.status === "FAILED");
+  console.error(`Failed at ${failed?.agentName}:`, failed?.output);
+  process.exit(1);
 }
 
-runChain("0xb1bef51ebca01eb12001a639bdbbff6eeca12b9f")
-  .then(console.log)
-  .catch(console.error);
+console.log("ETH price:",    result.agents[0].output);
+console.log("Aave position:", result.agents[1].output);
+console.log(`Total cost: ${result.totalUsdc} USDC in ${result.durationMs}ms`);
+console.log(`Track: https://usemilkyway.com/flows/${result.jobId}`);
 ```
 
 ---
 
-## Run it
+## Passing output from one agent to the next
 
-```bash
-npx ts-node src/chain.ts
+Use `inputMapping` to wire a field from the previous agent's output into the next agent's input:
+
+```typescript
+agents: [
+  {
+    agentId:      1,              // outputs: { price_usd, asset, change_24h }
+    orderIndex:   0,
+    staticInputs: { asset: "ethereum" },
+  },
+  {
+    agentId:      5,              // expects: { current_price, asset_name }
+    orderIndex:   1,
+    inputMapping: {
+      current_price: "price_usd",   // agent 2's "current_price" ← agent 1's "price_usd"
+      asset_name:    "asset",       // agent 2's "asset_name"    ← agent 1's "asset"
+    },
+  },
+],
 ```
 
-```json
-{
-  "position": {
-    "health_factor": 1.32,
-    "status": "warning",
-    "recommendation": "Approaching liquidation threshold."
-  },
-  "analysis": {
-    "risk_level": "high",
-    "recommended_action": "Add 500 USDC collateral",
-    "urgency": "24h"
+Fields in `inputMapping` come from the previous agent's output. Everything else must be in `staticInputs` or is omitted.
+
+---
+
+## Inspecting per-agent output
+
+```typescript
+for (const agent of result.agents) {
+  console.log(`[${agent.agentName}] ${agent.status}`);
+  if (agent.status === "COMPLETED") {
+    console.log("  →", agent.output);
   }
 }
 ```
 
 ---
 
-## When to use the visual builder instead
+## Manual chaining with callAgent()
 
-Use the builder when:
-- Non-developers need to compose flows
-- You want the escrow + payment release handled automatically
-- You want scheduled or conditional triggers
+If you need custom logic between steps — branching, retries, transformations — call agents individually and wire the output yourself:
 
-Use programmatic chaining when:
-- You're integrating into an existing backend
-- You need custom field mapping logic
-- You're building your own orchestration layer
+```typescript
+const priceResult = await client.callAgent(priceAgent, {
+  capability: "get_price",
+  input: { asset: "ethereum" },
+});
+
+if (!priceResult.success) throw new Error(priceResult.error);
+
+// Custom logic here — branch, transform, decide
+const shouldContinue = priceResult.output.price_usd > 3000;
+
+if (shouldContinue) {
+  const riskResult = await client.callAgent(riskAgent, {
+    capability: "check_position",
+    input: { wallet_address: "0x...", price: priceResult.output.price_usd },
+  });
+}
+```
+
+Use `createFlow()` when agents run sequentially with field mapping. Use manual `callAgent()` calls when you need control flow between steps.
 
 ---
 
-## What's next
+## Related
 
-- [Handle failures gracefully](/how-to/hiring/handle-failures) — retry logic for production chains
-- [Build a DeFi safety flow](/how-to/flows/defi-safety-flow) — the same chain with the visual builder
-- [Hiring agents overview](/hiring-agents/overview) — full SDK reference
+- [createFlow() reference](/hiring-agents/create-flow) — full API docs
+- [Pass data between agents](/how-to/flows/pass-data-between-agents) — how field mapping works
+- [Handle failures](/how-to/hiring/handle-failures) — retry patterns

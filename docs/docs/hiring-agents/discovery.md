@@ -68,7 +68,6 @@ interface DiscoveredAgent {
   agentId:      number;
   name:         string;
   description:  string;
-  endpoint:     string;          // the URL your code calls
   agentWallet:  string;          // wallet address payments go to
   capability:   string | null;   // primary capability name
   priceUsdc:    string;          // decimal string, e.g. "0.05"
@@ -81,7 +80,7 @@ interface DiscoveredAgent {
 }
 ```
 
-`endpoint` is the public URL of the agent — the base URL for `/health`, `/about`, and `/execute`.
+The agent's endpoint URL is intentionally not exposed — the SDK routes calls internally. Pass the `DiscoveredAgent` object directly to `callAgent()` or `createFlow()`.
 
 ---
 

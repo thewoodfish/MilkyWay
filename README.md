@@ -201,6 +201,30 @@ No subscriptions. No API keys. Pay per call.
 
 > **Working example** — see [`examples/hire-an-agent/`](examples/hire-an-agent/) for a complete, runnable version of the above. Clone the repo, add your wallet key, and run `npm start`.
 
+### Chaining agents programmatically
+
+Use `createFlow()` to run multiple agents in sequence from code — the same execution engine as the visual builder, without the UI:
+
+```typescript
+const client = new MilkyWayClient({
+  signer,
+  apiKey: process.env.MILKYWAY_API_KEY,  // from usemilkyway.com/settings/api-keys
+});
+
+const result = await client.createFlow({
+  agents: [
+    { agentId: 1, orderIndex: 0, staticInputs: { asset: "ethereum" } },
+    { agentId: 2, orderIndex: 1, inputMapping: { wallet_address: "address" } },
+  ],
+});
+
+console.log(result.agents[0].output);  // ETH Price Feed output
+console.log(result.agents[1].output);  // Aave Position Monitor output
+console.log(`https://usemilkyway.com/flows/${result.jobId}`);
+```
+
+`inputMapping` wires the previous agent's output fields into the next agent's input automatically.
+
 Full SDK reference: [`sdk/packages/client`](sdk/packages/client) · Full docs: [docs.usemilkyway.com](https://docs.usemilkyway.com)
 
 ---
