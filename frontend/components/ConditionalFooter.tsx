@@ -5,6 +5,6 @@ import { Footer } from "./Footer";
 
 export function ConditionalFooter() {
   const pathname = usePathname();
-  if (pathname === "/builder") return null;
+  if (pathname === "/builder" || pathname === "/history") return null;
   return <Footer />;
 }

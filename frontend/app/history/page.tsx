@@ -172,60 +172,52 @@ export default function HistoryPage() {
 
         {txs.length === 0 ? (
           <EmptyState />
-        ) : (
-          /* Scroll container with top/bottom fade masks */
-          <div style={{ position: "relative" }}>
-            {/* top fade */}
-            <div style={{
-              position:   "absolute",
-              top:        0,
-              left:       0,
-              right:      0,
-              height:     "80px",
-              background: "linear-gradient(to bottom, #060d1f 0%, transparent 100%)",
-              zIndex:     10,
-              pointerEvents: "none",
-            }} />
-            {/* bottom fade */}
-            <div style={{
-              position:   "absolute",
-              bottom:     0,
-              left:       0,
-              right:      0,
-              height:     "80px",
-              background: "linear-gradient(to top, #060d1f 0%, transparent 100%)",
-              zIndex:     10,
-              pointerEvents: "none",
-            }} />
+        ) : (() => {
+          // Each card is ~140px tall (card + gap). Container must be shorter than
+          // one copy so translateY(-50%) always loops seamlessly.
+          // containerH must be < copyH so translateY(-50%) never shows empty space
+          const cardH       = 140;
+          const copyH       = txs.length * cardH;
+          const containerH  = Math.min(560, copyH - 20);
+          const duration    = Math.max(12, txs.length * 7);
+          const repeated    = [...txs, ...txs]; // exactly 2 copies; -50% = 1 copy
 
-            {/* scrolling ticker */}
-            <div style={{
-              height:     "640px",
-              overflow:   "hidden",
-              position:   "relative",
-            }}>
+          return (
+            <div style={{ position: "relative" }}>
+              {/* top fade */}
               <div style={{
-                display:   "flex",
-                flexDirection: "column",
-                gap:       "10px",
-                animation: "scrollTicker 40s linear infinite",
-              }}>
-                {/* render list twice so it loops seamlessly */}
-                {[...txs, ...txs].map((tx, i) => {
-                  const key = `${tx.type === "flow" ? tx.flowJobId : tx.id}-${i}`;
-                  return (
-                    <div key={key}>
-                      {tx.type === "flow"
-                        ? <FlowCard tx={tx} />
-                        : <TransactionCard tx={tx} />
-                      }
-                    </div>
-                  );
-                })}
+                position: "absolute", top: 0, left: 0, right: 0, height: "72px",
+                background: "linear-gradient(to bottom, #060d1f 0%, transparent 100%)",
+                zIndex: 10, pointerEvents: "none",
+              }} />
+              {/* bottom fade */}
+              <div style={{
+                position: "absolute", bottom: 0, left: 0, right: 0, height: "72px",
+                background: "linear-gradient(to top, #060d1f 0%, transparent 100%)",
+                zIndex: 10, pointerEvents: "none",
+              }} />
+
+              <div style={{ height: `${containerH}px`, overflow: "hidden", position: "relative" }}>
+                <div style={{
+                  display: "flex", flexDirection: "column", gap: "10px",
+                  animation: `scrollTicker ${duration}s linear infinite`,
+                }}>
+                  {repeated.map((tx, i) => {
+                    const key = `${tx.type === "flow" ? tx.flowJobId : tx.id}-${i}`;
+                    return (
+                      <div key={key}>
+                        {tx.type === "flow"
+                          ? <FlowCard tx={tx} />
+                          : <TransactionCard tx={tx} />
+                        }
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Footer */}
         <div style={{
