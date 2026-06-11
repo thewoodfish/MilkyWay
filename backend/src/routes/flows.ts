@@ -209,6 +209,53 @@ router.get("/:jobId", async (req: AuthRequest, res: Response) => {
   }
 });
 
+// POST /api/flows/report — SDK reports a direct agent call so it appears in the UI
+router.post("/report", async (req: Request, res: Response) => {
+  try {
+    const { jobId, agentId, callerAddress, amountUsdc, output, success } = req.body;
+    if (!jobId || agentId === undefined || !callerAddress) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const agent = await prisma.agent.findUnique({
+      where:  { agentId: Number(agentId) },
+      select: { ownerAddress: true },
+    });
+    if (!agent) return res.status(404).json({ error: "Agent not found" });
+
+    const now    = new Date();
+    const status = success ? "COMPLETED" : "FAILED";
+
+    await prisma.flow.create({
+      data: {
+        jobId,
+        callerAddress,
+        totalAmountUsdc: amountUsdc ?? "0",
+        deadline:        now,
+        trigger:         "IMMEDIATE",
+        status,
+        completedAt:     status === "COMPLETED" ? now : undefined,
+        agents: {
+          create: {
+            agentId:      Number(agentId),
+            agentAddress: agent.ownerAddress,
+            orderIndex:   0,
+            amountUsdc:   amountUsdc ?? "0",
+            status,
+            output:       output ?? {},
+            executedAt:   now,
+          },
+        },
+      },
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("[flows/report]", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // GET /api/flows/my/list — caller's flows (auth required)
 router.get("/my/list", authenticateJWT, async (req: AuthRequest, res: Response) => {
   try {
