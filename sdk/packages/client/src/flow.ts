@@ -89,6 +89,7 @@ export async function createFlow(
     body: JSON.stringify({
       agents:          options.agents,
       deadlineSeconds: options.deadlineSeconds ?? 300,
+      signerAddress:   signer.address,
     }),
   });
   if (!createRes.ok) {

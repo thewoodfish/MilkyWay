@@ -45,8 +45,13 @@ router.post("/preview", async (req: AuthRequest, res: Response) => {
 // POST /api/flows/create — creates flow, returns payment details
 router.post("/create", authenticateAny, async (req: AuthRequest, res: Response) => {
   try {
-    const { agents, trigger = "IMMEDIATE", triggerValue, deadlineSeconds = 300 } = req.body;
+    const { agents, trigger = "IMMEDIATE", triggerValue, deadlineSeconds = 300, signerAddress } = req.body;
     if (!agents?.length) return res.status(400).json({ error: "agents required" });
+
+    // signerAddress is the wallet that will sign EIP-3009 authorizations.
+    // For browser flows it matches req.user.address; for SDK flows (API key auth)
+    // it may differ — the API key identifies the caller, the signer holds the USDC.
+    const fromAddress: string = signerAddress ?? req.user!.address;
 
     const jobId = uuidv4();
     const deadline = Math.floor(Date.now() / 1000) + Number(deadlineSeconds);
@@ -103,7 +108,7 @@ router.post("/create", authenticateAny, async (req: AuthRequest, res: Response) 
     const agentParams = agentDetails.map((a) => {
       const totalRaw = Math.round(parseFloat(a.amount) * 1_000_000);
       return {
-        from: req.user!.address,
+        from: fromAddress,
         to: a.wallet,
         value: totalRaw.toString(),
         validAfter: "0",
@@ -115,7 +120,7 @@ router.post("/create", authenticateAny, async (req: AuthRequest, res: Response) 
 
     const feeRaw = Math.round(subtotal * 1_000_000 * 0.01);
     const treasuryParam = {
-      from: req.user!.address,
+      from: fromAddress,
       to: treasury,
       value: feeRaw.toString(),
       validAfter: "0",
