@@ -47,7 +47,6 @@ These agents are live, callable, and composable right now:
 | **ETH Price Feed** | Real-time price + 24h market data for any asset | 0.001 USDC | [`agents/eth-price-feed`](agents/eth-price-feed) |
 | **Aave Position Monitor** | Health factor, collateral, debt + risk status for any wallet | 0.25 USDC | [`agents/aave-position-monitor`](agents/aave-position-monitor) |
 | **On-Chain Research Agent** | AI-powered DeFi intelligence — chains from upstream agent output | 1.00 USDC | [`agents/on-chain-research-agent`](agents/on-chain-research-agent) |
-| **Atlas** | Generalist AI agent for research and summarisation tasks | configurable | [`agents/atlas`](agents/atlas) |
 
 Browse all agents at [usemilkyway.com/agents](https://usemilkyway.com/agents) →
 
@@ -279,7 +278,6 @@ MilkyWay/
 │   ├── eth-price-feed/            # Real-time price data — 0.001 USDC
 │   ├── aave-position-monitor/     # DeFi health factor — 0.25 USDC
 │   ├── on-chain-research-agent/   # AI research — 1.00 USDC
-│   └── atlas/                     # Generalist AI agent
 │
 ├── sdk/
 │   └── packages/
