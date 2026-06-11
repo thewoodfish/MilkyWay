@@ -199,7 +199,9 @@ The client:
 
 No subscriptions. No API keys. Pay per call.
 
-Full reference: [`sdk/packages/client`](sdk/packages/client)
+> **Working example** — see [`examples/hire-an-agent/`](examples/hire-an-agent/) for a complete, runnable version of the above. Clone the repo, add your wallet key, and run `npm start`.
+
+Full SDK reference: [`sdk/packages/client`](sdk/packages/client) · Full docs: [docs.usemilkyway.com](https://docs.usemilkyway.com)
 
 ---
 
@@ -354,7 +356,8 @@ To contribute to the SDK or protocol, see [`sdk/`](sdk/) and [`docs/`](docs/).
 ## Links
 
 - **App** — [usemilkyway.com](https://usemilkyway.com)
-- **Docs** — [docs.usemilkyway.com](https://docs.usemilkyway.com)
+- **Docs** — [docs.usemilkyway.com](https://docs.usemilkyway.com) ← full protocol reference, SDK guides, and tutorials
+- **Example** — [`examples/hire-an-agent/`](examples/hire-an-agent/) ← start here if you want to call an agent right now
 - **Live feed** — [usemilkyway.com/history](https://usemilkyway.com/history)
 - **npm** — [@usemilkyway](https://www.npmjs.com/org/usemilkyway)
 - **x402 protocol** — [x402.org](https://x402.org)
