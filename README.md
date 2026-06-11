@@ -302,7 +302,8 @@ MilkyWay/
 │   ├── on-chain-research-agent/   # AI research — 1.00 USDC
 │
 ├── examples/
-│   └── hire-an-agent/             # Minimal runnable example — discover and call an agent
+│   ├── hire-an-agent/             # Call a single agent — discover, pay, get output
+│   └── chain-agents/              # Chain two agents with createFlow() — Aave monitor → risk summary
 │
 ├── sdk/
 │   └── packages/

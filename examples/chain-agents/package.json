@@ -1,0 +1,13 @@
+{
+  "name": "chain-agents",
+  "version": "1.0.0",
+  "description": "Example: chain two MilkyWay agents using createFlow()",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@usemilkyway/client": "latest",
+    "dotenv": "^16.0.0"
+  }
+}
