@@ -17,11 +17,7 @@ export interface Transaction {
   isNew?:        boolean;
 }
 
-interface Props {
-  tx: Transaction;
-}
-
-export function TransactionCard({ tx }: Props) {
+export function TransactionCard({ tx }: { tx: Transaction }) {
   const [highlight, setHighlight] = useState(tx.isNew ?? false);
 
   useEffect(() => {
@@ -37,12 +33,11 @@ export function TransactionCard({ tx }: Props) {
 
   return (
     <div style={{
-      background:   highlight ? "#EFF6FF" : "#fff",
-      border:       `1px solid ${highlight ? "#93C5FD" : "#E3E8EF"}`,
-      borderRadius: "16px",
+      background:   highlight ? "rgba(37,99,235,0.08)" : "rgba(255,255,255,0.03)",
+      border:       `1px solid ${highlight ? "rgba(59,130,246,0.45)" : "rgba(59,130,246,0.12)"}`,
+      borderRadius: "14px",
       overflow:     "hidden",
       transition:   "border-color 0.4s ease, background 0.4s ease",
-      boxShadow:    "0 1px 6px rgba(10,37,64,0.05)",
     }}>
 
       {/* Top bar */}
@@ -50,9 +45,9 @@ export function TransactionCard({ tx }: Props) {
         display:        "flex",
         alignItems:     "center",
         justifyContent: "space-between",
-        padding:        "12px 20px",
-        borderBottom:   "1px solid #F1F5F9",
-        background:     highlight ? "#DBEAFE" : "#F8FAFF",
+        padding:        "10px 18px",
+        borderBottom:   "1px solid rgba(59,130,246,0.08)",
+        background:     highlight ? "rgba(37,99,235,0.1)" : "rgba(255,255,255,0.02)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {highlight && (
@@ -65,30 +60,29 @@ export function TransactionCard({ tx }: Props) {
               color:         "#fff",
               padding:       "2px 8px",
               borderRadius:  "20px",
-            }}>
-              New
-            </span>
+            }}>New</span>
           )}
-          <span style={{
-            fontSize:   "12px",
-            fontWeight: 500,
-            color:      "#64748B",
-            fontFamily: "'JetBrains Mono', monospace",
-          }}>
+          <span style={{ fontSize: "12px", color: "#4a6fa5", fontFamily: "'JetBrains Mono', monospace" }}>
             {shortCaller}
           </span>
-          <span style={{ fontSize: "12px", color: "#CBD5E1" }}>·</span>
-          <span style={{ fontSize: "12px", color: "#2563EB", fontFamily: "'JetBrains Mono', monospace" }}>
+          <span style={{ fontSize: "12px", color: "#1e3557" }}>·</span>
+          <span style={{ fontSize: "12px", color: "#3b82f6", fontFamily: "'JetBrains Mono', monospace" }}>
             {tx.capability}
           </span>
         </div>
-        <span style={{ fontSize: "12px", color: "#94A3B8", fontFamily: "'JetBrains Mono', monospace" }}>
+        <span style={{ fontSize: "12px", color: "#2d4a7a", fontFamily: "'JetBrains Mono', monospace" }}>
           {timeAgo}
         </span>
       </div>
 
       {/* Body */}
-      <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+      <div style={{
+        padding:        "14px 18px",
+        display:        "flex",
+        alignItems:     "center",
+        justifyContent: "space-between",
+        gap:            "12px",
+      }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0 }}>
           <AgentAvatar
             agentId={tx.agentId}
@@ -98,16 +92,24 @@ export function TransactionCard({ tx }: Props) {
             showTooltip={false}
           />
           <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: "15px", fontWeight: 600, color: "#0A2540", margin: "0 0 2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <p style={{
+              fontSize:     "15px",
+              fontWeight:   600,
+              color:        "#c8d8f0",
+              margin:       "0 0 2px",
+              whiteSpace:   "nowrap",
+              overflow:     "hidden",
+              textOverflow: "ellipsis",
+            }}>
               {tx.agentName}
             </p>
-            <p style={{ fontSize: "12px", color: "#94A3B8", margin: 0, fontFamily: "'JetBrains Mono', monospace" }}>
+            <p style={{ fontSize: "12px", color: "#2d4a7a", margin: 0, fontFamily: "'JetBrains Mono', monospace" }}>
               agent #{tx.agentId}
             </p>
           </div>
         </div>
 
-        {/* Amount */}
+        {/* Amount + link */}
         <div style={{ textAlign: "right", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", justifyContent: "flex-end" }}>
             <div style={{
@@ -126,14 +128,15 @@ export function TransactionCard({ tx }: Props) {
             <span style={{
               fontSize:   "18px",
               fontWeight: 700,
-              color:      "#059669",
+              color:      "#34d399",
               fontFamily: "'JetBrains Mono', monospace",
               lineHeight: 1,
             }}>
               {tx.amountUsdc}
             </span>
-            <span style={{ fontSize: "13px", color: "#94A3B8", fontWeight: 500 }}>USDC</span>
+            <span style={{ fontSize: "13px", color: "#2d4a7a", fontWeight: 500 }}>USDC</span>
           </div>
+
           {arbiscanUrl ? (
             <a
               href={arbiscanUrl}
@@ -144,14 +147,14 @@ export function TransactionCard({ tx }: Props) {
                 alignItems:     "center",
                 gap:            "4px",
                 fontSize:       "11px",
-                color:          "#94A3B8",
+                color:          "#2d4a7a",
                 fontFamily:     "'JetBrains Mono', monospace",
                 textDecoration: "none",
                 marginTop:      "4px",
                 transition:     "color 0.15s",
               }}
-              onMouseEnter={e => (e.currentTarget.style.color = "#2563EB")}
-              onMouseLeave={e => (e.currentTarget.style.color = "#94A3B8")}
+              onMouseEnter={e => (e.currentTarget.style.color = "#60a5fa")}
+              onMouseLeave={e => (e.currentTarget.style.color = "#2d4a7a")}
             >
               {shortTx}
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -161,7 +164,7 @@ export function TransactionCard({ tx }: Props) {
               </svg>
             </a>
           ) : (
-            <p style={{ fontSize: "11px", color: "#CBD5E1", fontFamily: "'JetBrains Mono', monospace", margin: "4px 0 0", textAlign: "right" }}>
+            <p style={{ fontSize: "11px", color: "#1e3557", fontFamily: "'JetBrains Mono', monospace", margin: "4px 0 0", textAlign: "right" }}>
               {shortTx}
             </p>
           )}

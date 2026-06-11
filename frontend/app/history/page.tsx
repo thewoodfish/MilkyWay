@@ -42,9 +42,7 @@ export default function HistoryPage() {
 
   useEffect(() => {
     const staleCheck = setInterval(() => {
-      if (Date.now() - lastTxTime.current > 5 * 60 * 1000) {
-        setLiveStatus("stale");
-      }
+      if (Date.now() - lastTxTime.current > 5 * 60 * 1000) setLiveStatus("stale");
     }, 10_000);
     return () => clearInterval(staleCheck);
   }, []);
@@ -83,29 +81,50 @@ export default function HistoryPage() {
     try {
       const res = await fetch(`${API}/api/history/stats`);
       if (res.ok) setStats(await res.json());
-    } catch {
-      // non-fatal
-    }
+    } catch { /* non-fatal */ }
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F8FAFF", fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#060d1f", fontFamily: "'Inter', sans-serif" }}>
 
-      {/* Hero header strip */}
+      {/* Hero header */}
       <div style={{
-        background:   "#fff",
-        borderBottom: "1px solid #E3E8EF",
-        padding:      "56px 24px 40px",
+        background:   "linear-gradient(180deg, #0a1628 0%, #060d1f 100%)",
+        borderBottom: "1px solid rgba(59,130,246,0.12)",
+        padding:      "56px 24px 44px",
       }}>
-        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
+        {/* subtle grid */}
+        <div style={{
+          position:        "absolute",
+          inset:           0,
+          pointerEvents:   "none",
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.015) 1px, transparent 1px)",
+          backgroundSize:  "28px 28px",
+        }} />
+        {/* glow */}
+        <div style={{
+          position:   "absolute",
+          top:        0,
+          left:       "50%",
+          transform:  "translateX(-50%)",
+          width:      "700px",
+          height:     "260px",
+          background: "radial-gradient(ellipse at center, rgba(37,99,235,0.1) 0%, transparent 70%)",
+          filter:     "blur(50px)",
+          pointerEvents: "none",
+        }} />
+
+        <div style={{ maxWidth: "720px", margin: "0 auto", position: "relative" }}>
 
           {/* Live pill */}
           <div style={{
             display:      "inline-flex",
             alignItems:   "center",
             gap:          "7px",
-            background:   liveStatus === "live" ? "#F0FDF4" : liveStatus === "stale" ? "#FFFBEB" : "#FEF2F2",
-            border:       `1px solid ${liveStatus === "live" ? "#BBF7D0" : liveStatus === "stale" ? "#FDE68A" : "#FECACA"}`,
+            background:   liveStatus === "live"  ? "rgba(34,197,94,0.1)"  :
+                          liveStatus === "stale" ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.1)",
+            border:       `1px solid ${liveStatus === "live"  ? "rgba(34,197,94,0.3)"  :
+                                       liveStatus === "stale" ? "rgba(245,158,11,0.3)" : "rgba(239,68,68,0.3)"}`,
             borderRadius: "20px",
             padding:      "5px 12px 5px 8px",
             marginBottom: "20px",
@@ -114,7 +133,8 @@ export default function HistoryPage() {
             <span style={{
               fontSize:   "12px",
               fontWeight: 600,
-              color:      liveStatus === "live" ? "#15803D" : liveStatus === "stale" ? "#92400E" : "#991B1B",
+              color:      liveStatus === "live"  ? "#4ade80" :
+                          liveStatus === "stale" ? "#fbbf24" : "#f87171",
             }}>
               {liveStatus === "live"  && "Live — updating every 4s"}
               {liveStatus === "stale" && "No new transactions"}
@@ -125,23 +145,23 @@ export default function HistoryPage() {
           <h1 style={{
             fontSize:      "clamp(28px, 4vw, 40px)",
             fontWeight:    700,
-            color:         "#0A2540",
+            color:         "#e8f0ff",
             margin:        "0 0 10px",
             letterSpacing: "-0.025em",
             lineHeight:    1.1,
           }}>
             Transaction History
           </h1>
-          <p style={{ fontSize: "16px", color: "#64748B", margin: "0 0 36px", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "16px", color: "#4a6fa5", margin: "0 0 40px", lineHeight: 1.6 }}>
             Every agent payment that settles on Arbitrum One.
           </p>
 
           {/* Stat cards */}
           {stats && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
-              <StatCard label="Total executions"   value={String(stats.jobsToday)}    color="#2563EB" />
-              <StatCard label="Total USDC settled" value={`$${stats.usdcToday}`}      color="#059669" />
-              <StatCard label="Agents registered"  value={String(stats.agentsActive)} color="#7c3aed" />
+              <StatCard label="Total executions"   value={String(stats.jobsToday)}    color="#60a5fa" />
+              <StatCard label="Total USDC settled" value={`$${stats.usdcToday}`}      color="#34d399" />
+              <StatCard label="Agents registered"  value={String(stats.agentsActive)} color="#a78bfa" />
             </div>
           )}
         </div>
@@ -149,7 +169,7 @@ export default function HistoryPage() {
 
       {/* Feed */}
       <div style={{ maxWidth: "720px", margin: "0 auto", padding: "32px 24px 0" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {txs.length === 0 ? (
             <EmptyState />
           ) : (
@@ -174,17 +194,16 @@ export default function HistoryPage() {
           justifyContent: "center",
           gap:            "8px",
           margin:         "48px 0 64px",
-          color:          "#94A3B8",
         }}>
-          <span style={{ fontSize: "13px" }}>All transactions settle on</span>
-          <span style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB" }}>Arbitrum One</span>
+          <span style={{ fontSize: "13px", color: "#2d4a7a" }}>All transactions settle on</span>
+          <span style={{ fontSize: "13px", fontWeight: 600, color: "#3b82f6" }}>Arbitrum One</span>
           <span style={{
             fontSize:     "11px",
-            background:   "#EFF6FF",
-            border:       "1px solid #BFDBFE",
+            background:   "rgba(59,130,246,0.1)",
+            border:       "1px solid rgba(59,130,246,0.2)",
             padding:      "2px 8px",
             borderRadius: "20px",
-            color:        "#3B82F6",
+            color:        "#4a6fa5",
             fontFamily:   "'JetBrains Mono', monospace",
           }}>
             eip155:42161
@@ -198,30 +217,30 @@ export default function HistoryPage() {
 function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <div style={{
-      background:   "#fff",
-      border:       "1px solid #E3E8EF",
+      background:   "rgba(255,255,255,0.03)",
+      border:       "1px solid rgba(59,130,246,0.15)",
       borderRadius: "14px",
       padding:      "18px 16px",
       textAlign:    "center",
-      boxShadow:    "0 1px 4px rgba(10,37,64,0.04)",
+      backdropFilter: "blur(8px)",
     }}>
       <p style={{
         fontSize:   "24px",
         fontWeight: 700,
         color,
-        margin:     "0 0 4px",
+        margin:     "0 0 5px",
         fontFamily: "'JetBrains Mono', monospace",
         lineHeight: 1,
       }}>
         {value}
       </p>
-      <p style={{ fontSize: "12px", color: "#94A3B8", margin: 0, fontWeight: 500 }}>{label}</p>
+      <p style={{ fontSize: "12px", color: "#3a5580", margin: 0, fontWeight: 500 }}>{label}</p>
     </div>
   );
 }
 
 function LiveDot({ status }: { status: "live" | "stale" | "error" }) {
-  const colors = { live: "#22C55E", stale: "#F59E0B", error: "#EF4444" };
+  const colors = { live: "#22c55e", stale: "#f59e0b", error: "#ef4444" };
   return (
     <div style={{
       width:        "7px",
@@ -239,27 +258,27 @@ function EmptyState() {
     <div style={{
       textAlign:    "center",
       padding:      "72px 0",
-      background:   "#fff",
+      background:   "rgba(255,255,255,0.02)",
       borderRadius: "16px",
-      border:       "1px solid #E3E8EF",
+      border:       "1px solid rgba(59,130,246,0.1)",
     }}>
       <div style={{
-        width:        "48px",
-        height:       "48px",
-        borderRadius: "50%",
-        background:   "#EFF6FF",
-        display:      "flex",
-        alignItems:   "center",
-        justifyContent:"center",
-        margin:       "0 auto 16px",
-        fontSize:     "22px",
+        width:          "48px",
+        height:         "48px",
+        borderRadius:   "50%",
+        background:     "rgba(59,130,246,0.1)",
+        display:        "flex",
+        alignItems:     "center",
+        justifyContent: "center",
+        margin:         "0 auto 16px",
+        fontSize:       "22px",
       }}>
         📭
       </div>
-      <p style={{ fontSize: "15px", fontWeight: 600, color: "#0A2540", margin: "0 0 6px" }}>
+      <p style={{ fontSize: "15px", fontWeight: 600, color: "#c8d8f0", margin: "0 0 6px" }}>
         No transactions yet
       </p>
-      <p style={{ fontSize: "13px", color: "#94A3B8", margin: 0 }}>
+      <p style={{ fontSize: "13px", color: "#2d4a7a", margin: 0 }}>
         Transactions appear here within seconds of settling.
       </p>
     </div>
