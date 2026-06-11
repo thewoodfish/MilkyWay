@@ -139,9 +139,9 @@ export default function HistoryPage() {
           {/* Stat cards */}
           {stats && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
-              <StatCard label="Jobs today"    value={String(stats.jobsToday)}   color="#2563EB" />
-              <StatCard label="USDC settled"  value={`$${stats.usdcToday}`}     color="#059669" />
-              <StatCard label="Agents active" value={String(stats.agentsActive)} color="#7c3aed" />
+              <StatCard label="Executions (24h)"     value={String(stats.jobsToday)}    color="#2563EB" />
+              <StatCard label="USDC settled (24h)" value={`$${stats.usdcToday}`}      color="#059669" />
+              <StatCard label="Agents registered"  value={String(stats.agentsActive)} color="#7c3aed" />
             </div>
           )}
         </div>

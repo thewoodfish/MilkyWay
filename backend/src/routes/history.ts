@@ -99,39 +99,28 @@ router.get("/transactions", async (_req: Request, res: Response) => {
   }
 });
 
-// GET /api/history/stats — today's job stats, public
+// GET /api/history/stats — rolling 24h stats, public
 router.get("/stats", async (_req: Request, res: Response) => {
   try {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    const [jobs, agents] = await Promise.all([
+    const [jobs, agentCount] = await Promise.all([
       prisma.flowAgent.findMany({
-        where: {
-          status:     "COMPLETED",
-          executedAt: { gte: startOfDay }
-        },
-        select: { amountUsdc: true, agentId: true }
+        where:  { status: "COMPLETED", executedAt: { gte: since24h } },
+        select: { amountUsdc: true }
       }),
-      prisma.flowAgent.findMany({
-        where: {
-          status:     "COMPLETED",
-          executedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
-        },
-        select:   { agentId: true },
-        distinct: ["agentId"]
-      })
+      prisma.agent.count()
     ]);
 
-    const usdcToday = jobs.reduce(
+    const usdcTotal = jobs.reduce(
       (sum, j) => sum + parseFloat(j.amountUsdc || "0"),
       0
     );
 
     res.json({
       jobsToday:    jobs.length,
-      usdcToday:    usdcToday.toFixed(4),
-      agentsActive: agents.length
+      usdcToday:    usdcTotal.toFixed(4),
+      agentsActive: agentCount
     });
   } catch (err) {
     console.error("[history/stats]", err);
