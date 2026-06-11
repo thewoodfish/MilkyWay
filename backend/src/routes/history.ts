@@ -130,7 +130,7 @@ router.get("/stats", async (_req: Request, res: Response) => {
 
     res.json({
       jobsToday:    jobs.length,
-      usdcToday:    usdcToday.toFixed(2),
+      usdcToday:    usdcToday.toFixed(4),
       agentsActive: agents.length
     });
   } catch (err) {
