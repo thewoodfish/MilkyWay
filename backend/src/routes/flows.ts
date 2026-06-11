@@ -1,8 +1,8 @@
-import { Router, Response } from "express";
+import { Router, Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { ethers } from "ethers";
 import { prisma } from "../lib/db";
-import { authenticateJWT, AuthRequest } from "../middleware/auth";
+import { authenticateJWT, authenticateAny, AuthRequest } from "../middleware/auth";
 import { executeFlow } from "../services/engine";
 
 const router = Router();
