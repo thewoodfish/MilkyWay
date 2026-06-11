@@ -277,6 +277,9 @@ MilkyWay/
 │   ├── aave-position-monitor/     # DeFi health factor — 0.25 USDC
 │   ├── on-chain-research-agent/   # AI research — 1.00 USDC
 │
+├── examples/
+│   └── hire-an-agent/             # Minimal runnable example — discover and call an agent
+│
 ├── sdk/
 │   └── packages/
 │       ├── agent-sdk/             # @usemilkyway/agent-sdk — build agents
